@@ -1,12 +1,24 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { Clock, Moon, Sun, Settings } from "lucide-react";
+import { Clock, Moon, Sun, Settings, Pencil, Check } from "lucide-react";
 import {
   hideOverlayWindow,
   getTodayMarkdown,
   appendHistoryEntry,
   onHistoryUpdated,
+  saveTodayMarkdown,
 } from "@/lib/tauri";
+
+// KST(HH:MM:SS) 계산 유틸리티
+function getKstHms() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const kst = new Date(utcMs + 9 * 60 * 60000);
+  const hh = String(kst.getHours()).padStart(2, "0");
+  const mm = String(kst.getMinutes()).padStart(2, "0");
+  const ss = String(kst.getSeconds()).padStart(2, "0");
+  return { hh, mm, ss };
+}
 
 export default function App() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -16,12 +28,19 @@ export default function App() {
   const [markdownContent, setMarkdownContent] = React.useState("");
   const [lastMinute, setLastMinute] = React.useState("");
   const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editingContent, setEditingContent] = React.useState("");
+  const [isSaving, setIsSaving] = React.useState(false);
+  const editorRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const lastSavedRef = React.useRef<string>("");
+  const debounceIdRef = React.useRef<number | null>(null);
 
   // 마크다운 로드 함수
   const loadMarkdown = React.useCallback(async () => {
     try {
       const data = await getTodayMarkdown();
       setMarkdownContent(data.content);
+      lastSavedRef.current = data.content;
 
       // 마지막 시간 추출
       const lines = data.content.split("\n");
@@ -51,7 +70,8 @@ export default function App() {
         }
       }, 100);
     } catch (error) {
-      if (import.meta.env.DEV) console.error("[otra] 마크다운 로드 실패", error);
+      if (import.meta.env.DEV)
+        console.error("[otra] 마크다운 로드 실패", error);
       alert(
         `마크다운 로드 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -170,19 +190,128 @@ export default function App() {
     document.documentElement.classList.toggle("light");
   };
 
-  // ESC 키로 윈도우 숨기기
+  // 단축키: 편집 토글(Cmd/Ctrl+E), ESC 처리
   React.useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKey = (event: KeyboardEvent) => {
+      // 편집 토글 / 편집 중이면 현재 줄 타임스탬프 후 저장 종료
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "e") {
+        event.preventDefault();
+        event.stopPropagation();
+        if (isEditing) {
+          const el = editorRef.current;
+          const start = el ? el.selectionStart : editingContent.length;
+          const end = el ? el.selectionEnd : start;
+          const before = editingContent.slice(0, start);
+          const after = editingContent.slice(end);
+          const lineStart = before.lastIndexOf("\n") + 1;
+          const currentLine = before.slice(lineStart);
+
+          const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
+          const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
+          const hasTimestamp = tsRegex.test(currentLine);
+          const afterBullet = bulletMatch
+            ? currentLine.slice(bulletMatch[1].length)
+            : currentLine;
+          const hasContent = afterBullet.trim().length > 0;
+
+          let stampedLine = currentLine.replace(/\s+$/, "");
+          if (bulletMatch && hasContent && !hasTimestamp) {
+            const { hh, mm, ss } = getKstHms();
+            stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
+          }
+          const newContent =
+            editingContent.slice(0, lineStart) + stampedLine + after;
+
+          (async () => {
+            try {
+              setIsSaving(true);
+              if (newContent !== editingContent) {
+                setEditingContent(newContent);
+              }
+              await saveTodayMarkdown(newContent);
+              lastSavedRef.current = newContent;
+              await loadMarkdown();
+            } catch (error) {
+              if (import.meta.env.DEV)
+                console.error("[otra] Cmd+E 저장 실패:", error);
+            } finally {
+              setIsSaving(false);
+              setIsEditing(false);
+            }
+          })();
+        } else {
+          setEditingContent(markdownContent);
+          setIsEditing(true);
+        }
+        return;
+      }
+
+      // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
-        void hideOverlayWindow();
+        if (isEditing) {
+          // 편집 종료 시 저장 flush
+          if (editingContent !== lastSavedRef.current) {
+            (async () => {
+              try {
+                setIsSaving(true);
+                await saveTodayMarkdown(editingContent);
+                lastSavedRef.current = editingContent;
+                await loadMarkdown();
+              } catch (error) {
+                if (import.meta.env.DEV) console.error("[otra] 저장 실패:", error);
+              } finally {
+                setIsSaving(false);
+                setIsEditing(false);
+              }
+            })();
+          } else {
+            setIsEditing(false);
+          }
+        } else {
+          void hideOverlayWindow();
+        }
       }
     };
 
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isEditing, editingContent, markdownContent, loadMarkdown]);
+
+  // 편집 모드 진입 시 에디터 포커스
+  React.useEffect(() => {
+    if (isEditing) {
+      setTimeout(() => editorRef.current?.focus(), 50);
+    }
+  }, [isEditing]);
+
+  // 편집 중 자동 저장 (디바운스)
+  React.useEffect(() => {
+    if (!isEditing) return;
+    if (editingContent === lastSavedRef.current) return;
+
+    if (debounceIdRef.current) {
+      clearTimeout(debounceIdRef.current);
+    }
+    debounceIdRef.current = window.setTimeout(async () => {
+      try {
+        setIsSaving(true);
+        await saveTodayMarkdown(editingContent);
+        lastSavedRef.current = editingContent;
+      } catch (error) {
+        if (import.meta.env.DEV) console.error("[otra] 자동 저장 실패:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 600);
+
+    return () => {
+      if (debounceIdRef.current) {
+        clearTimeout(debounceIdRef.current);
+      }
+    };
+  }, [isEditing, editingContent]);
 
   return (
     <div
@@ -240,6 +369,84 @@ export default function App() {
             autoFocus
           />
         </form>
+        {isEditing ? (
+          <div
+            className="flex items-center gap-2"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={async () => {
+                // 편집 종료: 현재 줄에 타임스탬프 부착 후 저장/종료
+                let contentToSave = editingContent;
+                const el = editorRef.current;
+                if (el) {
+                  const start = el.selectionStart;
+                  const end = el.selectionEnd;
+                  const before = editingContent.slice(0, start);
+                  const after = editingContent.slice(end);
+                  const lineStart = before.lastIndexOf("\n") + 1;
+                  const currentLine = before.slice(lineStart);
+                  const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
+                  const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
+                  const hasTimestamp = tsRegex.test(currentLine);
+                  const afterBullet = bulletMatch
+                    ? currentLine.slice(bulletMatch[1].length)
+                    : currentLine;
+                  const hasContent = afterBullet.trim().length > 0;
+                  let stampedLine = currentLine.replace(/\s+$/, "");
+                  if (bulletMatch && hasContent && !hasTimestamp) {
+                    const { hh, mm, ss } = getKstHms();
+                    stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
+                  }
+                  const newContent =
+                    editingContent.slice(0, lineStart) + stampedLine + after;
+                  if (newContent !== editingContent) {
+                    setEditingContent(newContent);
+                    contentToSave = newContent;
+                  }
+                }
+                try {
+                  setIsSaving(true);
+                  if (contentToSave !== lastSavedRef.current) {
+                    await saveTodayMarkdown(contentToSave);
+                    lastSavedRef.current = contentToSave;
+                  }
+                  await loadMarkdown();
+                } catch (error) {
+                  if (import.meta.env.DEV)
+                    console.error("[otra] 저장 실패:", error);
+                } finally {
+                  setIsSaving(false);
+                  setIsEditing(false);
+                }
+              }}
+              className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
+                isDarkMode
+                  ? "border-white/10 bg-[#0a0d13]/80 text-slate-200"
+                  : "border-slate-200 bg-white text-slate-700"
+              }`}
+            >
+              <Check className="mr-1.5 h-3.5 w-3.5" /> 완료
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingContent(markdownContent);
+              setIsEditing(true);
+            }}
+            className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
+              isDarkMode
+                ? "border-white/10 bg-[#0a0d13]/80 text-slate-300"
+                : "border-slate-200 bg-white text-slate-700"
+            }`}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> 편집
+          </button>
+        )}
         <button
           type="button"
           onClick={toggleTheme}
@@ -270,41 +477,115 @@ export default function App() {
         }}
         style={{ pointerEvents: "auto" }}
       >
-        <div
-          className={`text-sm ${
-            isDarkMode ? "text-slate-300" : "text-slate-700"
-          }`}
-        >
-          <ReactMarkdown
-            components={{
-              h1: ({ children }) => (
-                <h1
-                  className={`mb-4 text-lg font-semibold ${
-                    isDarkMode ? "text-slate-100" : "text-slate-900"
-                  }`}
-                >
-                  {children}
-                </h1>
-              ),
-              h2: ({ children }) => (
-                <h2
-                  className={`mb-2 mt-4 text-base font-semibold ${
-                    isDarkMode ? "text-slate-200" : "text-slate-800"
-                  }`}
-                >
-                  {children}
-                </h2>
-              ),
-              ul: ({ children }) => (
-                <ul className="mb-2 ml-4 list-disc space-y-1">{children}</ul>
-              ),
-              li: ({ children }) => <li>{children}</li>,
-              p: ({ children }) => <p className="mb-2">{children}</p>,
+        {isEditing ? (
+          <textarea
+            ref={editorRef}
+            value={editingContent}
+            onChange={(e) => setEditingContent(e.target.value)}
+            className={`w-full h-full min-h-[300px] resize-none rounded-md border text-sm leading-6 outline-none ${
+              isDarkMode
+                ? "border-white/10 bg-[#0a0d13]/80 text-slate-100 placeholder:text-slate-500"
+                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
+            }`}
+            style={{
+              fontFamily:
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              padding: 12,
             }}
+            placeholder="# 오늘\n\n작업을 기록해보세요."
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+              }
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.metaKey &&
+                !e.ctrlKey &&
+                !e.altKey
+              ) {
+                // 현재 라인 끝에 타임스탬프가 없으면 부착하고, 다음 줄로 이동
+                const el = editorRef.current;
+                if (!el) return;
+                e.preventDefault();
+
+                const start = el.selectionStart;
+                const end = el.selectionEnd;
+                const before = editingContent.slice(0, start);
+                const after = editingContent.slice(end);
+                const lineStart = before.lastIndexOf("\n") + 1; // -1 => 0
+                const currentLine = before.slice(lineStart);
+
+                const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
+                const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
+                const hasTimestamp = tsRegex.test(currentLine);
+                const afterBullet = bulletMatch
+                  ? currentLine.slice(bulletMatch[1].length)
+                  : currentLine;
+                const hasContent = afterBullet.trim().length > 0;
+
+                let stampedLine = currentLine.replace(/\s+$/, "");
+                if (bulletMatch && hasContent && !hasTimestamp) {
+                  const { hh, mm, ss } = getKstHms();
+                  stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
+                }
+
+                const nextPrefix = "";
+                const newContent =
+                  editingContent.slice(0, lineStart) +
+                  stampedLine +
+                  "\n" +
+                  nextPrefix +
+                  after;
+                const newCaret =
+                  lineStart + stampedLine.length + 1 + nextPrefix.length;
+
+                setEditingContent(newContent);
+                // 커서 위치 복원
+                setTimeout(() => {
+                  const ta = editorRef.current;
+                  if (ta) ta.setSelectionRange(newCaret, newCaret);
+                }, 0);
+              }
+            }}
+          />
+        ) : (
+          <div
+            className={`text-sm ${
+              isDarkMode ? "text-slate-300" : "text-slate-700"
+            }`}
           >
-            {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
-          </ReactMarkdown>
-        </div>
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => (
+                  <h1
+                    className={`mb-4 text-lg font-semibold ${
+                      isDarkMode ? "text-slate-100" : "text-slate-900"
+                    }`}
+                  >
+                    {children}
+                  </h1>
+                ),
+                h2: ({ children }) => (
+                  <h2
+                    className={`mb-2 mt-4 text-base font-semibold ${
+                      isDarkMode ? "text-slate-200" : "text-slate-800"
+                    }`}
+                  >
+                    {children}
+                  </h2>
+                ),
+                ul: ({ children }) => (
+                  <ul className="mb-2 ml-4 list-disc space-y-1">{children}</ul>
+                ),
+                li: ({ children }) => <li>{children}</li>,
+                p: ({ children }) => <p className="mb-2">{children}</p>,
+              }}
+            >
+              {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
 
       {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
@@ -350,14 +631,31 @@ export default function App() {
           <span>설정</span>
         </button>
         <div
-          className={`flex items-center gap-3 text-[11px] uppercase tracking-[0.25em] ${
+          className={`flex items-center gap-4 text-[11px] uppercase tracking-[0.25em] ${
             isDarkMode ? "text-slate-500" : "text-slate-400"
           }`}
         >
-          <span className="inline-flex items-center gap-1">
-            <span>⌘</span>
-            <span>J</span>
+          <span
+            className="inline-flex items-center gap-2"
+            title="오버레이 열기/닫기"
+          >
+            <span className="tracking-normal">오버레이</span>
+            <span className="inline-flex items-center gap-1">
+              <span>⌘</span>
+              <span>J</span>
+            </span>
           </span>
+          <span
+            className="inline-flex items-center gap-2"
+            title="편집 모드 토글"
+          >
+            <span className="tracking-normal">편집</span>
+            <span className="inline-flex items-center gap-1">
+              <span>⌘</span>
+              <span>E</span>
+            </span>
+          </span>
+          {/* 자동 저장으로 저장 단축키 제거 */}
         </div>
       </div>
     </div>

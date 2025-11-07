@@ -111,6 +111,15 @@ export const getTodayMarkdown = async (): Promise<TodayMarkdown> => {
   return tauriInvoke<TodayMarkdown>("get_today_markdown");
 };
 
+export const saveTodayMarkdown = async (content: string): Promise<void> => {
+  try {
+    await tauriInvoke<void>("save_today_markdown", { content });
+  } catch (error) {
+    if (import.meta.env.DEV) console.error("[otra] saveTodayMarkdown 실패:", error);
+    throw error;
+  }
+};
+
 export const appendHistoryEntry = async (
   payload: AppendHistoryEntryPayload
 ): Promise<void> => {
