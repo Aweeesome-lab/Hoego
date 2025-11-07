@@ -1,0 +1,230 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1f2937 0%, #111827 60%, #0f172a 100%);
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.history-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 36px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.history-subtitle {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: rgba(203, 213, 225, 0.75);
+  word-break: break-all;
+}
+
+.ghost-button {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.12);
+  color: #f8fafc;
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.ghost-button:hover {
+  background: rgba(148, 163, 184, 0.22);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+.panel {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 20px;
+  padding: 22px 24px 26px;
+  backdrop-filter: blur(26px);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.45),
+    0 12px 36px rgba(15, 23, 42, 0.35);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.history-count {
+  font-size: 0.85rem;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.empty-state {
+  padding: 28px 18px;
+  text-align: center;
+  color: rgba(148, 163, 184, 0.85);
+  border: 1px dashed rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.history-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-file {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(71, 85, 105, 0.32);
+  transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-file:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.38);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.4);
+}
+
+.history-file header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.history-file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.history-file-date {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(125, 211, 252, 0.92);
+}
+
+.history-file-title {
+  margin: 4px 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f8fafc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-file-preview {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(203, 213, 225, 0.82);
+  line-height: 1.5;
+}
+
+.history-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-file-button {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.16);
+  color: #f8fafc;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.history-file-button:hover {
+  background: rgba(148, 163, 184, 0.26);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+.history-file-path {
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.7);
+  word-break: break-all;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .history-container {
+    padding: 28px 20px 40px;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .history-file {
+    padding: 16px 18px;
+  }
+
+  .history-file header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

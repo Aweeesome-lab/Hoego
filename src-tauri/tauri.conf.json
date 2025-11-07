@@ -1,0 +1,85 @@
+{
+  "build": {
+    "beforeBuildCommand": "npm run build:vite",
+    "beforeDevCommand": "npm run dev:vite",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "OTRA",
+    "version": "0.3.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "shell": {
+        "open": "^((mailto:[^\\s]+)|(tel:[^\\s]+)|(https?://[^\\s]+)|(/[^\\s].*))$"
+      },
+      "globalShortcut": {
+        "all": true
+      },
+      "window": {
+        "all": true
+      },
+      "dialog": {
+        "all": false
+      },
+      "fs": {
+        "all": false
+      },
+      "notification": {
+        "all": false
+      },
+      "path": {
+        "all": true
+      }
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "OTRA",
+        "width": 800,
+        "height": 600,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "visible": false,
+        "fullscreen": false,
+        "center": false,
+        "alwaysOnTop": true,
+        "focus": true,
+        "skipTaskbar": true,
+        "fileDropEnabled": false,
+        "url": "index.html"
+      },
+      {
+        "label": "history",
+        "title": "데일리 트래킹",
+        "width": 720,
+        "height": 640,
+        "resizable": true,
+        "visible": false,
+        "decorations": true,
+        "center": true,
+        "fullscreen": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "fileDropEnabled": true,
+        "url": "index.html#history"
+      }
+    ],
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    },
+    "macOSPrivateApi": true,
+    "bundle": {
+      "active": true,
+      "identifier": "com.tony.otra",
+      "targets": "all",
+      "icon": ["icons/icon.png"]
+    },
+    "security": {
+      "csp": null
+    }
+  }
+}

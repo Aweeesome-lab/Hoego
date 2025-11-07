@@ -1,0 +1,8 @@
+node_modules
+src-tauri
+.git
+.gitignore
+package-lock.json
+package.json
+Cargo.lock
+README.md

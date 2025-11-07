@@ -1,0 +1,23 @@
+[package]
+name = "otra"
+version = "0.3.0"
+edition = "2021"
+description = "Ambient time tracker overlay built with Tauri"
+authors = ["Tony"]
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+time = { version = "0.3", features = ["macros", "parsing", "formatting", "local-offset"] }
+tauri = { version = "1", features = [ "window-all", "path-all", "global-shortcut-all", "macos-private-api", "shell-open", "system-tray", "global-shortcut"] }
+core-foundation = "0.9"
+core-foundation-sys = "0.8"
+objc = "0.2"
+core-graphics = "0.23"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
