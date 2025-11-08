@@ -3,7 +3,15 @@ import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import type { ListItem, Code, InlineCode } from "mdast";
 import remarkGfm from "remark-gfm";
-import { Clock, Moon, Sun, Settings, Pencil, Check } from "lucide-react";
+import {
+  Clock,
+  Moon,
+  Sun,
+  Settings,
+  Pencil,
+  Check,
+  RotateCcw,
+} from "lucide-react";
 import {
   hideOverlayWindow,
   getTodayMarkdown,
@@ -34,6 +42,7 @@ export default function App() {
   const [isEditing, setIsEditing] = React.useState(false);
   const [editingContent, setEditingContent] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isSyncing, setIsSyncing] = React.useState(false);
   const editorRef = React.useRef<HTMLTextAreaElement | null>(null);
   const lastSavedRef = React.useRef<string>("");
   const debounceIdRef = React.useRef<number | null>(null);
@@ -510,6 +519,19 @@ export default function App() {
     [isDarkMode]
   );
 
+  const handleManualSync = React.useCallback(async () => {
+    if (isSyncing) return;
+    try {
+      setIsSyncing(true);
+      await loadMarkdown();
+    } catch (error) {
+      if (import.meta.env.DEV)
+        console.error("[otra] 마크다운 동기화 실패", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, loadMarkdown]);
+
   return (
     <div
       className={`relative flex h-full w-full flex-col overflow-hidden rounded-2xl backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${
@@ -633,6 +655,22 @@ export default function App() {
             <Pencil className="mr-1.5 h-3.5 w-3.5" /> 편집
           </button>
         )}
+        <button
+          type="button"
+          onClick={() => {
+            void handleManualSync();
+          }}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+            isDarkMode
+              ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+              : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+          } ${isSyncing ? "opacity-80" : ""}`}
+          onMouseDown={(e) => e.stopPropagation()}
+          disabled={isSyncing}
+          title="마크다운 동기화"
+        >
+          <RotateCcw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+        </button>
         <button
           type="button"
           onClick={toggleTheme}
