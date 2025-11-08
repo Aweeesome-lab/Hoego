@@ -1,5 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
+import type { ListItem, Code, InlineCode } from "mdast";
+import remarkGfm from "remark-gfm";
 import { Clock, Moon, Sun, Settings, Pencil, Check } from "lucide-react";
 import {
   hideOverlayWindow,
@@ -206,19 +209,7 @@ export default function App() {
           const lineStart = before.lastIndexOf("\n") + 1;
           const currentLine = before.slice(lineStart);
 
-          const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
-          const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
-          const hasTimestamp = tsRegex.test(currentLine);
-          const afterBullet = bulletMatch
-            ? currentLine.slice(bulletMatch[1].length)
-            : currentLine;
-          const hasContent = afterBullet.trim().length > 0;
-
-          let stampedLine = currentLine.replace(/\s+$/, "");
-          if (bulletMatch && hasContent && !hasTimestamp) {
-            const { hh, mm, ss } = getKstHms();
-            stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
-          }
+          const stampedLine = appendTimestampToLine(currentLine);
           const newContent =
             editingContent.slice(0, lineStart) + stampedLine + after;
 
@@ -260,7 +251,8 @@ export default function App() {
                 lastSavedRef.current = editingContent;
                 await loadMarkdown();
               } catch (error) {
-                if (import.meta.env.DEV) console.error("[otra] 저장 실패:", error);
+                if (import.meta.env.DEV)
+                  console.error("[otra] 저장 실패:", error);
               } finally {
                 setIsSaving(false);
                 setIsEditing(false);
@@ -312,6 +304,211 @@ export default function App() {
       }
     };
   }, [isEditing, editingContent]);
+
+  const appendTimestampToLine = React.useCallback((line: string) => {
+    const trimmedLine = line.replace(/\s+$/, "");
+    if (!trimmedLine) {
+      return trimmedLine;
+    }
+
+    const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
+    if (tsRegex.test(trimmedLine)) {
+      return trimmedLine;
+    }
+
+    const normalized = trimmedLine.trim();
+    if (
+      !normalized ||
+      normalized.startsWith("#") ||
+      normalized.startsWith(">") ||
+      normalized.startsWith("```")
+    ) {
+      return trimmedLine;
+    }
+
+    const bulletMatch = normalized.match(/^[-*+]\s+/);
+    const orderedMatch = normalized.match(/^\d+\.\s+/);
+    let content = normalized;
+    if (bulletMatch) {
+      content = normalized.slice(bulletMatch[0].length);
+    } else if (orderedMatch) {
+      content = normalized.slice(orderedMatch[0].length);
+    }
+
+    if (!content.trim()) {
+      return trimmedLine;
+    }
+
+    const { hh, mm, ss } = getKstHms();
+    return `${trimmedLine} (${hh}:${mm}:${ss})`;
+  }, []);
+
+  const markdownComponents = React.useMemo<Components>(
+    () => ({
+      h1: ({ node, children, ...props }) => (
+        <h1
+          {...props}
+          className={`mb-4 text-lg font-semibold ${
+            isDarkMode ? "text-slate-100" : "text-slate-900"
+          }`}
+        >
+          {children}
+        </h1>
+      ),
+      h2: ({ node, children, ...props }) => (
+        <h2
+          {...props}
+          className={`mb-2 mt-4 text-base font-semibold ${
+            isDarkMode ? "text-slate-200" : "text-slate-800"
+          }`}
+        >
+          {children}
+        </h2>
+      ),
+      h3: ({ node, children, ...props }) => (
+        <h3
+          {...props}
+          className={`mb-2 mt-3 text-sm font-semibold ${
+            isDarkMode ? "text-slate-200" : "text-slate-800"
+          }`}
+        >
+          {children}
+        </h3>
+      ),
+      ul: ({ node, children, ...props }) => (
+        <ul {...props} className="mb-2 ml-4 list-disc space-y-1">
+          {children}
+        </ul>
+      ),
+      ol: ({ node, children, ...props }) => (
+        <ol {...props} className="mb-2 ml-4 list-decimal space-y-1">
+          {children}
+        </ol>
+      ),
+      li: ({ node, children, ...props }) => {
+        const listItem = node as unknown as ListItem | undefined;
+        if (typeof listItem?.checked === "boolean") {
+          return (
+            <li
+              {...props}
+              className="flex items-start gap-2 leading-6"
+              style={{ listStyle: "none" }}
+            >
+              <input
+                type="checkbox"
+                checked={listItem.checked}
+                readOnly
+                className="mt-1 h-3.5 w-3.5 rounded border border-slate-400 bg-transparent accent-slate-500"
+              />
+              <span className="flex-1">{children}</span>
+            </li>
+          );
+        }
+        return <li {...props}>{children}</li>;
+      },
+      p: ({ node, children, ...props }) => (
+        <p {...props} className="mb-2 leading-6">
+          {children}
+        </p>
+      ),
+      a: ({ node, children, href, ...props }) => (
+        <a
+          {...props}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-500 underline decoration-sky-500/50 underline-offset-2 hover:text-sky-400"
+        >
+          {children}
+        </a>
+      ),
+      code: ({ node, className, children, ...props }) => {
+        const codeNode = node as unknown as Code | InlineCode | undefined;
+        const isInline = codeNode?.type === "inlineCode";
+        if (isInline) {
+          return (
+            <code
+              {...props}
+              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-xs ${
+                isDarkMode ? "bg-slate-50/10 text-slate-100" : ""
+              }`}
+            >
+              {children}
+            </code>
+          );
+        }
+        const language = className || "";
+        return (
+          <pre
+            className={`my-3 overflow-x-auto rounded-md bg-slate-900/80 p-3 text-xs text-slate-100 ${
+              !isDarkMode ? "bg-slate-900/90" : ""
+            }`}
+          >
+            <code className={language} {...props}>
+              {children}
+            </code>
+          </pre>
+        );
+      },
+      blockquote: ({ node, children, ...props }) => (
+        <blockquote
+          {...props}
+          className={`my-3 border-l-2 pl-3 ${
+            isDarkMode
+              ? "border-slate-500 text-slate-200"
+              : "border-slate-300 text-slate-700"
+          }`}
+        >
+          {children}
+        </blockquote>
+      ),
+      table: ({ node, children, ...props }) => (
+        <div className="my-3 overflow-x-auto">
+          <table
+            {...props}
+            className={`w-full border-collapse text-sm ${
+              isDarkMode ? "text-slate-200" : "text-slate-800"
+            }`}
+          >
+            {children}
+          </table>
+        </div>
+      ),
+      thead: ({ node, children, ...props }) => (
+        <thead
+          {...props}
+          className={isDarkMode ? "bg-white/5 text-slate-100" : "bg-slate-100"}
+        >
+          {children}
+        </thead>
+      ),
+      tbody: ({ node, children, ...props }) => (
+        <tbody {...props}>{children}</tbody>
+      ),
+      th: ({ node, children, ...props }) => (
+        <th
+          {...props}
+          className="border border-slate-200/30 px-3 py-2 text-left font-semibold"
+        >
+          {children}
+        </th>
+      ),
+      td: ({ node, children, ...props }) => (
+        <td
+          {...props}
+          className="border border-slate-200/30 px-3 py-2 align-top"
+        >
+          {children}
+        </td>
+      ),
+      del: ({ node, children, ...props }) => (
+        <del className="text-slate-400 decoration-2" {...props}>
+          {children}
+        </del>
+      ),
+    }),
+    [isDarkMode]
+  );
 
   return (
     <div
@@ -387,18 +584,7 @@ export default function App() {
                   const after = editingContent.slice(end);
                   const lineStart = before.lastIndexOf("\n") + 1;
                   const currentLine = before.slice(lineStart);
-                  const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
-                  const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
-                  const hasTimestamp = tsRegex.test(currentLine);
-                  const afterBullet = bulletMatch
-                    ? currentLine.slice(bulletMatch[1].length)
-                    : currentLine;
-                  const hasContent = afterBullet.trim().length > 0;
-                  let stampedLine = currentLine.replace(/\s+$/, "");
-                  if (bulletMatch && hasContent && !hasTimestamp) {
-                    const { hh, mm, ss } = getKstHms();
-                    stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
-                  }
+                  const stampedLine = appendTimestampToLine(currentLine);
                   const newContent =
                     editingContent.slice(0, lineStart) + stampedLine + after;
                   if (newContent !== editingContent) {
@@ -516,19 +702,7 @@ export default function App() {
                 const lineStart = before.lastIndexOf("\n") + 1; // -1 => 0
                 const currentLine = before.slice(lineStart);
 
-                const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
-                const bulletMatch = currentLine.match(/^(\s*[-*]\s+)/);
-                const hasTimestamp = tsRegex.test(currentLine);
-                const afterBullet = bulletMatch
-                  ? currentLine.slice(bulletMatch[1].length)
-                  : currentLine;
-                const hasContent = afterBullet.trim().length > 0;
-
-                let stampedLine = currentLine.replace(/\s+$/, "");
-                if (bulletMatch && hasContent && !hasTimestamp) {
-                  const { hh, mm, ss } = getKstHms();
-                  stampedLine = `${stampedLine} (${hh}:${mm}:${ss})`;
-                }
+                const stampedLine = appendTimestampToLine(currentLine);
 
                 const nextPrefix = "";
                 const newContent =
@@ -556,31 +730,8 @@ export default function App() {
             }`}
           >
             <ReactMarkdown
-              components={{
-                h1: ({ children }) => (
-                  <h1
-                    className={`mb-4 text-lg font-semibold ${
-                      isDarkMode ? "text-slate-100" : "text-slate-900"
-                    }`}
-                  >
-                    {children}
-                  </h1>
-                ),
-                h2: ({ children }) => (
-                  <h2
-                    className={`mb-2 mt-4 text-base font-semibold ${
-                      isDarkMode ? "text-slate-200" : "text-slate-800"
-                    }`}
-                  >
-                    {children}
-                  </h2>
-                ),
-                ul: ({ children }) => (
-                  <ul className="mb-2 ml-4 list-disc space-y-1">{children}</ul>
-                ),
-                li: ({ children }) => <li>{children}</li>,
-                p: ({ children }) => <p className="mb-2">{children}</p>,
-              }}
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
             >
               {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
             </ReactMarkdown>
