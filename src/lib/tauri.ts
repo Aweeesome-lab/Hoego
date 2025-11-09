@@ -35,6 +35,13 @@ export interface AppendHistoryEntryPayload {
   isNewMinute: boolean;
 }
 
+export interface AiSummaryEntry {
+  filename: string;
+  path: string;
+  createdAt?: string;
+  content: string;
+}
+
 // ============================================================================
 // 윈도우 제어
 // ============================================================================
@@ -137,6 +144,12 @@ export const appendHistoryEntry = async (
     if (import.meta.env.DEV) console.error("[otra] appendHistoryEntry 실패:", error);
     throw error;
   }
+};
+
+export const listAiSummaries = async (
+  limit = 10
+): Promise<AiSummaryEntry[]> => {
+  return tauriInvoke<AiSummaryEntry[]>("list_ai_summaries", { limit });
 };
 
 export const onHistoryUpdated = async (

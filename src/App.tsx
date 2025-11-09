@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import type { ListItem, Code, InlineCode } from "mdast";
+import * as Checkbox from "@radix-ui/react-checkbox";
 import remarkGfm from "remark-gfm";
 import {
   Clock,
@@ -11,14 +12,22 @@ import {
   Pencil,
   Check,
   RotateCcw,
+  PanelRightOpen,
+  PanelRightClose,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import * as Select from "@radix-ui/react-select";
 import {
   hideOverlayWindow,
   getTodayMarkdown,
   appendHistoryEntry,
   onHistoryUpdated,
   saveTodayMarkdown,
+  listAiSummaries,
 } from "@/lib/tauri";
+import type { AiSummaryEntry } from "@/lib/tauri";
+import type { Point, Position } from "unist";
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
@@ -46,6 +55,86 @@ export default function App() {
   const editorRef = React.useRef<HTMLTextAreaElement | null>(null);
   const lastSavedRef = React.useRef<string>("");
   const debounceIdRef = React.useRef<number | null>(null);
+  const [aiSummaries, setAiSummaries] = React.useState<AiSummaryEntry[]>([]);
+  const [selectedSummaryIndex, setSelectedSummaryIndex] = React.useState(0);
+  const [isSummariesLoading, setIsSummariesLoading] = React.useState(false);
+  const [summariesError, setSummariesError] = React.useState<string | null>(
+    null
+  );
+  const [isAiPanelOpen, setIsAiPanelOpen] = React.useState<boolean>(false);
+  const [aiPanelWidth, setAiPanelWidth] = React.useState<number>(() => {
+    const saved = Number(localStorage.getItem("otra.aiPanelWidth"));
+    return Number.isFinite(saved) && saved >= 240 ? saved : 360;
+  });
+  const [isResizing, setIsResizing] = React.useState(false);
+  const splitRef = React.useRef<HTMLDivElement | null>(null);
+  const selectedSummary = React.useMemo(
+    () => aiSummaries[selectedSummaryIndex] ?? null,
+    [aiSummaries, selectedSummaryIndex]
+  );
+
+  const getSummaryLabel = React.useCallback((summary: AiSummaryEntry) => {
+    if (!summary?.createdAt) {
+      return summary.filename;
+    }
+    const date = new Date(summary.createdAt);
+    if (Number.isNaN(date.getTime())) {
+      return summary.filename;
+    }
+    const datePart = date.toLocaleDateString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      weekday: "short",
+    });
+    const timePart = date.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${datePart} ${timePart}`;
+  }, []);
+
+  // 패널 너비 저장
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("otra.aiPanelWidth", String(aiPanelWidth));
+    } catch {}
+  }, [aiPanelWidth]);
+
+  // 리사이즈 마우스 이벤트
+  const handleStartResize = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isResizing) return;
+    const container = splitRef.current;
+    if (!container) return;
+
+    const onMove = (ev: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const raw = Math.round(rect.right - ev.clientX);
+      const min = 240;
+      const max = Math.max(300, Math.floor(rect.width * 0.7));
+      const next = Math.max(min, Math.min(raw, max));
+      setAiPanelWidth(next);
+    };
+    const onUp = () => setIsResizing(false);
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp, { once: true });
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [isResizing]);
+
+  // 패널 토글은 세션마다 기본 닫힘 상태로 시작
 
   // 마크다운 로드 함수
   const loadMarkdown = React.useCallback(async () => {
@@ -92,6 +181,27 @@ export default function App() {
     }
   }, []);
 
+  const loadAiSummaries = React.useCallback(async () => {
+    try {
+      setIsSummariesLoading(true);
+      setSummariesError(null);
+      const summaries = await listAiSummaries(10);
+      setAiSummaries(summaries);
+      setSelectedSummaryIndex((prev) => {
+        if (!summaries.length) return 0;
+        return Math.min(prev, summaries.length - 1);
+      });
+    } catch (error) {
+      if (import.meta.env.DEV)
+        console.error("[otra] AI summaries 로드 실패", error);
+      setSummariesError(error instanceof Error ? error.message : String(error));
+      setAiSummaries([]);
+      setSelectedSummaryIndex(0);
+    } finally {
+      setIsSummariesLoading(false);
+    }
+  }, []);
+
   // 현재 시간 업데이트
   React.useEffect(() => {
     const updateTime = () => {
@@ -111,11 +221,22 @@ export default function App() {
     void loadMarkdown();
   }, [loadMarkdown]);
 
+  React.useEffect(() => {
+    void loadAiSummaries();
+  }, [loadAiSummaries]);
+
+  React.useEffect(() => {
+    if (isAiPanelOpen && aiSummaries.length === 0 && !isSummariesLoading) {
+      void loadAiSummaries();
+    }
+  }, [isAiPanelOpen, aiSummaries.length, isSummariesLoading, loadAiSummaries]);
+
   // 마크다운 업데이트 리스너
   React.useEffect(() => {
     let unsubscribe: (() => void) | null = null;
     onHistoryUpdated(() => {
       void loadMarkdown();
+      void loadAiSummaries();
     }).then((unsub) => {
       unsubscribe = unsub;
     });
@@ -125,7 +246,7 @@ export default function App() {
         unsubscribe();
       }
     };
-  }, [loadMarkdown]);
+  }, [loadMarkdown, loadAiSummaries]);
 
   // 입력 필드 포커스
   React.useEffect(() => {
@@ -246,6 +367,21 @@ export default function App() {
         return;
       }
 
+      // 패널 토글: Cmd/Ctrl + Shift + P
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "p"
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!isAiPanelOpen && aiSummaries.length === 0 && !isSummariesLoading) {
+          void loadAiSummaries();
+        }
+        setIsAiPanelOpen((prev) => !prev);
+        return;
+      }
+
       // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
       if (event.key === "Escape") {
         event.preventDefault();
@@ -352,12 +488,128 @@ export default function App() {
     return `${trimmedLine} (${hh}:${mm}:${ss})`;
   }, []);
 
+  const getOffsetFromPoint = React.useCallback(
+    (point?: Point | null) => {
+      if (
+        !point ||
+        typeof point.line !== "number" ||
+        typeof point.column !== "number"
+      ) {
+        return null;
+      }
+
+      const lines = markdownContent.split("\n");
+      const lineIndex = Math.max(point.line - 1, 0);
+
+      let offset = 0;
+      for (let i = 0; i < lineIndex && i < lines.length; i += 1) {
+        offset += lines[i].length + 1;
+      }
+
+      const columnIndex = Math.max(point.column - 1, 0);
+      if (lineIndex < lines.length) {
+        const currentLine = lines[lineIndex] ?? "";
+        offset += Math.min(columnIndex, currentLine.length);
+      } else {
+        offset += columnIndex;
+      }
+
+      return offset;
+    },
+    [markdownContent]
+  );
+
+  const resolveOffsets = React.useCallback(
+    (position?: Position | null) => {
+      if (!position) {
+        return null;
+      }
+
+      const startOffset =
+        typeof position.start?.offset === "number"
+          ? position.start.offset
+          : getOffsetFromPoint(position.start);
+      const endOffset =
+        typeof position.end?.offset === "number"
+          ? position.end.offset
+          : getOffsetFromPoint(position.end);
+
+      if (
+        typeof startOffset !== "number" ||
+        typeof endOffset !== "number" ||
+        startOffset >= endOffset
+      ) {
+        return null;
+      }
+
+      return { startOffset, endOffset };
+    },
+    [getOffsetFromPoint]
+  );
+
+  const handleTaskCheckboxToggle = React.useCallback(
+    async (listItem: ListItem, nextChecked: boolean) => {
+      if (isSaving) {
+        return;
+      }
+
+      const offsets = resolveOffsets(listItem?.position ?? null);
+      if (!offsets) {
+        return;
+      }
+
+      const previousContent = markdownContent;
+      const { startOffset, endOffset } = offsets;
+      const slice = previousContent.slice(startOffset, endOffset);
+      const updatedSlice = slice.replace(
+        /\[( |x|X)\]/,
+        nextChecked ? "[x]" : "[ ]"
+      );
+
+      if (slice === updatedSlice) {
+        return;
+      }
+
+      const nextContent =
+        previousContent.slice(0, startOffset) +
+        updatedSlice +
+        previousContent.slice(endOffset);
+
+      if (nextContent === previousContent) {
+        return;
+      }
+
+      setMarkdownContent(nextContent);
+
+      try {
+        setIsSaving(true);
+        await saveTodayMarkdown(nextContent);
+        lastSavedRef.current = nextContent;
+      } catch (error) {
+        setMarkdownContent(previousContent);
+        lastSavedRef.current = previousContent;
+        if (import.meta.env.DEV) {
+          console.error("[otra] 체크박스 상태 저장 실패:", error);
+        }
+        alert(
+          `체크박스 업데이트 실패: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isSaving, markdownContent, resolveOffsets, saveTodayMarkdown]
+  );
+
   const markdownComponents = React.useMemo<Components>(
     () => ({
+      // 전체적으로 폰트 크기 축소
       h1: ({ node, children, ...props }) => (
         <h1
           {...props}
-          className={`mb-4 text-lg font-semibold ${
+          className={`mb-3 text-base font-semibold ${
             isDarkMode ? "text-slate-100" : "text-slate-900"
           }`}
         >
@@ -367,7 +619,7 @@ export default function App() {
       h2: ({ node, children, ...props }) => (
         <h2
           {...props}
-          className={`mb-2 mt-4 text-base font-semibold ${
+          className={`mb-2 mt-3 text-sm font-semibold ${
             isDarkMode ? "text-slate-200" : "text-slate-800"
           }`}
         >
@@ -377,7 +629,7 @@ export default function App() {
       h3: ({ node, children, ...props }) => (
         <h3
           {...props}
-          className={`mb-2 mt-3 text-sm font-semibold ${
+          className={`mb-1.5 mt-2 text-xs font-semibold ${
             isDarkMode ? "text-slate-200" : "text-slate-800"
           }`}
         >
@@ -385,12 +637,18 @@ export default function App() {
         </h3>
       ),
       ul: ({ node, children, ...props }) => (
-        <ul {...props} className="mb-2 ml-4 list-disc space-y-1">
+        <ul
+          {...props}
+          className="mb-1.5 ml-4 list-disc space-y-0.5 text-[13px] leading-5"
+        >
           {children}
         </ul>
       ),
       ol: ({ node, children, ...props }) => (
-        <ol {...props} className="mb-2 ml-4 list-decimal space-y-1">
+        <ol
+          {...props}
+          className="mb-1.5 ml-4 list-decimal space-y-0.5 text-[13px] leading-5"
+        >
           {children}
         </ol>
       ),
@@ -400,23 +658,47 @@ export default function App() {
           return (
             <li
               {...props}
-              className="flex items-start gap-2 leading-6"
+              className="flex items-start gap-2 leading-5 text-[13px]"
               style={{ listStyle: "none" }}
+              onMouseDown={(e) => e.stopPropagation()}
             >
-              <input
-                type="checkbox"
-                checked={listItem.checked}
-                readOnly
-                className="mt-1 h-3.5 w-3.5 rounded border border-slate-400 bg-transparent accent-slate-500"
-              />
-              <span className="flex-1">{children}</span>
+              <Checkbox.Root
+                className={`mt-1 flex h-4 w-4 items-center justify-center rounded border text-xs transition ${
+                  isDarkMode
+                    ? "border-white/20 bg-white/5 data-[state=checked]:border-emerald-300 data-[state=checked]:bg-emerald-500/20"
+                    : "border-slate-300 bg-white data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500/15"
+                } ${isSaving ? "opacity-60" : ""}`}
+                checked={Boolean(listItem.checked)}
+                disabled={isSaving}
+                onCheckedChange={(value) => {
+                  const next = value === true;
+                  if (next !== Boolean(listItem.checked)) {
+                    void handleTaskCheckboxToggle(listItem, next);
+                  }
+                }}
+                aria-label="작업 완료 여부"
+              >
+                <Checkbox.Indicator>
+                  <Check
+                    className={`h-3 w-3 ${
+                      isDarkMode ? "text-emerald-300" : "text-emerald-600"
+                    }`}
+                    strokeWidth={3}
+                  />
+                </Checkbox.Indicator>
+              </Checkbox.Root>
+              <div className="flex-1 select-text">{children}</div>
             </li>
           );
         }
-        return <li {...props}>{children}</li>;
+        return (
+          <li {...props} className="leading-5 text-[13px]">
+            {children}
+          </li>
+        );
       },
       p: ({ node, children, ...props }) => (
-        <p {...props} className="mb-2 leading-6">
+        <p {...props} className="mb-1.5 text-[13px] leading-5">
           {children}
         </p>
       ),
@@ -438,7 +720,7 @@ export default function App() {
           return (
             <code
               {...props}
-              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-xs ${
+              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-[11px] ${
                 isDarkMode ? "bg-slate-50/10 text-slate-100" : ""
               }`}
             >
@@ -475,7 +757,7 @@ export default function App() {
         <div className="my-3 overflow-x-auto">
           <table
             {...props}
-            className={`w-full border-collapse text-sm ${
+            className={`w-full border-collapse text-[13px] leading-5 ${
               isDarkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
@@ -497,7 +779,7 @@ export default function App() {
       th: ({ node, children, ...props }) => (
         <th
           {...props}
-          className="border border-slate-200/30 px-3 py-2 text-left font-semibold"
+          className="border border-slate-200/30 px-3 py-2 text-left text-[13px] font-semibold"
         >
           {children}
         </th>
@@ -505,7 +787,7 @@ export default function App() {
       td: ({ node, children, ...props }) => (
         <td
           {...props}
-          className="border border-slate-200/30 px-3 py-2 align-top"
+          className="border border-slate-200/30 px-3 py-2 align-top text-[13px]"
         >
           {children}
         </td>
@@ -516,7 +798,7 @@ export default function App() {
         </del>
       ),
     }),
-    [isDarkMode]
+    [handleTaskCheckboxToggle, isDarkMode, isSaving]
   );
 
   const handleManualSync = React.useCallback(async () => {
@@ -524,20 +806,19 @@ export default function App() {
     try {
       setIsSyncing(true);
       await loadMarkdown();
+      await loadAiSummaries();
     } catch (error) {
       if (import.meta.env.DEV)
         console.error("[otra] 마크다운 동기화 실패", error);
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, loadMarkdown]);
+  }, [isSyncing, loadMarkdown, loadAiSummaries]);
 
   return (
     <div
-      className={`relative flex h-full w-full flex-col overflow-hidden rounded-2xl backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${
-        isDarkMode
-          ? "border border-white/10 bg-[#0d1016]/80"
-          : "border border-slate-200/50 bg-white/90"
+      className={`relative flex h-full w-full flex-col overflow-hidden ${
+        isDarkMode ? "bg-[#0d1016]" : "bg-white"
       }`}
     >
       {/* 입력바 - 상단 고정, 패딩 영역에서 드래그 가능 */}
@@ -579,7 +860,7 @@ export default function App() {
               }
             }}
             placeholder="현재 작업을 입력하세요..."
-            className={`h-10 flex-1 min-w-0 rounded-md border-0 text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+            className={`h-9 flex-1 min-w-0 rounded-md border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 ${
               isDarkMode
                 ? "bg-slate-800/50 text-slate-100 placeholder:text-slate-500 focus:ring-slate-600 focus:bg-slate-800/80"
                 : "bg-slate-100/50 text-slate-900 placeholder:text-slate-400 focus:ring-slate-400 focus:bg-slate-100/80"
@@ -673,6 +954,32 @@ export default function App() {
         </button>
         <button
           type="button"
+          onClick={() => {
+            if (
+              !isAiPanelOpen &&
+              aiSummaries.length === 0 &&
+              !isSummariesLoading
+            ) {
+              void loadAiSummaries();
+            }
+            setIsAiPanelOpen((prev) => !prev);
+          }}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+            isDarkMode
+              ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+              : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title={isAiPanelOpen ? "AI 패널 닫기" : "AI 패널 열기"}
+        >
+          {isAiPanelOpen ? (
+            <PanelRightClose className="h-4 w-4" />
+          ) : (
+            <PanelRightOpen className="h-4 w-4" />
+          )}
+        </button>
+        <button
+          type="button"
           onClick={toggleTheme}
           className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
             isDarkMode
@@ -689,92 +996,233 @@ export default function App() {
         </button>
       </div>
 
-      {/* 마크다운 영역 - 스크롤 가능, 드래그 불가 */}
+      {/* 마크다운 + AI 피드백 영역: 드래그 리사이즈 */}
       <div
-        ref={markdownRef}
-        className={`relative z-20 flex-1 overflow-y-auto px-4 py-4 ${
-          isDarkMode ? "text-slate-100" : "text-slate-900"
-        }`}
-        onMouseDown={(e) => {
-          // 스크롤 영역에서는 드래그 방지
-          e.stopPropagation();
-        }}
-        style={{ pointerEvents: "auto" }}
+        ref={splitRef}
+        className="relative z-20 flex flex-1 items-stretch gap-0 px-0 py-0 overflow-hidden"
       >
-        {isEditing ? (
-          <textarea
-            ref={editorRef}
-            value={editingContent}
-            onChange={(e) => setEditingContent(e.target.value)}
-            className={`w-full h-full min-h-[300px] resize-none rounded-md border text-sm leading-6 outline-none ${
-              isDarkMode
-                ? "border-white/10 bg-[#0a0d13]/80 text-slate-100 placeholder:text-slate-500"
-                : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
-            }`}
-            style={{
-              fontFamily:
-                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-              padding: 12,
-            }}
-            placeholder="# 오늘\n\n작업을 기록해보세요."
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.stopPropagation();
-              }
-              if (
-                e.key === "Enter" &&
-                !e.shiftKey &&
-                !e.metaKey &&
-                !e.ctrlKey &&
-                !e.altKey
-              ) {
-                // 현재 라인 끝에 타임스탬프가 없으면 부착하고, 다음 줄로 이동
-                const el = editorRef.current;
-                if (!el) return;
-                e.preventDefault();
-
-                const start = el.selectionStart;
-                const end = el.selectionEnd;
-                const before = editingContent.slice(0, start);
-                const after = editingContent.slice(end);
-                const lineStart = before.lastIndexOf("\n") + 1; // -1 => 0
-                const currentLine = before.slice(lineStart);
-
-                const stampedLine = appendTimestampToLine(currentLine);
-
-                const nextPrefix = "";
-                const newContent =
-                  editingContent.slice(0, lineStart) +
-                  stampedLine +
-                  "\n" +
-                  nextPrefix +
-                  after;
-                const newCaret =
-                  lineStart + stampedLine.length + 1 + nextPrefix.length;
-
-                setEditingContent(newContent);
-                // 커서 위치 복원
-                setTimeout(() => {
-                  const ta = editorRef.current;
-                  if (ta) ta.setSelectionRange(newCaret, newCaret);
-                }, 0);
-              }
-            }}
-          />
-        ) : (
-          <div
-            className={`text-sm ${
-              isDarkMode ? "text-slate-300" : "text-slate-700"
-            }`}
-          >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={markdownComponents}
-            >
-              {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
-            </ReactMarkdown>
+        <section
+          className={`flex flex-1 flex-col overflow-hidden ${
+            isDarkMode
+              ? "bg-[#0f141f] text-slate-100"
+              : "bg-white text-slate-900"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200/20 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em]">
+            <span>오늘 일지</span>
+            {isEditing ? (
+              <span
+                className={`rounded-full px-3 py-1 text-[10px] ${
+                  isDarkMode
+                    ? "bg-white/10 text-slate-200"
+                    : "bg-slate-200 text-slate-700"
+                }`}
+              >
+                편집 중
+              </span>
+            ) : null}
           </div>
-        )}
+          <div className="flex-1 overflow-hidden px-3.5 py-2.5">
+            <div
+              ref={markdownRef}
+              className="h-full w-full overflow-y-auto"
+              onMouseDown={(e) => e.stopPropagation()}
+              style={{ pointerEvents: "auto" }}
+            >
+              {isEditing ? (
+                <textarea
+                  ref={editorRef}
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  className={`w-full min-h-[260px] resize-none border text-[13px] leading-5 outline-none ${
+                    isDarkMode
+                      ? "border-white/10 bg-[#05070c] text-slate-100 placeholder:text-slate-500"
+                      : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
+                  }`}
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    padding: 12,
+                  }}
+                  placeholder="# 오늘\n\n작업을 기록해보세요."
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                    }
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.metaKey &&
+                      !e.ctrlKey &&
+                      !e.altKey
+                    ) {
+                      const el = editorRef.current;
+                      if (!el) return;
+                      e.preventDefault();
+
+                      const start = el.selectionStart;
+                      const end = el.selectionEnd;
+                      const before = editingContent.slice(0, start);
+                      const after = editingContent.slice(end);
+                      const lineStart = before.lastIndexOf("\n") + 1;
+                      const currentLine = before.slice(lineStart);
+
+                      const stampedLine = appendTimestampToLine(currentLine);
+
+                      const nextPrefix = "";
+                      const newContent =
+                        editingContent.slice(0, lineStart) +
+                        stampedLine +
+                        "\n" +
+                        nextPrefix +
+                        after;
+                      const newCaret =
+                        lineStart + stampedLine.length + 1 + nextPrefix.length;
+
+                      setEditingContent(newContent);
+                      setTimeout(() => {
+                        const ta = editorRef.current;
+                        if (ta) ta.setSelectionRange(newCaret, newCaret);
+                      }, 0);
+                    }
+                  }}
+                />
+              ) : (
+                <div
+                  className={`prose prose-sm max-w-none ${
+                    isDarkMode
+                      ? "prose-invert text-slate-200"
+                      : "text-slate-700"
+                  }`}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
+                    {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {isAiPanelOpen ? (
+          <>
+            {/* 세로 리사이저 */}
+            <div
+              onMouseDown={handleStartResize}
+              onDoubleClick={() => setAiPanelWidth(360)}
+              title="드래그하여 너비 조절"
+              className={`relative z-30 w-1 cursor-col-resize select-none ${
+                isDarkMode ? "bg-white/10" : "bg-slate-200"
+              }`}
+            />
+            <aside
+              className={`hidden h-full shrink-0 flex-col overflow-hidden border-l md:flex ${
+                isDarkMode
+                  ? "border-white/10 bg-[#111625] text-slate-100"
+                  : "border-slate-200/70 bg-white text-slate-900"
+              }`}
+              style={{ width: aiPanelWidth }}
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/20 px-3 py-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
+                  피드백
+                </span>
+                <div className="flex items-center gap-2">
+                  <Select.Root
+                    value={String(selectedSummaryIndex)}
+                    onValueChange={(v) => setSelectedSummaryIndex(Number(v))}
+                  >
+                    <Select.Trigger
+                      className={`inline-flex h-8 items-center justify-between gap-2 rounded-md border px-2.5 text-xs ${
+                        isDarkMode
+                          ? "border-white/10 bg-[#0a0d13] text-slate-100"
+                          : "border-slate-200 bg-white text-slate-700"
+                      }`}
+                      aria-label="요약 선택"
+                    >
+                      <Select.Value placeholder="버전" />
+                      <Select.Icon>
+                        <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content
+                        className={`z-50 overflow-hidden rounded-md border bg-white text-slate-800 shadow ${
+                          isDarkMode
+                            ? "border-white/10 bg-[#0a0d13] text-slate-100"
+                            : "border-slate-200 bg-white text-slate-800"
+                        }`}
+                        position="popper"
+                        sideOffset={6}
+                      >
+                        <Select.ScrollUpButton className="flex items-center justify-center p-1">
+                          <ChevronUp className="h-3.5 w-3.5 opacity-60" />
+                        </Select.ScrollUpButton>
+                        <Select.Viewport className="p-1">
+                          {aiSummaries.map((summary, index) => (
+                            <Select.Item
+                              key={summary.path}
+                              value={String(index)}
+                              className={`relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-1.5 text-xs outline-none transition hover:bg-slate-100/70 data-[state=checked]:font-semibold ${
+                                isDarkMode
+                                  ? "hover:bg-white/10"
+                                  : "hover:bg-slate-100"
+                              }`}
+                            >
+                              <Select.ItemText>
+                                #{aiSummaries.length - index}{" "}
+                                {getSummaryLabel(summary)}
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="ml-auto">
+                                <Check className="h-3.5 w-3.5" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          ))}
+                        </Select.Viewport>
+                        <Select.ScrollDownButton className="flex items-center justify-center p-1">
+                          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                        </Select.ScrollDownButton>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                  {/* 패널이 펼쳐졌을 때 내부 닫기 버튼은 제거 */}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-3.5 py-3">
+                {summariesError ? (
+                  <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs leading-5 text-red-200">
+                    AI 피드백을 불러오지 못했어요.
+                    <br />
+                    {summariesError}
+                  </div>
+                ) : aiSummaries.length === 0 ? (
+                  <div className="rounded-md border border-slate-200/30 bg-slate-100/5 p-3 text-xs leading-5 text-slate-400">
+                    아직 저장된 AI 피드백이 없습니다.
+                  </div>
+                ) : (
+                  <div
+                    className={`prose prose-sm max-w-none ${
+                      isDarkMode
+                        ? "prose-invert text-slate-200"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={markdownComponents}
+                    >
+                      {selectedSummary?.content?.trim() ||
+                        "요약 내용이 없습니다."}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </>
+        ) : null}
       </div>
 
       {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
@@ -807,18 +1255,20 @@ export default function App() {
             : "border-slate-200/50 bg-slate-50/90"
         }`}
       >
-        <button
-          type="button"
-          className={`flex items-center gap-2 text-xs transition ${
-            isDarkMode
-              ? "text-slate-400 hover:text-slate-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <Settings className="h-4 w-4" />
-          <span>설정</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className={`flex items-center gap-2 text-xs transition ${
+              isDarkMode
+                ? "text-slate-400 hover:text-slate-200"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Settings className="h-4 w-4" />
+            <span>설정</span>
+          </button>
+        </div>
         <div
           className={`flex items-center gap-4 text-[11px] uppercase tracking-[0.25em] ${
             isDarkMode ? "text-slate-500" : "text-slate-400"
@@ -844,7 +1294,16 @@ export default function App() {
               <span>E</span>
             </span>
           </span>
-          {/* 자동 저장으로 저장 단축키 제거 */}
+          <span
+            className="inline-flex items-center gap-2"
+            title="히스토리 보기"
+          >
+            <span className="tracking-normal">히스토리</span>
+            <span className="inline-flex items-center gap-1">
+              <span>⌘</span>
+              <span>H</span>
+            </span>
+          </span>
         </div>
       </div>
     </div>
