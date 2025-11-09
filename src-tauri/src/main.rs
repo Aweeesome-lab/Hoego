@@ -44,15 +44,7 @@ struct HistoryState {
     directory: PathBuf,
 }
 
-// Debug logging macro: prints only in debug builds
-#[cfg(debug_assertions)]
-macro_rules! debug_log {
-    ($($arg:tt)*) => {{
-        println!($($arg)*);
-    }};
-}
-
-#[cfg(not(debug_assertions))]
+// Debug logging macro disabled: avoid stdout noise
 macro_rules! debug_log {
     ($($arg:tt)*) => {{}};
 }
@@ -64,6 +56,7 @@ struct AppendHistoryEntryPayload {
     #[allow(dead_code)]
     minute_key: Option<String>,
     task: String,
+    #[allow(dead_code)]
     is_new_minute: bool,
 }
 
@@ -90,6 +83,15 @@ struct TodayMarkdown {
     short_label: String,
     header_title: String,
     file_path: String,
+    content: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct AiSummaryFile {
+    filename: String,
+    path: String,
+    created_at: Option<String>,
     content: String,
 }
 
@@ -204,12 +206,24 @@ fn history_directory_path() -> Result<PathBuf, String> {
     Ok(base)
 }
 
+fn summaries_directory_path() -> Result<PathBuf, String> {
+    let mut base = tauri::api::path::document_dir().ok_or("문서 폴더를 찾을 수 없습니다")?;
+    base.push("OTRA");
+    base.push("summaries");
+    Ok(base)
+}
+
 fn ensure_history_dir(path: &Path) -> Result<(), String> {
     debug_log!("[otra] ensure_history_dir: {:?}", path);
     fs::create_dir_all(path)
         .map_err(|error| format!("디렉토리 생성 실패: {error}, 경로: {:?}", path))?;
     debug_log!("[otra] 디렉토리 확인/생성 완료: {:?}", path);
     Ok(())
+}
+
+fn ensure_summaries_dir(path: &Path) -> Result<(), String> {
+    fs::create_dir_all(path)
+        .map_err(|error| format!("AI 요약 디렉토리 생성 실패: {error}, 경로: {:?}", path))
 }
 
 fn format_date_label(date: &OffsetDateTime) -> String {
@@ -299,11 +313,11 @@ fn append_markdown_entry(
     debug_log!("[otra] 변환된 시간(KST): {:?}", kst_timestamp);
 
     // 시간 레이블 생성 (HH:MM 형식)
-    let time_label = kst_timestamp
+    let _time_label = kst_timestamp
         .format(&format_description!("[hour]:[minute]"))
         .map_err(|error| format!("시간 포맷 실패: {error}"))?;
 
-    debug_log!("[otra] 시간 레이블: {}", time_label);
+    debug_log!("[otra] 시간 레이블: {}", _time_label);
 
     let time_label_with_seconds = kst_timestamp
         .format(&format_description!("[hour]:[minute]:[second]"))
@@ -573,8 +587,8 @@ fn append_history_entry(
 
     // 파일에 항목 추가
     match append_markdown_entry(state.inner(), &payload) {
-        Ok(path) => {
-            debug_log!("[otra] 파일 저장 완료: {:?}", path);
+        Ok(_path) => {
+            debug_log!("[otra] 파일 저장 완료: {:?}", _path);
         }
         Err(e) => {
             eprintln!("[otra] 파일 저장 실패: {}", e);
@@ -615,6 +629,54 @@ fn save_today_markdown(
 #[tauri::command]
 fn list_history(state: State<'_, HistoryState>) -> Result<HistoryOverview, String> {
     collect_history(state.inner())
+}
+
+#[tauri::command]
+fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, String> {
+    let dir = summaries_directory_path()?;
+    ensure_summaries_dir(&dir)?;
+
+    let mut summaries: Vec<(OffsetDateTime, AiSummaryFile)> = fs::read_dir(&dir)
+        .map_err(|error| error.to_string())?
+        .filter_map(|entry| match entry {
+            Ok(entry) => {
+                let path = entry.path();
+                if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+                    return None;
+                }
+                let filename = entry.file_name().to_string_lossy().into_owned();
+                let content = fs::read_to_string(&path).unwrap_or_default();
+                let metadata = entry.metadata().ok();
+                let (sort_key, created_at) = metadata
+                    .and_then(|meta| meta.modified().ok())
+                    .map(|modified| {
+                        let odt: OffsetDateTime = modified.into();
+                        let iso = odt.format(&Rfc3339).unwrap_or_else(|_| odt.to_string());
+                        (odt, Some(iso))
+                    })
+                    .unwrap_or((OffsetDateTime::UNIX_EPOCH, None));
+
+                Some((
+                    sort_key,
+                    AiSummaryFile {
+                        filename,
+                        path: path.to_string_lossy().into_owned(),
+                        created_at,
+                        content,
+                    },
+                ))
+            }
+            Err(_) => None,
+        })
+        .collect();
+
+    summaries.sort_by(|a, b| b.0.cmp(&a.0));
+    let limit = limit.unwrap_or(10);
+    Ok(summaries
+        .into_iter()
+        .take(limit)
+        .map(|(_, summary)| summary)
+        .collect())
 }
 
 #[tauri::command]
@@ -747,6 +809,7 @@ fn main() {
             save_today_markdown,
             get_today_markdown,
             list_history,
+            list_ai_summaries,
             open_history_folder,
             hide_main_window,
             toggle_overlay_window,
@@ -781,8 +844,8 @@ fn main() {
         .on_window_event(|event| match event.event() {
             WindowEvent::Moved(position) => {
                 if event.window().label() == "main" {
-                    let pos = *position;
-                    debug_log!("[otra] 창 이동 이벤트: ({}, {})", pos.x, pos.y);
+                    let _pos = *position;
+                    debug_log!("[otra] 창 이동 이벤트: ({}, {})", _pos.x, _pos.y);
                 }
             }
             WindowEvent::CloseRequested { api, .. } => {
