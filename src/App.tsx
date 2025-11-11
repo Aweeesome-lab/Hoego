@@ -106,8 +106,7 @@ export default function App() {
     const boundedIndex = Math.min(selectedSummaryIndex, aiSummaries.length - 1);
     return String(boundedIndex);
   }, [aiSummaries.length, selectedSummaryIndex]);
-  const isAiContentLoading =
-    (isGeneratingAiFeedback || isSummariesLoading) && aiSummaries.length === 0;
+  const isAiContentLoading = false; // 스켈레톤을 표시하지 않음
 
   const getSummaryLabel = React.useCallback((summary: AiSummaryEntry) => {
     if (!summary?.createdAt) {
