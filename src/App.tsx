@@ -100,7 +100,8 @@ export default function App() {
 
   // Panel expand/collapse states
   const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(true);
-  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] = React.useState(true);
+  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
+    React.useState(true);
   const selectedSummary = React.useMemo(
     () => aiSummaries[selectedSummaryIndex] ?? null,
     [aiSummaries, selectedSummaryIndex]
@@ -130,7 +131,6 @@ export default function App() {
     });
     return `${datePart} ${timePart}`;
   }, []);
-
 
   // 회고 내용 자동 저장 (디바운스)
   React.useEffect(() => {
@@ -209,7 +209,6 @@ export default function App() {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
-
 
   // 마크다운 로드 함수
   const loadMarkdown = React.useCallback(async () => {
@@ -317,7 +316,6 @@ export default function App() {
     void loadAiSummaries();
   }, [loadAiSummaries]);
 
-
   // 마크다운 업데이트 리스너
   React.useEffect(() => {
     let unsubscribe: (() => void) | null = null;
@@ -420,7 +418,7 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key === "2") {
         event.preventDefault();
         event.stopPropagation();
-        setIsAiPanelExpanded(prev => !prev);
+        setIsAiPanelExpanded((prev) => !prev);
         return;
       }
 
@@ -428,7 +426,7 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key === "3") {
         event.preventDefault();
         event.stopPropagation();
-        setIsRetrospectPanelExpanded(prev => !prev);
+        setIsRetrospectPanelExpanded((prev) => !prev);
         return;
       }
 
@@ -472,7 +470,6 @@ export default function App() {
         }
         return;
       }
-
 
       // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
       if (event.key === "Escape") {
@@ -1045,41 +1042,43 @@ export default function App() {
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          <span>
-            {isGeneratingAiFeedback ? "생성 중..." : "AI 피드백"}
-          </span>
+          <span>{isGeneratingAiFeedback ? "생성 중..." : "AI 피드백"}</span>
         </button>
         <button
           type="button"
-          onClick={() => setIsAiPanelExpanded(prev => !prev)}
+          onClick={() => setIsAiPanelExpanded((prev) => !prev)}
           className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
             isAiPanelExpanded
               ? isDarkMode
                 ? "border-white/20 bg-white/10 text-slate-200"
                 : "border-slate-300 bg-slate-100 text-slate-700"
               : isDarkMode
-                ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
-                : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+              ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+              : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
           }`}
           onMouseDown={(e) => e.stopPropagation()}
-          title={isAiPanelExpanded ? "정리하기 패널 접기" : "정리하기 패널 펼치기"}
+          title={
+            isAiPanelExpanded ? "정리하기 패널 접기" : "정리하기 패널 펼치기"
+          }
         >
           <Brain className="h-4 w-4" />
         </button>
         <button
           type="button"
-          onClick={() => setIsRetrospectPanelExpanded(prev => !prev)}
+          onClick={() => setIsRetrospectPanelExpanded((prev) => !prev)}
           className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
             isRetrospectPanelExpanded
               ? isDarkMode
                 ? "border-white/20 bg-white/10 text-slate-200"
                 : "border-slate-300 bg-slate-100 text-slate-700"
               : isDarkMode
-                ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
-                : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+              ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+              : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
           }`}
           onMouseDown={(e) => e.stopPropagation()}
-          title={isRetrospectPanelExpanded ? "회고 패널 접기" : "회고 패널 펼치기"}
+          title={
+            isRetrospectPanelExpanded ? "회고 패널 접기" : "회고 패널 펼치기"
+          }
         >
           <NotebookPen className="h-4 w-4" />
         </button>
@@ -1140,7 +1139,7 @@ export default function App() {
           }`}
         >
           <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
-            <span>쏟아내기</span>
+            <span>쏟아내기(dump)</span>
             {isEditing ? (
               <span
                 className={`rounded-full px-3 py-1 text-[10px] ${
@@ -1249,133 +1248,133 @@ export default function App() {
           >
             <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
               <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
-                정리하기
+                정리하기(feedback)
               </span>
-                <div className="flex items-center gap-3">
-                  {isGeneratingAiFeedback && (
-                    <span
-                      className={`flex items-center gap-1 text-[11px] ${
-                        isDarkMode ? "text-sky-300" : "text-blue-500"
-                      }`}
-                    >
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      생성 중...
-                    </span>
-                  )}
-                  {aiSummaries.length > 0 && aiSelectValue !== undefined && (
-                    <Select.Root
-                      value={aiSelectValue}
-                      onValueChange={(v) => setSelectedSummaryIndex(Number(v))}
-                    >
-                      <Select.Trigger
-                        className={`inline-flex h-8 items-center justify-between gap-2 rounded-md border px-2.5 text-xs ${
-                          isDarkMode
-                            ? "border-white/10 bg-[#0a0d13] text-slate-100"
-                            : "border-slate-200 bg-white text-slate-700"
-                        }`}
-                        aria-label="요약 선택"
-                      >
-                        <Select.Value placeholder="버전" />
-                        <Select.Icon>
-                          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-                        </Select.Icon>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content
-                          className={`z-50 overflow-hidden rounded-md border bg-white text-slate-800 shadow ${
-                            isDarkMode
-                              ? "border-white/10 bg-[#0a0d13] text-slate-100"
-                              : "border-slate-200 bg-white text-slate-800"
-                          }`}
-                          position="popper"
-                          sideOffset={6}
-                        >
-                          <Select.ScrollUpButton className="flex items-center justify-center p-1">
-                            <ChevronUp className="h-3.5 w-3.5 opacity-60" />
-                          </Select.ScrollUpButton>
-                          <Select.Viewport className="p-1">
-                            {aiSummaries.map((summary, index) => (
-                              <Select.Item
-                                key={summary.path}
-                                value={String(index)}
-                                className={`relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-1.5 text-xs outline-none transition hover:bg-slate-100/70 data-[state=checked]:font-semibold ${
-                                  isDarkMode
-                                    ? "hover:bg-white/10"
-                                    : "hover:bg-slate-100"
-                                }`}
-                              >
-                                <Select.ItemText>
-                                  #{aiSummaries.length - index}{" "}
-                                  {getSummaryLabel(summary)}
-                                </Select.ItemText>
-                                <Select.ItemIndicator className="ml-auto">
-                                  <Check className="h-3.5 w-3.5" />
-                                </Select.ItemIndicator>
-                              </Select.Item>
-                            ))}
-                          </Select.Viewport>
-                          <Select.ScrollDownButton className="flex items-center justify-center p-1">
-                            <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                          </Select.ScrollDownButton>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
-                  )}
-                </div>
-            </div>
-            <div className="flex-1 overflow-y-auto px-3.5 py-3">
-                {isGeneratingAiFeedback ? (
-                  <div className="space-y-4">
-                    <div className="mb-2 text-xs font-medium text-slate-400">
-                      AI 피드백 생성 중...
-                    </div>
-                    {[0, 1, 2, 3].map((row) => (
-                      <div key={row} className="space-y-2">
-                        <div
-                          className={`h-3.5 w-2/3 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-full rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-5/6 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : summariesError ? (
-                  <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs leading-5 text-red-200">
-                    AI 피드백을 불러오지 못했어요.
-                    <br />
-                    {summariesError}
-                  </div>
-                ) : aiSummaries.length === 0 ? (
-                  <div className="rounded-md border border-slate-200/30 bg-slate-100/5 p-3 text-xs leading-5 text-slate-400">
-                    오늘 작성된 AI 피드백이 없습니다.
-                  </div>
-                ) : (
-                  <div
-                    className={`prose prose-sm max-w-none ${
-                      isDarkMode
-                        ? "prose-invert text-slate-200"
-                        : "text-slate-700"
+              <div className="flex items-center gap-3">
+                {isGeneratingAiFeedback && (
+                  <span
+                    className={`flex items-center gap-1 text-[11px] ${
+                      isDarkMode ? "text-sky-300" : "text-blue-500"
                     }`}
                   >
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={markdownComponents}
-                    >
-                      {selectedSummary?.content?.trim() ||
-                        "요약 내용이 없습니다."}
-                    </ReactMarkdown>
-                  </div>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    생성 중...
+                  </span>
                 )}
+                {aiSummaries.length > 0 && aiSelectValue !== undefined && (
+                  <Select.Root
+                    value={aiSelectValue}
+                    onValueChange={(v) => setSelectedSummaryIndex(Number(v))}
+                  >
+                    <Select.Trigger
+                      className={`inline-flex h-8 items-center justify-between gap-2 rounded-md border px-2.5 text-xs ${
+                        isDarkMode
+                          ? "border-white/10 bg-[#0a0d13] text-slate-100"
+                          : "border-slate-200 bg-white text-slate-700"
+                      }`}
+                      aria-label="요약 선택"
+                    >
+                      <Select.Value placeholder="버전" />
+                      <Select.Icon>
+                        <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content
+                        className={`z-50 overflow-hidden rounded-md border bg-white text-slate-800 shadow ${
+                          isDarkMode
+                            ? "border-white/10 bg-[#0a0d13] text-slate-100"
+                            : "border-slate-200 bg-white text-slate-800"
+                        }`}
+                        position="popper"
+                        sideOffset={6}
+                      >
+                        <Select.ScrollUpButton className="flex items-center justify-center p-1">
+                          <ChevronUp className="h-3.5 w-3.5 opacity-60" />
+                        </Select.ScrollUpButton>
+                        <Select.Viewport className="p-1">
+                          {aiSummaries.map((summary, index) => (
+                            <Select.Item
+                              key={summary.path}
+                              value={String(index)}
+                              className={`relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-1.5 text-xs outline-none transition hover:bg-slate-100/70 data-[state=checked]:font-semibold ${
+                                isDarkMode
+                                  ? "hover:bg-white/10"
+                                  : "hover:bg-slate-100"
+                              }`}
+                            >
+                              <Select.ItemText>
+                                #{aiSummaries.length - index}{" "}
+                                {getSummaryLabel(summary)}
+                              </Select.ItemText>
+                              <Select.ItemIndicator className="ml-auto">
+                                <Check className="h-3.5 w-3.5" />
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          ))}
+                        </Select.Viewport>
+                        <Select.ScrollDownButton className="flex items-center justify-center p-1">
+                          <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                        </Select.ScrollDownButton>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3.5 py-3">
+              {isGeneratingAiFeedback ? (
+                <div className="space-y-4">
+                  <div className="mb-2 text-xs font-medium text-slate-400">
+                    AI 피드백 생성 중...
+                  </div>
+                  {[0, 1, 2, 3].map((row) => (
+                    <div key={row} className="space-y-2">
+                      <div
+                        className={`h-3.5 w-2/3 rounded-full ${
+                          isDarkMode ? "bg-white/10" : "bg-slate-200"
+                        } animate-pulse`}
+                      />
+                      <div
+                        className={`h-2.5 w-full rounded-full ${
+                          isDarkMode ? "bg-white/10" : "bg-slate-200"
+                        } animate-pulse`}
+                      />
+                      <div
+                        className={`h-2.5 w-5/6 rounded-full ${
+                          isDarkMode ? "bg-white/10" : "bg-slate-200"
+                        } animate-pulse`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : summariesError ? (
+                <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs leading-5 text-red-200">
+                  AI 피드백을 불러오지 못했어요.
+                  <br />
+                  {summariesError}
+                </div>
+              ) : aiSummaries.length === 0 ? (
+                <div className="rounded-md border border-slate-200/30 bg-slate-100/5 p-3 text-xs leading-5 text-slate-400">
+                  오늘 작성된 AI 피드백이 없습니다.
+                </div>
+              ) : (
+                <div
+                  className={`prose prose-sm max-w-none ${
+                    isDarkMode
+                      ? "prose-invert text-slate-200"
+                      : "text-slate-700"
+                  }`}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
+                    {selectedSummary?.content?.trim() ||
+                      "요약 내용이 없습니다."}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -1390,7 +1389,7 @@ export default function App() {
             }`}
           >
             <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
-              <span>회고하기</span>
+              <span>회고하기(retrospect)</span>
               {isSavingRetrospect && (
                 <span
                   className={`rounded-full px-3 py-1 text-[10px] ${
@@ -1404,30 +1403,29 @@ export default function App() {
               )}
             </div>
             <div className="flex-1 overflow-hidden px-3.5 py-2.5">
-            <div className="h-full w-full overflow-y-auto">
-              <textarea
-                ref={retrospectRef}
-                value={retrospectContent}
-                onChange={(e) => setRetrospectContent(e.target.value)}
-                className={`w-full min-h-[260px] resize-none border-0 text-[13px] leading-5 outline-none ${
-                  isDarkMode
-                    ? "bg-[#05070c] text-slate-100 placeholder:text-slate-500"
-                    : "bg-white text-slate-900 placeholder:text-slate-400"
-                }`}
-                style={{
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                  padding: 12,
-                  height: '100%',
-                }}
-                placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
-              />
-            </div>
+              <div className="h-full w-full overflow-y-auto">
+                <textarea
+                  ref={retrospectRef}
+                  value={retrospectContent}
+                  onChange={(e) => setRetrospectContent(e.target.value)}
+                  className={`w-full min-h-[260px] resize-none border-0 text-[13px] leading-5 outline-none ${
+                    isDarkMode
+                      ? "bg-[#05070c] text-slate-100 placeholder:text-slate-500"
+                      : "bg-white text-slate-900 placeholder:text-slate-400"
+                  }`}
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    padding: 12,
+                    height: "100%",
+                  }}
+                  placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
+                />
+              </div>
             </div>
           </section>
         )}
       </div>
-
 
       {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
       {/* 상단 가장자리 */}
@@ -1495,10 +1493,7 @@ export default function App() {
               <span>E</span>
             </span>
           </span>
-          <span
-            className="inline-flex items-center gap-2"
-            title="AI 패널 토글"
-          >
+          <span className="inline-flex items-center gap-2" title="AI 패널 토글">
             <span className="tracking-normal">AI</span>
             <span className="inline-flex items-center gap-1">
               <span>⌘</span>
