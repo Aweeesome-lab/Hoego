@@ -559,16 +559,9 @@ fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         )
     });
 
-    // 5. 현재 윈도우 크기 가져오기 (동적으로 처리)
-    let window_size = window.inner_size()?;
-    let window_width_logical = window_size.width as f64;
-    let window_height_logical = window_size.height as f64;
-
-    debug_log!(
-        "[otra] 윈도우 크기: {}x{} (논리)",
-        window_width_logical,
-        window_height_logical
-    );
+    // 5. 고정 윈도우 크기로 중앙 좌표 계산 (tauri.conf.json과 동일)
+    const WINDOW_WIDTH: f64 = 1000.0;
+    const WINDOW_HEIGHT: f64 = 700.0;
 
     // 6. 모니터/창 크기를 모두 '논리 좌표계'로 변환해서 중앙 좌표 계산
     let origin_x_logical = origin_x as f64 / scale_factor;
@@ -579,9 +572,9 @@ fn toggle_overlay(window: &Window) -> tauri::Result<()> {
     let center_x_logical = origin_x_logical + width_logical / 2.0;
     let center_y_logical = origin_y_logical + height_logical / 2.0;
 
-    // 실제 윈도우 크기를 사용하여 중앙 정렬
-    let pos_x_logical = center_x_logical - window_width_logical / 2.0;
-    let pos_y_logical = center_y_logical - window_height_logical / 2.0;
+    // 고정 크기를 사용하여 중앙 정렬
+    let pos_x_logical = center_x_logical - WINDOW_WIDTH / 2.0;
+    let pos_y_logical = center_y_logical - WINDOW_HEIGHT / 2.0;
 
     // 7. 최종 중앙 위치로 이동 후 표시
     window.set_position(Position::Logical(LogicalPosition::new(
