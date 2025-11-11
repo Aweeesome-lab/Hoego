@@ -20,6 +20,7 @@ pnpm-debug.log*
 coverage/
 Thumbs.db
 .tauri/
+.claude/
  
 # Local development assets (not for commit)
 image/

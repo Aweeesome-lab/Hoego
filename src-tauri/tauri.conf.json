@@ -24,7 +24,10 @@
         "all": false
       },
       "fs": {
-        "all": false
+        "all": true
+      },
+      "process": {
+        "all": true
       },
       "notification": {
         "all": false
@@ -49,7 +52,7 @@
         "focus": true,
         "skipTaskbar": true,
         "fileDropEnabled": false,
-        "url": "index.html"
+        "url": "src/index.html"
       },
       {
         "label": "history",
@@ -64,7 +67,22 @@
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "fileDropEnabled": true,
-        "url": "index.html#history"
+        "url": "src/index.html#history"
+      },
+      {
+        "label": "settings",
+        "title": "설정",
+        "width": 900,
+        "height": 700,
+        "resizable": true,
+        "visible": false,
+        "decorations": true,
+        "center": true,
+        "fullscreen": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": false,
+        "fileDropEnabled": false,
+        "url": "src/settings.html"
       }
     ],
     "systemTray": {

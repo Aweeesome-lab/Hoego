@@ -1,7 +1,10 @@
+mod llm;
+
 use serde::{Deserialize, Serialize};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use tauri::api::shell;
 use tauri::{
     AppHandle, CustomMenuItem, GlobalShortcutManager, LogicalPosition, Manager, PhysicalPosition,
@@ -224,6 +227,39 @@ fn ensure_history_dir(path: &Path) -> Result<(), String> {
 fn ensure_summaries_dir(path: &Path) -> Result<(), String> {
     fs::create_dir_all(path)
         .map_err(|error| format!("AI 요약 디렉토리 생성 실패: {error}, 경로: {:?}", path))
+}
+
+
+fn write_ai_summary_file(date: &OffsetDateTime, content: &str) -> Result<AiSummaryFile, String> {
+    let dir = summaries_directory_path()?;
+    ensure_summaries_dir(&dir)?;
+
+    let date_key = date
+        .format(&format_description!(
+            "[year][month][day]-[hour][minute][second]"
+        ))
+        .map_err(|error| error.to_string())?;
+
+    let mut filename = format!("ai-feedback-{date_key}.md");
+    let mut path = dir.join(&filename);
+    let mut suffix = 1;
+
+    while path.exists() {
+        filename = format!("ai-feedback-{date_key}-{suffix}.md");
+        path = dir.join(&filename);
+        suffix += 1;
+    }
+
+    fs::write(&path, content.as_bytes()).map_err(|error| format!("AI 요약 저장 실패: {error}"))?;
+
+    let created_at = date.format(&Rfc3339).ok();
+
+    Ok(AiSummaryFile {
+        filename,
+        path: path.to_string_lossy().into_owned(),
+        created_at,
+        content: content.to_string(),
+    })
 }
 
 fn format_date_label(date: &OffsetDateTime) -> String {
@@ -464,6 +500,7 @@ fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         Some(pos) => pos,
         None => {
             eprintln!("[otra] 커서 위치를 가져올 수 없습니다");
+            window.set_always_on_top(true)?;
             window.show()?;
             window.set_focus()?;
             return Ok(());
@@ -537,22 +574,12 @@ fn toggle_overlay(window: &Window) -> tauri::Result<()> {
     let pos_x_logical = center_x_logical - OVERLAY_LOGICAL_WIDTH / 2.0;
     let pos_y_logical = center_y_logical - OVERLAY_LOGICAL_HEIGHT / 2.0;
 
-    debug_log!(
-        "[otra] 계산(logical): 모니터 중앙=({:.2}, {:.2}), scale_factor={:.2}, 창(논리)=({}, {}), 최종 위치=({:.2}, {:.2})",
-        center_x_logical,
-        center_y_logical,
-        scale_factor,
-        OVERLAY_LOGICAL_WIDTH as i32,
-        OVERLAY_LOGICAL_HEIGHT as i32,
-        pos_x_logical,
-        pos_y_logical
-    );
-
     // 6. 최종 중앙 위치로 이동 후 표시
     window.set_position(Position::Logical(LogicalPosition::new(
         pos_x_logical.round(),
         pos_y_logical.round(),
     )))?;
+    window.set_always_on_top(true)?;
     window.show()?;
     window.set_focus()?;
 
@@ -632,9 +659,65 @@ fn list_history(state: State<'_, HistoryState>) -> Result<HistoryOverview, Strin
 }
 
 #[tauri::command]
+async fn generate_ai_feedback(
+    history: State<'_, HistoryState>,
+    llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<AiSummaryFile, String> {
+    let now = current_local_time()?;
+    let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
+    let today_content = fs::read_to_string(&today_path).unwrap_or_default();
+
+    if today_content.trim().is_empty() {
+        return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
+    }
+
+    eprintln!("[AI Feedback] Today's content length: {} chars", today_content.len());
+    eprintln!("[AI Feedback] First 200 chars: {}", &today_content.chars().take(200).collect::<String>());
+
+    // 길이 조정: 코치형 피드백(Paragraph)로 500단어 내외 요청 → 충분한 밀도의 결과
+    let request = llm::summarize::SummaryRequest {
+        content: today_content,
+        style: None, // business_journal_coach 사용
+        max_length: Some(500),
+        model_id: None,
+    };
+
+    let summary = match tokio::time::timeout(
+        std::time::Duration::from_secs(90),
+        llm::summarize::summarize_note(llm_state, request),
+    )
+    .await
+    {
+        Ok(result) => result?,
+        Err(_) => return Err("요약 생성 시간이 초과되었습니다 (90초)".into()),
+    };
+
+    let summary_body = summary.summary.trim();
+    let markdown = format!(
+        "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms*",
+        format_date_label(&now),
+        if summary_body.is_empty() {
+            "(생성된 요약이 비어 있습니다)".to_string()
+        } else {
+            summary_body.to_string()
+        },
+        summary.model_used,
+        summary.processing_time_ms
+    );
+
+    write_ai_summary_file(&now, &markdown)
+}
+
+#[tauri::command]
 fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, String> {
     let dir = summaries_directory_path()?;
     ensure_summaries_dir(&dir)?;
+
+    // Get today's date in YYYYMMDD format
+    let today = current_local_time()?;
+    let today_date_key = today
+        .format(&format_description!("[year][month][day]"))
+        .map_err(|error| error.to_string())?;
 
     let mut summaries: Vec<(OffsetDateTime, AiSummaryFile)> = fs::read_dir(&dir)
         .map_err(|error| error.to_string())?
@@ -645,6 +728,12 @@ fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, String>
                     return None;
                 }
                 let filename = entry.file_name().to_string_lossy().into_owned();
+
+                // Filter for today's summaries only (ai-feedback-YYYYMMDD*.md pattern)
+                if !filename.starts_with(&format!("ai-feedback-{today_date_key}")) {
+                    return None;
+                }
+
                 let content = fs::read_to_string(&path).unwrap_or_default();
                 let metadata = entry.metadata().ok();
                 let (sort_key, created_at) = metadata
@@ -715,6 +804,20 @@ fn set_window_position(app: AppHandle, position: WindowPositionPayload) -> Resul
 }
 
 #[tauri::command]
+fn open_llm_settings(app: AppHandle) -> Result<(), String> {
+    open_settings_window(&app)
+}
+
+fn open_settings_window(app: &AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_window("settings") {
+        window.set_always_on_top(true).map_err(|e| e.to_string())?;
+        window.show().map_err(|e| e.to_string())?;
+        window.set_focus().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn get_window_position(app: AppHandle) -> Result<Option<WindowPositionPayload>, String> {
     if let Some(window) = app.get_window("main") {
         match window.outer_position() {
@@ -733,12 +836,14 @@ fn get_window_position(app: AppHandle) -> Result<Option<WindowPositionPayload>, 
 fn build_tray() -> SystemTray {
     let toggle_overlay = CustomMenuItem::new("toggle_overlay", "오버레이 열기");
     let open_history_folder = CustomMenuItem::new("open_history_folder", "히스토리 폴더 열기");
+    let ai_settings = CustomMenuItem::new("ai_settings", "설정");
     let quit = CustomMenuItem::new("quit", "종료");
 
     let menu = SystemTrayMenu::new()
         .add_item(toggle_overlay)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(open_history_folder)
+        .add_item(ai_settings)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit);
 
@@ -767,11 +872,221 @@ fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                     }
                 }
             }
+            "ai_settings" => {
+                if let Err(e) = open_llm_settings(app.clone()) {
+                    eprintln!("[otra] Failed to open AI settings: {}", e);
+                }
+            }
             "quit" => app.exit(0),
             _ => {}
         },
         _ => {}
     }
+}
+
+// LLM Command Handlers
+#[tauri::command]
+async fn llm_get_available_models(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<Vec<llm::models::ModelInfo>, String> {
+    state
+        .model_manager
+        .get_available_models()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn llm_get_local_models(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<Vec<llm::models::LocalModel>, String> {
+    state
+        .model_manager
+        .get_local_models()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn llm_download_model(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+    app: AppHandle,
+    model_id: String,
+) -> Result<(), String> {
+    let model_info = state
+        .model_manager
+        .get_model_by_id(&model_id)
+        .await
+        .ok_or_else(|| "Model not found".to_string())?;
+
+    let dest_path = state.model_manager.get_model_path(&model_id);
+
+    // Download with progress events
+    let app_handle = app.clone();
+    let model_manager = state.model_manager.clone();
+    let info_clone = model_info.clone();
+
+    let model_info_url = model_info.url.clone();
+    let app_for_complete = app.clone();
+    let app_for_error = app.clone();
+
+    tokio::spawn(async move {
+        let result = llm::download::download_model(
+            model_id.clone(),
+            model_info_url,
+            dest_path.clone(),
+            move |progress| {
+                let _ = app_handle.emit_all("llm_download_progress", &progress);
+            },
+        )
+        .await;
+
+        match result {
+            Ok(path) => {
+                // Register the downloaded model
+                if let Err(e) = model_manager
+                    .register_downloaded_model(info_clone, path)
+                    .await
+                {
+                    let _ = app_for_error
+                        .emit_all("llm_download_error", format!("{}: {}", model_id, e));
+                } else {
+                    let _ = app_for_complete.emit_all("llm_download_complete", &model_id);
+                }
+            }
+            Err(e) => {
+                let _ =
+                    app_for_error.emit_all("llm_download_error", format!("{}: {}", model_id, e));
+            }
+        }
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn llm_delete_model(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+    model_id: String,
+) -> Result<(), String> {
+    state
+        .model_manager
+        .delete_model(&model_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn llm_get_storage_usage(state: tauri::State<'_, Arc<llm::LLMManager>>) -> Result<u64, String> {
+    state
+        .model_manager
+        .get_storage_usage()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn llm_get_default_model_id(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<Option<String>, String> {
+    Ok(state.model_manager.get_default_model_id().await)
+}
+
+#[tauri::command]
+async fn llm_set_default_model(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+    model_id: String,
+) -> Result<(), String> {
+    // 1) Save as default
+    state
+        .model_manager
+        .set_default_model(model_id.clone())
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // 2) If engine is running with another model, reload to apply immediately
+    let models = state
+        .model_manager
+        .get_local_models()
+        .await
+        .map_err(|e| e.to_string())?;
+    if let Some(target) = models.iter().find(|m| m.info.id == model_id) {
+        let mut engine = state.engine.lock().await;
+        engine
+            .load_model(target.path.clone())
+            .map_err(|e| format!("Failed to load default model: {}", e))?;
+        eprintln!("[LLM] Default model applied and reloaded: {}", target.info.name);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn llm_load_model(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+    model_id: String,
+) -> Result<(), String> {
+    eprintln!("Loading model: {}", model_id);
+
+    // Get the model info
+    let models = state
+        .model_manager
+        .get_local_models()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let model = models
+        .iter()
+        .find(|m| m.info.id == model_id)
+        .ok_or_else(|| format!("Model not found: {}", model_id))?;
+
+    // Load the model (non-blocking)
+    let mut engine = state.engine.lock().await;
+    engine.load_model(model.path.clone()).map_err(|e| {
+        eprintln!("Failed to load model: {}", e);
+        e.to_string()
+    })?;
+
+    eprintln!("Model loaded successfully: {}", model_id);
+    Ok(())
+}
+
+#[tauri::command]
+async fn llm_is_ready(
+    state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<bool, String> {
+    let engine = state.engine.lock().await;
+    engine.wait_for_ready().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_prompt_configs() -> Result<Vec<llm::prompt_config::PromptConfig>, String> {
+    let store = llm::prompt_config::PromptConfigStore::load()
+        .map_err(|e| e.to_string())?;
+    Ok(store.get_all_configs())
+}
+
+#[tauri::command]
+async fn save_prompt_config(name: String, user_prompt: String) -> Result<llm::prompt_config::PromptConfig, String> {
+    let mut store = llm::prompt_config::PromptConfigStore::load()
+        .map_err(|e| e.to_string())?;
+    store.add_config(name, user_prompt)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn activate_prompt_config(prompt_id: String) -> Result<(), String> {
+    let mut store = llm::prompt_config::PromptConfigStore::load()
+        .map_err(|e| e.to_string())?;
+    store.activate_config(&prompt_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn delete_prompt_config(prompt_id: String) -> Result<(), String> {
+    let mut store = llm::prompt_config::PromptConfigStore::load()
+        .map_err(|e| e.to_string())?;
+    store.delete_config(&prompt_id)
+        .map_err(|e| e.to_string())
 }
 
 fn register_shortcuts(app: &AppHandle) -> Result<(), String> {
@@ -798,10 +1113,14 @@ fn register_shortcuts(app: &AppHandle) -> Result<(), String> {
 }
 
 fn main() {
+    // Initialize LLM Manager
+    let llm_manager = Arc::new(llm::LLMManager::new().expect("Failed to initialize LLM manager"));
+
     tauri::Builder::default()
         .manage(HistoryState {
             directory: history_directory_path().unwrap_or_else(|_| PathBuf::from("history")),
         })
+        .manage(llm_manager.clone())
         .system_tray(build_tray())
         .on_system_tray_event(handle_tray_event)
         .invoke_handler(tauri::generate_handler![
@@ -809,12 +1128,34 @@ fn main() {
             save_today_markdown,
             get_today_markdown,
             list_history,
+            generate_ai_feedback,
             list_ai_summaries,
             open_history_folder,
             hide_main_window,
             toggle_overlay_window,
             set_window_position,
-            get_window_position
+            get_window_position,
+            open_llm_settings,
+            // LLM commands
+            llm::summarize::summarize_note,
+            llm::summarize::batch_summarize,
+            llm::summarize::get_note_insights,
+            llm::summarize::create_meeting_minutes,
+            llm::summarize::daily_review,
+            llm_get_available_models,
+            llm_get_local_models,
+            llm_download_model,
+            llm_delete_model,
+            llm_get_storage_usage,
+            llm_get_default_model_id,
+            llm_set_default_model,
+            llm_load_model,
+            llm_is_ready,
+            // Prompt configuration commands
+            get_prompt_configs,
+            save_prompt_config,
+            activate_prompt_config,
+            delete_prompt_config
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();
@@ -829,9 +1170,26 @@ fn main() {
                 "[otra] 히스토리 디렉토리 확인/생성 완료: {:?}",
                 state.directory
             );
+
             ensure_accessibility_permission();
             register_shortcuts(&app.handle())?;
             emit_history_update(&app.handle())?;
+
+            // 백그라운드에서 LLM 서버 예열: 기본 모델이 설정되어 있으면 자동 로드
+            let llm_state = app.state::<Arc<llm::LLMManager>>().inner().clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                let rt = match tokio::runtime::Runtime::new() {
+                    Ok(rt) => rt,
+                    Err(e) => {
+                        eprintln!("[LLM] runtime init failed: {}", e);
+                        return;
+                    }
+                };
+                match rt.block_on(llm_state.initialize()) {
+                    Ok(()) => eprintln!("[LLM] initialize started (background)"),
+                    Err(e) => eprintln!("[LLM] initialize failed: {}", e),
+                }
+            });
 
             if let Some(window) = app.get_window("main") {
                 #[cfg(target_os = "macos")]

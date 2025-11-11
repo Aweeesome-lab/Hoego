@@ -152,6 +152,14 @@ export const listAiSummaries = async (
   return tauriInvoke<AiSummaryEntry[]>("list_ai_summaries", { limit });
 };
 
+export const createAiSummaryDraft = async (): Promise<AiSummaryEntry> => {
+  return tauriInvoke<AiSummaryEntry>("create_ai_summary_draft");
+};
+
+export const generateAiFeedback = async (): Promise<AiSummaryEntry> => {
+  return tauriInvoke<AiSummaryEntry>("generate_ai_feedback");
+};
+
 export const onHistoryUpdated = async (
   callback: (overview: HistoryOverview | undefined) => void
 ): Promise<UnlistenFn> => {
