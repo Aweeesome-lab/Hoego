@@ -14,11 +14,12 @@ import {
   Check,
   RotateCcw,
   PanelRightOpen,
-  PanelRightClose,
   ChevronDown,
   ChevronUp,
   Sparkles,
   Loader2,
+  Brain,
+  NotebookPen,
 } from "lucide-react";
 import * as Select from "@radix-ui/react-select";
 import {
@@ -84,19 +85,22 @@ export default function App() {
   const debounceIdRef = React.useRef<number | null>(null);
   const [aiSummaries, setAiSummaries] = React.useState<AiSummaryEntry[]>([]);
   const [selectedSummaryIndex, setSelectedSummaryIndex] = React.useState(0);
-  const [isSummariesLoading, setIsSummariesLoading] = React.useState(false);
   const [summariesError, setSummariesError] = React.useState<string | null>(
     null
   );
-  const [isAiPanelOpen, setIsAiPanelOpen] = React.useState<boolean>(false);
   const [isGeneratingAiFeedback, setIsGeneratingAiFeedback] =
     React.useState(false);
-  const [aiPanelWidth, setAiPanelWidth] = React.useState<number>(() => {
-    const saved = Number(localStorage.getItem("otra.aiPanelWidth"));
-    return Number.isFinite(saved) && saved >= 240 ? saved : 360;
-  });
-  const [isResizing, setIsResizing] = React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
+  const [retrospectContent, setRetrospectContent] = React.useState(() => {
+    return localStorage.getItem("otra.retrospectContent") || "";
+  });
+  const retrospectRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [isSavingRetrospect, setIsSavingRetrospect] = React.useState(false);
+  const retrospectDebounceIdRef = React.useRef<number | null>(null);
+
+  // Panel expand/collapse states
+  const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(true);
+  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] = React.useState(true);
   const selectedSummary = React.useMemo(
     () => aiSummaries[selectedSummaryIndex] ?? null,
     [aiSummaries, selectedSummaryIndex]
@@ -106,7 +110,6 @@ export default function App() {
     const boundedIndex = Math.min(selectedSummaryIndex, aiSummaries.length - 1);
     return String(boundedIndex);
   }, [aiSummaries.length, selectedSummaryIndex]);
-  const isAiContentLoading = false; // 스켈레톤을 표시하지 않음
 
   const getSummaryLabel = React.useCallback((summary: AiSummaryEntry) => {
     if (!summary?.createdAt) {
@@ -128,12 +131,30 @@ export default function App() {
     return `${datePart} ${timePart}`;
   }, []);
 
-  // 패널 너비 저장
+
+  // 회고 내용 자동 저장 (디바운스)
   React.useEffect(() => {
-    try {
-      localStorage.setItem("otra.aiPanelWidth", String(aiPanelWidth));
-    } catch {}
-  }, [aiPanelWidth]);
+    if (retrospectDebounceIdRef.current) {
+      clearTimeout(retrospectDebounceIdRef.current);
+    }
+
+    retrospectDebounceIdRef.current = window.setTimeout(() => {
+      try {
+        setIsSavingRetrospect(true);
+        localStorage.setItem("otra.retrospectContent", retrospectContent);
+        setTimeout(() => setIsSavingRetrospect(false), 500);
+      } catch (error) {
+        console.error("Failed to save retrospect content:", error);
+        setIsSavingRetrospect(false);
+      }
+    }, 800);
+
+    return () => {
+      if (retrospectDebounceIdRef.current) {
+        clearTimeout(retrospectDebounceIdRef.current);
+      }
+    };
+  }, [retrospectContent]);
 
   // 다크모드 테마 적용
   React.useEffect(() => {
@@ -189,41 +210,6 @@ export default function App() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // 리사이즈 마우스 이벤트
-  const handleStartResize = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (!isResizing) return;
-    const container = splitRef.current;
-    if (!container) return;
-
-    const onMove = (ev: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const raw = Math.round(rect.right - ev.clientX);
-      const min = 240;
-      const max = Math.max(300, Math.floor(rect.width * 0.7));
-      const next = Math.max(min, Math.min(raw, max));
-      setAiPanelWidth(next);
-    };
-    const onUp = () => setIsResizing(false);
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp, { once: true });
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "col-resize";
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      document.body.style.userSelect = "";
-      document.body.style.cursor = "";
-    };
-  }, [isResizing]);
-
-  // 패널 토글은 세션마다 기본 닫힘 상태로 시작
 
   // 마크다운 로드 함수
   const loadMarkdown = React.useCallback(async () => {
@@ -272,7 +258,6 @@ export default function App() {
 
   const loadAiSummaries = React.useCallback(async () => {
     try {
-      setIsSummariesLoading(true);
       setSummariesError(null);
       const summaries = await listAiSummaries(10);
       setAiSummaries(summaries);
@@ -286,14 +271,11 @@ export default function App() {
       setSummariesError(error instanceof Error ? error.message : String(error));
       setAiSummaries([]);
       setSelectedSummaryIndex(0);
-    } finally {
-      setIsSummariesLoading(false);
     }
   }, []);
 
   const handleGenerateAiFeedback = React.useCallback(async () => {
     if (isGeneratingAiFeedback) return;
-    setIsAiPanelOpen(true);
     setIsGeneratingAiFeedback(true);
     try {
       await generateAiFeedback();
@@ -335,11 +317,6 @@ export default function App() {
     void loadAiSummaries();
   }, [loadAiSummaries]);
 
-  React.useEffect(() => {
-    if (isAiPanelOpen && aiSummaries.length === 0 && !isSummariesLoading) {
-      void loadAiSummaries();
-    }
-  }, [isAiPanelOpen, aiSummaries.length, isSummariesLoading, loadAiSummaries]);
 
   // 마크다운 업데이트 리스너
   React.useEffect(() => {
@@ -439,6 +416,22 @@ export default function App() {
   // 단축키: 편집 토글(Cmd/Ctrl+E), ESC 처리
   React.useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
+      // 패널 토글: Cmd/Ctrl + 2 for AI panel
+      if ((event.metaKey || event.ctrlKey) && event.key === "2") {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsAiPanelExpanded(prev => !prev);
+        return;
+      }
+
+      // 패널 토글: Cmd/Ctrl + 3 for Retrospect panel
+      if ((event.metaKey || event.ctrlKey) && event.key === "3") {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsRetrospectPanelExpanded(prev => !prev);
+        return;
+      }
+
       // 편집 토글 / 편집 중이면 현재 줄 타임스탬프 후 저장 종료
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "e") {
         event.preventDefault();
@@ -480,20 +473,6 @@ export default function App() {
         return;
       }
 
-      // 패널 토글: Cmd/Ctrl + Shift + P
-      if (
-        (event.metaKey || event.ctrlKey) &&
-        event.shiftKey &&
-        event.key.toLowerCase() === "p"
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        if (!isAiPanelOpen && aiSummaries.length === 0 && !isSummariesLoading) {
-          void loadAiSummaries();
-        }
-        setIsAiPanelOpen((prev) => !prev);
-        return;
-      }
 
       // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
       if (event.key === "Escape") {
@@ -1054,20 +1033,55 @@ export default function App() {
           onClick={handleGenerateAiFeedback}
           onMouseDown={(e) => e.stopPropagation()}
           disabled={isGeneratingAiFeedback}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
+          className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition ${
             isDarkMode
               ? "border-white/10 text-slate-300 hover:bg-white/5 hover:text-white disabled:opacity-60"
               : "border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-60"
           }`}
+          title="AI 피드백 생성"
         >
           {isGeneratingAiFeedback ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-4 w-4" />
           )}
           <span>
-            {isGeneratingAiFeedback ? "AI 요약 생성 중..." : "AI 피드백"}
+            {isGeneratingAiFeedback ? "생성 중..." : "AI 피드백"}
           </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsAiPanelExpanded(prev => !prev)}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+            isAiPanelExpanded
+              ? isDarkMode
+                ? "border-white/20 bg-white/10 text-slate-200"
+                : "border-slate-300 bg-slate-100 text-slate-700"
+              : isDarkMode
+                ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+                : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title={isAiPanelExpanded ? "정리하기 패널 접기" : "정리하기 패널 펼치기"}
+        >
+          <Brain className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsRetrospectPanelExpanded(prev => !prev)}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+            isRetrospectPanelExpanded
+              ? isDarkMode
+                ? "border-white/20 bg-white/10 text-slate-200"
+                : "border-slate-300 bg-slate-100 text-slate-700"
+              : isDarkMode
+                ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
+                : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title={isRetrospectPanelExpanded ? "회고 패널 접기" : "회고 패널 펼치기"}
+        >
+          <NotebookPen className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -1084,32 +1098,6 @@ export default function App() {
           title="마크다운 동기화"
         >
           <RotateCcw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (
-              !isAiPanelOpen &&
-              aiSummaries.length === 0 &&
-              !isSummariesLoading
-            ) {
-              void loadAiSummaries();
-            }
-            setIsAiPanelOpen((prev) => !prev);
-          }}
-          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-            isDarkMode
-              ? "border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200"
-              : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
-          }`}
-          onMouseDown={(e) => e.stopPropagation()}
-          title={isAiPanelOpen ? "AI 패널 닫기" : "AI 패널 열기"}
-        >
-          {isAiPanelOpen ? (
-            <PanelRightClose className="h-4 w-4" />
-          ) : (
-            <PanelRightOpen className="h-4 w-4" />
-          )}
         </button>
         <button
           type="button"
@@ -1138,16 +1126,17 @@ export default function App() {
         </button>
       </div>
 
-      {/* 마크다운 + AI 피드백 영역: 드래그 리사이즈 */}
+      {/* 3-패널 레이아웃: 균등한 너비 */}
       <div
         ref={splitRef}
         className="relative z-20 flex flex-1 items-stretch gap-0 px-0 py-0 overflow-hidden"
       >
+        {/* 1. 쏟아내기 패널 */}
         <section
-          className={`flex flex-1 flex-col overflow-hidden ${
+          className={`flex flex-1 flex-col overflow-hidden border-r ${
             isDarkMode
-              ? "bg-[#0f141f] text-slate-100"
-              : "bg-white text-slate-900"
+              ? "bg-[#0f141f] text-slate-100 border-white/10"
+              : "bg-white text-slate-900 border-slate-200"
           }`}
         >
           <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
@@ -1249,29 +1238,19 @@ export default function App() {
           </div>
         </section>
 
-        {isAiPanelOpen ? (
-          <>
-            {/* 세로 리사이저 */}
-            <div
-              onMouseDown={handleStartResize}
-              onDoubleClick={() => setAiPanelWidth(360)}
-              title="드래그하여 너비 조절"
-              className={`relative z-30 w-1 cursor-col-resize select-none ${
-                isDarkMode ? "bg-white/10" : "bg-slate-200"
-              }`}
-            />
-            <aside
-              className={`hidden h-full shrink-0 flex-col overflow-hidden border-l md:flex ${
-                isDarkMode
-                  ? "border-white/10 bg-[#111625] text-slate-100"
-                  : "border-slate-200/70 bg-white text-slate-900"
-              }`}
-              style={{ width: aiPanelWidth }}
-            >
-              <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
-                  정리하기
-                </span>
+        {/* 2. AI 피드백 패널 */}
+        {isAiPanelExpanded && (
+          <section
+            className={`flex flex-1 flex-col overflow-hidden border-r ${
+              isDarkMode
+                ? "bg-[#111625] text-slate-100 border-white/10"
+                : "bg-white text-slate-900 border-slate-200"
+            }`}
+          >
+            <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
+                정리하기
+              </span>
                 <div className="flex items-center gap-3">
                   {isGeneratingAiFeedback && (
                     <span
@@ -1343,36 +1322,14 @@ export default function App() {
                     </Select.Root>
                   )}
                 </div>
-              </div>
-              <div className="flex-1 overflow-y-auto px-3.5 py-3">
+            </div>
+            <div className="flex-1 overflow-y-auto px-3.5 py-3">
                 {isGeneratingAiFeedback ? (
                   <div className="space-y-4">
                     <div className="mb-2 text-xs font-medium text-slate-400">
                       AI 피드백 생성 중...
                     </div>
                     {[0, 1, 2, 3].map((row) => (
-                      <div key={row} className="space-y-2">
-                        <div
-                          className={`h-3.5 w-2/3 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-full rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-5/6 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : isAiContentLoading ? (
-                  <div className="space-y-4">
-                    {[0, 1, 2].map((row) => (
                       <div key={row} className="space-y-2">
                         <div
                           className={`h-3.5 w-2/3 rounded-full ${
@@ -1419,10 +1376,56 @@ export default function App() {
                     </ReactMarkdown>
                   </div>
                 )}
-              </div>
-            </aside>
-          </>
-        ) : null}
+            </div>
+          </section>
+        )}
+
+        {/* 3. 회고하기 패널 */}
+        {isRetrospectPanelExpanded && (
+          <section
+            className={`flex flex-1 flex-col overflow-hidden ${
+              isDarkMode
+                ? "bg-[#0f141f] text-slate-100"
+                : "bg-white text-slate-900"
+            }`}
+          >
+            <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
+              <span>회고하기</span>
+              {isSavingRetrospect && (
+                <span
+                  className={`rounded-full px-3 py-1 text-[10px] ${
+                    isDarkMode
+                      ? "bg-white/10 text-slate-200"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  저장 중
+                </span>
+              )}
+            </div>
+            <div className="flex-1 overflow-hidden px-3.5 py-2.5">
+            <div className="h-full w-full overflow-y-auto">
+              <textarea
+                ref={retrospectRef}
+                value={retrospectContent}
+                onChange={(e) => setRetrospectContent(e.target.value)}
+                className={`w-full min-h-[260px] resize-none border-0 text-[13px] leading-5 outline-none ${
+                  isDarkMode
+                    ? "bg-[#05070c] text-slate-100 placeholder:text-slate-500"
+                    : "bg-white text-slate-900 placeholder:text-slate-400"
+                }`}
+                style={{
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  padding: 12,
+                  height: '100%',
+                }}
+                placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
+              />
+            </div>
+            </div>
+          </section>
+        )}
       </div>
 
 
@@ -1490,6 +1493,26 @@ export default function App() {
             <span className="inline-flex items-center gap-1">
               <span>⌘</span>
               <span>E</span>
+            </span>
+          </span>
+          <span
+            className="inline-flex items-center gap-2"
+            title="AI 패널 토글"
+          >
+            <span className="tracking-normal">AI</span>
+            <span className="inline-flex items-center gap-1">
+              <span>⌘</span>
+              <span>2</span>
+            </span>
+          </span>
+          <span
+            className="inline-flex items-center gap-2"
+            title="회고 패널 토글"
+          >
+            <span className="tracking-normal">회고</span>
+            <span className="inline-flex items-center gap-1">
+              <span>⌘</span>
+              <span>3</span>
             </span>
           </span>
           <span
