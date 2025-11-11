@@ -1425,25 +1425,16 @@ export default function App() {
         ) : null}
       </div>
 
+
       {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
       {/* 상단 가장자리 */}
       <div
         className="absolute top-0 left-0 right-0 h-12 z-30 cursor-move"
         data-tauri-drag-region
       />
-      {/* 하단 가장자리 */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-12 z-30 cursor-move"
-        data-tauri-drag-region
-      />
       {/* 좌측 가장자리 */}
       <div
         className="absolute top-12 bottom-12 left-0 w-12 z-30 cursor-move"
-        data-tauri-drag-region
-      />
-      {/* 우측 가장자리 */}
-      <div
-        className="absolute top-12 bottom-12 right-0 w-12 z-30 cursor-move"
         data-tauri-drag-region
       />
 
