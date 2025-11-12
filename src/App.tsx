@@ -1391,15 +1391,11 @@ export default function App() {
             <div className="flex-1 overflow-y-auto px-3.5 py-3">
               <div className="space-y-4">
                 {isGeneratingAiFeedback ? (
-                  <Response isDarkMode={isDarkMode}>
-                    {streamingAiText ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={markdownComponents}
-                      >
-                        {streamingAiText}
-                      </ReactMarkdown>
-                    ) : (
+                  <Response
+                    isDarkMode={isDarkMode}
+                    content={streamingAiText || undefined}
+                  >
+                    {!streamingAiText && (
                       <ThinkingIndicator isDarkMode={isDarkMode} />
                     )}
                   </Response>
@@ -1421,15 +1417,12 @@ export default function App() {
                     </p>
                   </Response>
                 ) : (
-                  <Response isDarkMode={isDarkMode}>
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={markdownComponents}
-                    >
-                      {selectedSummary?.content?.trim() ||
-                        "요약 내용이 없습니다."}
-                    </ReactMarkdown>
-                  </Response>
+                  <Response
+                    isDarkMode={isDarkMode}
+                    content={
+                      selectedSummary?.content?.trim() || "요약 내용이 없습니다."
+                    }
+                  />
                 )}
               </div>
             </div>
