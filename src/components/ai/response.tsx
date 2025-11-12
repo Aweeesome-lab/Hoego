@@ -1,19 +1,14 @@
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ResponseProps extends React.HTMLAttributes<HTMLDivElement> {
   isDarkMode?: boolean;
-  isStreaming?: boolean;
-  statusText?: string;
 }
 
 export function Response({
   children,
   className,
   isDarkMode,
-  isStreaming = false,
-  statusText = "생성 중...",
   ...props
 }: ResponseProps) {
   return (
@@ -27,12 +22,6 @@ export function Response({
       )}
       {...props}
     >
-      {isStreaming ? (
-        <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-400">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          <span>{statusText}</span>
-        </div>
-      ) : null}
       <div className="text-[13px] leading-5 text-inherit">{children}</div>
     </div>
   );

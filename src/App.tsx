@@ -1391,7 +1391,7 @@ export default function App() {
             <div className="flex-1 overflow-y-auto px-3.5 py-3">
               <div className="space-y-4">
                 {isGeneratingAiFeedback ? (
-                  <Response isDarkMode={isDarkMode} isStreaming>
+                  <Response isDarkMode={isDarkMode}>
                     {streamingAiText ? (
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
