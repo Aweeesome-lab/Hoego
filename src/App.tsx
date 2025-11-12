@@ -33,7 +33,6 @@ import {
 import { invoke } from "@tauri-apps/api/tauri";
 import type { AiSummaryEntry } from "@/lib/tauri";
 import type { Point, Position } from "unist";
-import { Message, MessageContent } from "@/components/ai/message";
 import { Response } from "@/components/ai/response";
 
 // KST(HH:MM:SS) 계산 유틸리티
@@ -1391,85 +1390,61 @@ export default function App() {
             <div className="flex-1 overflow-y-auto px-3.5 py-3">
               <div className="space-y-4">
                 {isGeneratingAiFeedback ? (
-                  <Message from="assistant">
-                    <MessageContent>
-                      <Response isDarkMode={isDarkMode} isStreaming>
-                        {streamingAiText ? (
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={markdownComponents}
-                          >
-                            {streamingAiText}
-                          </ReactMarkdown>
-                        ) : (
-                          <div className="space-y-2">
-                            <div
-                              className={`h-3.5 w-2/3 rounded-full ${
-                                isDarkMode
-                                  ? "bg-white/10"
-                                  : "bg-slate-200"
-                              } animate-pulse`}
-                            />
-                            <div
-                              className={`h-2.5 w-full rounded-full ${
-                                isDarkMode
-                                  ? "bg-white/10"
-                                  : "bg-slate-200"
-                              } animate-pulse`}
-                            />
-                            <div
-                              className={`h-2.5 w-5/6 rounded-full ${
-                                isDarkMode
-                                  ? "bg-white/10"
-                                  : "bg-slate-200"
-                              } animate-pulse`}
-                            />
-                          </div>
-                        )}
-                      </Response>
-                    </MessageContent>
-                  </Message>
-                ) : null}
-
-                {summariesError ? (
-                  <Message from="assistant">
-                    <MessageContent>
-                      <Response isDarkMode={isDarkMode} className="border-red-500/30">
-                        <p className="text-sm font-semibold text-red-400">
-                          AI 피드백을 불러오지 못했어요.
-                        </p>
-                        <p className="text-xs text-red-300">{summariesError}</p>
-                      </Response>
-                    </MessageContent>
-                  </Message>
+                  <Response isDarkMode={isDarkMode} isStreaming>
+                    {streamingAiText ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={markdownComponents}
+                      >
+                        {streamingAiText}
+                      </ReactMarkdown>
+                    ) : (
+                      <div className="space-y-2">
+                        <div
+                          className={`h-3.5 w-2/3 rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                        <div
+                          className={`h-2.5 w-full rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                        <div
+                          className={`h-2.5 w-5/6 rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                      </div>
+                    )}
+                  </Response>
+                ) : summariesError ? (
+                  <Response isDarkMode={isDarkMode} className="border-red-500/30">
+                    <p className="text-sm font-semibold text-red-400">
+                      AI 피드백을 불러오지 못했어요.
+                    </p>
+                    <p className="text-xs text-red-300">{summariesError}</p>
+                  </Response>
                 ) : aiSummaries.length === 0 ? (
-                  <Message from="assistant">
-                    <MessageContent>
-                      <Response isDarkMode={isDarkMode}>
-                        <p
-                          className={`text-sm ${
-                            isDarkMode ? "text-slate-200" : "text-slate-500"
-                          }`}
-                        >
-                          오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을 생성해보세요.
-                        </p>
-                      </Response>
-                    </MessageContent>
-                  </Message>
+                  <Response isDarkMode={isDarkMode}>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-slate-200" : "text-slate-500"
+                      }`}
+                    >
+                      오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을 생성해보세요.
+                    </p>
+                  </Response>
                 ) : (
-                  <Message from="assistant">
-                    <MessageContent>
-                      <Response isDarkMode={isDarkMode}>
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={markdownComponents}
-                        >
-                          {selectedSummary?.content?.trim() ||
-                            "요약 내용이 없습니다."}
-                        </ReactMarkdown>
-                      </Response>
-                    </MessageContent>
-                  </Message>
+                  <Response isDarkMode={isDarkMode}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={markdownComponents}
+                    >
+                      {selectedSummary?.content?.trim() ||
+                        "요약 내용이 없습니다."}
+                    </ReactMarkdown>
+                  </Response>
                 )}
               </div>
             </div>
