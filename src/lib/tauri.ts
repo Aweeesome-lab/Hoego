@@ -160,6 +160,10 @@ export const generateAiFeedback = async (): Promise<AiSummaryEntry> => {
   return tauriInvoke<AiSummaryEntry>("generate_ai_feedback");
 };
 
+export const generateAiFeedbackStream = async (): Promise<void> => {
+  return tauriInvoke<void>("generate_ai_feedback_stream");
+};
+
 export const onHistoryUpdated = async (
   callback: (overview: HistoryOverview | undefined) => void
 ): Promise<UnlistenFn> => {

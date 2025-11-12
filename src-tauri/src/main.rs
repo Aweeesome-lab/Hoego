@@ -717,6 +717,107 @@ async fn generate_ai_feedback(
 }
 
 #[tauri::command]
+async fn generate_ai_feedback_stream(
+    app: AppHandle,
+    history: State<'_, HistoryState>,
+    llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
+) -> Result<(), String> {
+    let now = current_local_time()?;
+    let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
+    let today_content = fs::read_to_string(&today_path).unwrap_or_default();
+
+    if today_content.trim().is_empty() {
+        return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
+    }
+
+    // 프롬프트 구성 (business journal coach)
+    let prompt = llm::prompts::PromptTemplate::for_business_journal_coach(&today_content);
+    let chat_messages = prompt.to_chat_format();
+
+    // 엔진 준비
+    let mut engine = llm_state.engine.lock().await;
+    if !engine.is_running() {
+        return Err("No model loaded".into());
+    }
+
+    let model_used = engine
+        .get_model_info()
+        .map(|m| m.name)
+        .unwrap_or_else(|| "unknown".to_string());
+
+    let start_time = std::time::Instant::now();
+
+    let mut last_emit_ok = true;
+    let emit_handle = app.clone();
+
+    // 스트리밍 호출
+    let result = engine
+        .chat_complete_stream(
+            chat_messages,
+            None,
+            None,
+            |delta| {
+                if last_emit_ok {
+                    if let Err(e) = emit_handle.emit_all(
+                        "ai_feedback_stream_delta",
+                        &serde_json::json!({ "text": delta }),
+                    ) {
+                        eprintln!("[AI Stream] emit delta failed: {}", e);
+                        last_emit_ok = false;
+                    }
+                }
+            },
+        )
+        .await;
+
+    match result {
+        Ok(full_text) => {
+            let processing_time_ms = start_time.elapsed().as_millis() as u64;
+            let markdown = format!(
+                "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms*",
+                format_date_label(&now),
+                if full_text.trim().is_empty() {
+                    "(생성된 요약이 비어 있습니다)".to_string()
+                } else {
+                    full_text.trim().to_string()
+                },
+                model_used,
+                processing_time_ms
+            );
+
+            match write_ai_summary_file(&now, &markdown) {
+                Ok(saved) => {
+                    let _ = app.emit_all(
+                        "ai_feedback_stream_complete",
+                        &serde_json::json!({
+                            "filename": saved.filename,
+                            "path": saved.path,
+                            "createdAt": saved.created_at,
+                        }),
+                    );
+                    Ok(())
+                }
+                Err(e) => {
+                    let _ = app.emit_all(
+                        "ai_feedback_stream_error",
+                        &serde_json::json!({ "message": e }),
+                    );
+                    Err(e)
+                }
+            }
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            let _ = app.emit_all(
+                "ai_feedback_stream_error",
+                &serde_json::json!({ "message": msg }),
+            );
+            Err(msg)
+        }
+    }
+}
+
+#[tauri::command]
 fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, String> {
     let dir = summaries_directory_path()?;
     ensure_summaries_dir(&dir)?;
@@ -1137,6 +1238,7 @@ fn main() {
             get_today_markdown,
             list_history,
             generate_ai_feedback,
+            generate_ai_feedback_stream,
             list_ai_summaries,
             open_history_folder,
             hide_main_window,

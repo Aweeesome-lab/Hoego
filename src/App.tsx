@@ -90,6 +90,9 @@ export default function App() {
   );
   const [isGeneratingAiFeedback, setIsGeneratingAiFeedback] =
     React.useState(false);
+  const [streamingAiText, setStreamingAiText] = React.useState("");
+  const streamingBufferRef = React.useRef("");
+  const streamingTimerRef = React.useRef<number | null>(null);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
   const [retrospectContent, setRetrospectContent] = React.useState(() => {
     return localStorage.getItem("otra.retrospectContent") || "";
@@ -276,20 +279,77 @@ export default function App() {
   const handleGenerateAiFeedback = React.useCallback(async () => {
     if (isGeneratingAiFeedback) return;
     setIsGeneratingAiFeedback(true);
+    setStreamingAiText("");
+    streamingBufferRef.current = "";
+
+    // 이벤트 구독: 델타/완료/에러
+    const unsubs: Array<() => void> = [];
+    const cleanup = () => {
+      unsubs.forEach((u) => {
+        try { u(); } catch {}
+      });
+      if (streamingTimerRef.current) {
+        clearInterval(streamingTimerRef.current);
+        streamingTimerRef.current = null;
+      }
+      setIsGeneratingAiFeedback(false);
+    };
+
     try {
-      await generateAiFeedback();
-      await loadAiSummaries();
-      setSelectedSummaryIndex(0);
+      const { listen } = await import("@tauri-apps/api/event");
+
+      const unDelta = await listen<{ text: string }>(
+        "ai_feedback_stream_delta",
+        (e) => {
+          const t = e.payload?.text || "";
+          if (!t) return;
+          streamingBufferRef.current += t;
+          if (!streamingTimerRef.current) {
+            streamingTimerRef.current = window.setInterval(() => {
+              if (!streamingBufferRef.current) return;
+              setStreamingAiText((prev) => {
+                const next = prev + streamingBufferRef.current;
+                streamingBufferRef.current = "";
+                return next;
+              });
+            }, 50);
+          }
+        }
+      );
+      unsubs.push(unDelta);
+
+      const unComplete = await listen<{
+        filename: string;
+        path: string;
+        createdAt?: string;
+      }>("ai_feedback_stream_complete", async () => {
+        cleanup();
+        await loadAiSummaries();
+        setSelectedSummaryIndex(0);
+      });
+      unsubs.push(unComplete);
+
+      const unError = await listen<{ message: string }>(
+        "ai_feedback_stream_error",
+        (e) => {
+          cleanup();
+          const msg = e.payload?.message || "알 수 없는 오류";
+          alert(`AI 피드백 생성에 실패했습니다: ${msg}`);
+        }
+      );
+      unsubs.push(unError);
+
+      const { generateAiFeedbackStream } = await import("@/lib/tauri");
+      await generateAiFeedbackStream();
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[otra] AI 피드백 생성 실패", error);
+        console.error("[otra] AI 피드백 스트리밍 시작 실패", error);
       alert(
         `AI 피드백 생성에 실패했습니다: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
-    } finally {
-      setIsGeneratingAiFeedback(false);
+      cleanup();
     }
   }, [isGeneratingAiFeedback, loadAiSummaries]);
 
@@ -1315,30 +1375,42 @@ export default function App() {
             </div>
             <div className="flex-1 overflow-y-auto px-3.5 py-3">
               {isGeneratingAiFeedback ? (
-                <div className="space-y-4">
-                  <div className="mb-2 text-xs font-medium text-slate-400">
-                    AI 피드백 생성 중...
+                streamingAiText ? (
+                  <div
+                    className={`prose prose-sm max-w-none ${
+                      isDarkMode ? "prose-invert text-slate-200" : "text-slate-700"
+                    }`}
+                  >
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {streamingAiText}
+                    </ReactMarkdown>
                   </div>
-                  {[0, 1, 2, 3].map((row) => (
-                    <div key={row} className="space-y-2">
-                      <div
-                        className={`h-3.5 w-2/3 rounded-full ${
-                          isDarkMode ? "bg-white/10" : "bg-slate-200"
-                        } animate-pulse`}
-                      />
-                      <div
-                        className={`h-2.5 w-full rounded-full ${
-                          isDarkMode ? "bg-white/10" : "bg-slate-200"
-                        } animate-pulse`}
-                      />
-                      <div
-                        className={`h-2.5 w-5/6 rounded-full ${
-                          isDarkMode ? "bg-white/10" : "bg-slate-200"
-                        } animate-pulse`}
-                      />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="mb-2 text-xs font-medium text-slate-400">
+                      AI 피드백 생성 중...
                     </div>
-                  ))}
-                </div>
+                    {[0, 1, 2, 3].map((row) => (
+                      <div key={row} className="space-y-2">
+                        <div
+                          className={`h-3.5 w-2/3 rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                        <div
+                          className={`h-2.5 w-full rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                        <div
+                          className={`h-2.5 w-5/6 rounded-full ${
+                            isDarkMode ? "bg-white/10" : "bg-slate-200"
+                          } animate-pulse`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )
               ) : summariesError ? (
                 <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs leading-5 text-red-200">
                   AI 피드백을 불러오지 못했어요.

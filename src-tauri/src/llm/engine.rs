@@ -604,6 +604,120 @@ impl LlamaCppEngine {
     }
 
 
+    // SSE JSON에서 델타 텍스트를 추출 (OpenAI 호환)
+    pub(crate) fn extract_sse_delta_text(data: &str) -> Option<String> {
+        let v: serde_json::Value = match serde_json::from_str(data) {
+            Ok(v) => v,
+            Err(_) => return None,
+        };
+        v.get("choices")
+            .and_then(|c| c.get(0))
+            .and_then(|c| c.get("delta"))
+            .and_then(|d| d.get("content"))
+            .and_then(|s| s.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| {
+                v.get("choices")
+                    .and_then(|c| c.get(0))
+                    .and_then(|c| c.get("message"))
+                    .and_then(|m| m.get("content"))
+                    .and_then(|s| s.as_str())
+                    .map(|s| s.to_string())
+            })
+    }
+
+    // OpenAI 호환 Chat Completions SSE 스트리밍
+    pub async fn chat_complete_stream(
+        &mut self,
+        messages: Vec<crate::llm::prompts::ChatMessage>,
+        max_tokens: Option<usize>,
+        temperature: Option<f32>,
+        mut on_delta: impl FnMut(&str) + Send,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        use futures::StreamExt;
+
+        if self.process.is_none() {
+            return Err("No model loaded".into());
+        }
+
+        let msgs: Vec<serde_json::Value> = messages
+            .into_iter()
+            .map(|m| serde_json::json!({ "role": m.role, "content": m.content }))
+            .collect();
+
+        let model_name = self
+            .get_model_info()
+            .map(|mi| mi.name)
+            .unwrap_or_else(|| "unknown".to_string());
+
+        let request_body = serde_json::json!({
+            "model": model_name,
+            "messages": msgs,
+            "max_tokens": max_tokens.unwrap_or(self.config.max_tokens),
+            "temperature": temperature.unwrap_or(self.config.temperature),
+            "stream": true,
+            "stop": ["</s>", "<|im_end|>", "<|endoftext|>"]
+        });
+
+        let client = reqwest::Client::new();
+        let mut response = client
+            .post("http://127.0.0.1:8080/v1/chat/completions")
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to send streaming chat request: {}", e))?;
+
+        if !response.status().is_success() {
+            let client = reqwest::Client::new();
+            response = client
+                .post("http://127.0.0.1:8080/chat/completions")
+                .json(&request_body)
+                .send()
+                .await
+                .map_err(|e| format!("Failed to send legacy streaming request: {}", e))?;
+        }
+
+        if !response.status().is_success() {
+            let text = response.text().await.unwrap_or_default();
+            return Err(format!("Server error (stream): {}", text).into());
+        }
+
+        let mut stream = response.bytes_stream();
+        let mut buf = String::new();
+        let mut acc = String::new();
+
+        while let Some(chunk) = stream.next().await {
+            let bytes = match chunk {
+                Ok(b) => b,
+                Err(e) => return Err(format!("Stream error: {}", e).into()),
+            };
+            let s = String::from_utf8_lossy(&bytes);
+            buf.push_str(&s);
+
+            while let Some(pos) = buf.find('\n') {
+                let line = buf[..pos].to_string();
+                buf.drain(..=pos);
+
+                let trimmed = line.trim();
+                if trimmed.is_empty() { continue; }
+                if let Some(rest) = trimmed.strip_prefix("data: ") {
+                    let data = rest.trim();
+                    if data == "[DONE]" {
+                        return Ok(acc);
+                    }
+                    if let Some(delta) = Self::extract_sse_delta_text(data) {
+                        if !delta.is_empty() {
+                            acc.push_str(&delta);
+                            on_delta(&delta);
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(acc)
+    }
+
     pub fn get_model_info(&self) -> Option<ModelInfo> {
         self.model_path.as_ref().map(|path| ModelInfo {
             path: path.clone(),
@@ -632,5 +746,31 @@ pub struct ModelInfo {
 impl Drop for LlamaCppEngine {
     fn drop(&mut self) {
         let _ = self.stop_process();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LlamaCppEngine;
+
+    #[test]
+    fn extract_sse_delta_text_parses_delta() {
+        let json = r#"{"choices":[{"delta":{"content":"안녕"}}]}"#;
+        let got = LlamaCppEngine::extract_sse_delta_text(json);
+        assert_eq!(got.as_deref(), Some("안녕"));
+    }
+
+    #[test]
+    fn extract_sse_delta_text_parses_message_content() {
+        let json = r#"{"choices":[{"message":{"content":"hello"}}]}"#;
+        let got = LlamaCppEngine::extract_sse_delta_text(json);
+        assert_eq!(got.as_deref(), Some("hello"));
+    }
+
+    #[test]
+    fn extract_sse_delta_text_invalid_returns_none() {
+        let json = r#"{"foo":"bar"}"#;
+        let got = LlamaCppEngine::extract_sse_delta_text(json);
+        assert!(got.is_none());
     }
 }
