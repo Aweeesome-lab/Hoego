@@ -34,6 +34,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import type { AiSummaryEntry } from "@/lib/tauri";
 import type { Point, Position } from "unist";
 import { Response } from "@/components/ai/response";
+import { ThinkingIndicator } from "@/components/ai/thinking";
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
@@ -1399,23 +1400,7 @@ export default function App() {
                         {streamingAiText}
                       </ReactMarkdown>
                     ) : (
-                      <div className="space-y-2">
-                        <div
-                          className={`h-3.5 w-2/3 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-full rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-5/6 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                      </div>
+                      <ThinkingIndicator isDarkMode={isDarkMode} />
                     )}
                   </Response>
                 ) : summariesError ? (
