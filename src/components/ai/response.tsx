@@ -19,10 +19,10 @@ export function Response({
   return (
     <div
       className={cn(
-        "rounded-2xl border px-4 py-3 shadow-sm transition",
+        "rounded-2xl px-4 py-3 shadow-sm transition",
         isDarkMode
-          ? "border-white/10 bg-white/5 text-slate-100"
-          : "border-slate-200 bg-white text-slate-800",
+          ? "bg-white/5 text-slate-100"
+          : "bg-white text-slate-800",
         className
       )}
       {...props}
