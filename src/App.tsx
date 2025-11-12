@@ -29,11 +29,12 @@ import {
   onHistoryUpdated,
   saveTodayMarkdown,
   listAiSummaries,
-  generateAiFeedback,
 } from "@/lib/tauri";
 import { invoke } from "@tauri-apps/api/tauri";
 import type { AiSummaryEntry } from "@/lib/tauri";
 import type { Point, Position } from "unist";
+import { Message, MessageContent } from "@/components/ai/message";
+import { Response } from "@/components/ai/response";
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
@@ -93,6 +94,15 @@ export default function App() {
   const [streamingAiText, setStreamingAiText] = React.useState("");
   const streamingBufferRef = React.useRef("");
   const streamingTimerRef = React.useRef<number | null>(null);
+  const streamingCleanupRef = React.useRef<(() => void) | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (streamingCleanupRef.current) {
+        streamingCleanupRef.current();
+      }
+    };
+  }, []);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
   const [retrospectContent, setRetrospectContent] = React.useState(() => {
     return localStorage.getItem("otra.retrospectContent") || "";
@@ -292,8 +302,13 @@ export default function App() {
         clearInterval(streamingTimerRef.current);
         streamingTimerRef.current = null;
       }
+      streamingBufferRef.current = "";
+      setStreamingAiText("");
       setIsGeneratingAiFeedback(false);
+      streamingCleanupRef.current = null;
     };
+
+    streamingCleanupRef.current = cleanup;
 
     try {
       const { listen } = await import("@tauri-apps/api/event");
@@ -1374,70 +1389,89 @@ export default function App() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto px-3.5 py-3">
-              {isGeneratingAiFeedback ? (
-                streamingAiText ? (
-                  <div
-                    className={`prose prose-sm max-w-none ${
-                      isDarkMode ? "prose-invert text-slate-200" : "text-slate-700"
-                    }`}
-                  >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                      {streamingAiText}
-                    </ReactMarkdown>
-                  </div>
+              <div className="space-y-4">
+                {isGeneratingAiFeedback ? (
+                  <Message from="assistant">
+                    <MessageContent>
+                      <Response isDarkMode={isDarkMode} isStreaming>
+                        {streamingAiText ? (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                          >
+                            {streamingAiText}
+                          </ReactMarkdown>
+                        ) : (
+                          <div className="space-y-2">
+                            <div
+                              className={`h-3.5 w-2/3 rounded-full ${
+                                isDarkMode
+                                  ? "bg-white/10"
+                                  : "bg-slate-200"
+                              } animate-pulse`}
+                            />
+                            <div
+                              className={`h-2.5 w-full rounded-full ${
+                                isDarkMode
+                                  ? "bg-white/10"
+                                  : "bg-slate-200"
+                              } animate-pulse`}
+                            />
+                            <div
+                              className={`h-2.5 w-5/6 rounded-full ${
+                                isDarkMode
+                                  ? "bg-white/10"
+                                  : "bg-slate-200"
+                              } animate-pulse`}
+                            />
+                          </div>
+                        )}
+                      </Response>
+                    </MessageContent>
+                  </Message>
+                ) : null}
+
+                {summariesError ? (
+                  <Message from="assistant">
+                    <MessageContent>
+                      <Response isDarkMode={isDarkMode} className="border-red-500/30">
+                        <p className="text-sm font-semibold text-red-400">
+                          AI 피드백을 불러오지 못했어요.
+                        </p>
+                        <p className="text-xs text-red-300">{summariesError}</p>
+                      </Response>
+                    </MessageContent>
+                  </Message>
+                ) : aiSummaries.length === 0 ? (
+                  <Message from="assistant">
+                    <MessageContent>
+                      <Response isDarkMode={isDarkMode}>
+                        <p
+                          className={`text-sm ${
+                            isDarkMode ? "text-slate-200" : "text-slate-500"
+                          }`}
+                        >
+                          오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을 생성해보세요.
+                        </p>
+                      </Response>
+                    </MessageContent>
+                  </Message>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="mb-2 text-xs font-medium text-slate-400">
-                      AI 피드백 생성 중...
-                    </div>
-                    {[0, 1, 2, 3].map((row) => (
-                      <div key={row} className="space-y-2">
-                        <div
-                          className={`h-3.5 w-2/3 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-full rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                        <div
-                          className={`h-2.5 w-5/6 rounded-full ${
-                            isDarkMode ? "bg-white/10" : "bg-slate-200"
-                          } animate-pulse`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )
-              ) : summariesError ? (
-                <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs leading-5 text-red-200">
-                  AI 피드백을 불러오지 못했어요.
-                  <br />
-                  {summariesError}
-                </div>
-              ) : aiSummaries.length === 0 ? (
-                <div className="rounded-md border border-slate-200/30 bg-slate-100/5 p-3 text-xs leading-5 text-slate-400">
-                  오늘 작성된 AI 피드백이 없습니다.
-                </div>
-              ) : (
-                <div
-                  className={`prose prose-sm max-w-none ${
-                    isDarkMode
-                      ? "prose-invert text-slate-200"
-                      : "text-slate-700"
-                  }`}
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={markdownComponents}
-                  >
-                    {selectedSummary?.content?.trim() ||
-                      "요약 내용이 없습니다."}
-                  </ReactMarkdown>
-                </div>
-              )}
+                  <Message from="assistant">
+                    <MessageContent>
+                      <Response isDarkMode={isDarkMode}>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={markdownComponents}
+                        >
+                          {selectedSummary?.content?.trim() ||
+                            "요약 내용이 없습니다."}
+                        </ReactMarkdown>
+                      </Response>
+                    </MessageContent>
+                  </Message>
+                )}
+              </div>
             </div>
           </section>
         )}
