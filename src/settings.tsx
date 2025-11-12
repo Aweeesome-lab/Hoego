@@ -3,7 +3,8 @@ import ReactDOM from "react-dom/client";
 import { LLMSettings } from "./components/LLMSettings";
 import { PromptSettings } from "./components/PromptSettings";
 import "./index.css";
-import { Brain, Download, Settings, Info, Moon, Sun, MonitorSmartphone, FileText } from "lucide-react";
+import { Brain, Download, Settings, Info, Moon, Sun, MonitorSmartphone, FileText, NotebookPen } from "lucide-react";
+import { RetrospectiveTemplateSettings } from "./components/RetrospectiveTemplateSettings";
 
 function LLMSettingsApp() {
   // Theme mode: 'light' | 'dark' | 'system'
@@ -85,6 +86,7 @@ function LLMSettingsApp() {
   const sidebarItems = [
     { id: 'models', label: '모델', icon: Brain },
     { id: 'prompts', label: '프롬프트', icon: FileText },
+    { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
     { id: 'downloads', label: '다운로드', icon: Download },
     { id: 'settings', label: '일반 설정', icon: Settings },
     { id: 'about', label: '정보', icon: Info },
@@ -312,6 +314,10 @@ function LLMSettingsApp() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'retros' && (
+              <RetrospectiveTemplateSettings isDarkMode={isDarkMode} />
             )}
 
             {activeTab === 'about' && (
