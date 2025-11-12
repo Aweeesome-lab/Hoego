@@ -14,7 +14,7 @@ export function Response({
   return (
     <div
       className={cn(
-        "rounded-2xl px-4 py-3 shadow-sm transition",
+        "rounded-2xl px-4 py-3 transition",
         isDarkMode
           ? "bg-white/5 text-slate-100"
           : "bg-white text-slate-800",
