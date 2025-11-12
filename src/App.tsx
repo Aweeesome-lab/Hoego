@@ -1173,6 +1173,7 @@ export default function App() {
                     fontFamily:
                       'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                     padding: 12,
+                    height: "100%",
                   }}
                   placeholder="# 오늘\n\n작업을 기록해보세요."
                   onKeyDown={(e) => {
@@ -1251,16 +1252,6 @@ export default function App() {
                 정리하기(feedback)
               </span>
               <div className="flex items-center gap-3">
-                {isGeneratingAiFeedback && (
-                  <span
-                    className={`flex items-center gap-1 text-[11px] ${
-                      isDarkMode ? "text-sky-300" : "text-blue-500"
-                    }`}
-                  >
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    생성 중...
-                  </span>
-                )}
                 {aiSummaries.length > 0 && aiSelectValue !== undefined && (
                   <Select.Root
                     value={aiSelectValue}
