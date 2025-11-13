@@ -16,22 +16,9 @@ use time::macros::format_description;
 use time::{OffsetDateTime, UtcOffset, Weekday};
 
 #[cfg(target_os = "macos")]
-use core_foundation::{base::TCFType, boolean::CFBoolean};
-#[cfg(target_os = "macos")]
-use core_foundation_sys::{
-    base::{CFRelease, CFTypeRef},
-    dictionary::{
-        kCFTypeDictionaryKeyCallBacks, kCFTypeDictionaryValueCallBacks, CFDictionaryCreate,
-        CFDictionaryRef,
-    },
-    string::{kCFStringEncodingUTF8, CFStringCreateWithCString},
-};
-#[cfg(target_os = "macos")]
 use core_graphics::event::CGEvent;
 #[cfg(target_os = "macos")]
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
-#[cfg(target_os = "macos")]
-use std::{ffi::CString, ptr};
 
 #[cfg(target_os = "macos")]
 use objc::{msg_send, sel, sel_impl};
@@ -40,7 +27,6 @@ use objc::{msg_send, sel, sel_impl};
 #[link(name = "ApplicationServices", kind = "framework")]
 extern "C" {
     fn AXIsProcessTrusted() -> bool;
-    fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> u8;
 }
 
 struct HistoryState {
@@ -113,48 +99,12 @@ fn ensure_accessibility_permission() {
             return;
         }
 
-        let key_cstr = match CString::new("kAXTrustedCheckOptionPrompt") {
-            Ok(value) => value,
-            Err(error) => {
-                eprintln!("[shortcut] failed to build accessibility key: {error}");
-                return;
-            }
-        };
-
-        let key = CFStringCreateWithCString(ptr::null(), key_cstr.as_ptr(), kCFStringEncodingUTF8);
-        if key.is_null() {
-            eprintln!("[shortcut] failed to create accessibility key string");
-            return;
-        }
-
-        let keys = [key as *const _];
-        let values = [CFBoolean::true_value().as_concrete_TypeRef() as CFTypeRef];
-
-        let options = CFDictionaryCreate(
-            ptr::null(),
-            keys.as_ptr(),
-            values.as_ptr(),
-            1,
-            &kCFTypeDictionaryKeyCallBacks,
-            &kCFTypeDictionaryValueCallBacks,
+        // Prompting with AXIsProcessTrustedWithOptions has caused regressions on macOS 15.
+        // Instead of crashing the app we just log guidance for the user.
+        eprintln!(
+            "[shortcut] accessibility permission missing. \
+            Allow \"OTRA\" under System Settings → Privacy & Security → Accessibility."
         );
-
-        if options.is_null() {
-            eprintln!("[shortcut] failed to create accessibility options dictionary");
-            CFRelease(key as _);
-            return;
-        }
-
-        let trusted = AXIsProcessTrustedWithOptions(options) != 0;
-
-        CFRelease(options as _);
-        CFRelease(key as _);
-
-        if trusted {
-            debug_log!("[shortcut] accessibility permission granted after prompt");
-        } else {
-            eprintln!("[shortcut] accessibility permission missing. Allow this app under System Settings → Privacy & Security → Accessibility.");
-        }
     }
 }
 

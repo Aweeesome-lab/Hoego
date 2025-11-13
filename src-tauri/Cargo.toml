@@ -34,3 +34,9 @@ num_cpus = "1"
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+llm-smoke = []
+
+[[example]]
+name = "llm_smoke"
+path = "examples/llm_smoke.rs"
+required-features = ["llm-smoke"]
