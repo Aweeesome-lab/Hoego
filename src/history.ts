@@ -4,7 +4,6 @@ import {
   openHistoryFolder,
   onHistoryUpdated,
   type HistoryOverview,
-  type HistoryFileInfo,
 } from './lib/tauri';
 
 const directoryElement = document.getElementById('history-directory');

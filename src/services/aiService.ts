@@ -90,13 +90,15 @@ export function groupSummariesByDate(
   summaries.forEach((summary) => {
     try {
       const date = new Date(summary.timestamp);
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dateKey = date.toISOString().split('T')[0] ?? ''; // YYYY-MM-DD
 
-      if (!grouped.has(dateKey)) {
+      if (dateKey && !grouped.has(dateKey)) {
         grouped.set(dateKey, []);
       }
-      grouped.get(dateKey)?.push(summary);
-    } catch (error) {
+      if (dateKey) {
+        grouped.get(dateKey)?.push(summary);
+      }
+    } catch (_error) {
       if (import.meta.env.DEV) {
         console.error('[aiService] Invalid timestamp for summary:', summary);
       }

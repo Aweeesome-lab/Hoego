@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { RetrospectContentArea } from './RetrospectContentArea';
 import { RetrospectPanelHeader } from './RetrospectPanelHeader';
 import { TemplatePickerDropdown } from './TemplatePickerDropdown';

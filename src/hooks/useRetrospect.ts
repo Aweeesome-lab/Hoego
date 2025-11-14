@@ -98,16 +98,16 @@ export function useRetrospect() {
       const before = prev.slice(0, start);
       const after = prev.slice(end);
 
-        let paddedBefore = before;
-        if (paddedBefore.length) {
-          if (paddedBefore.endsWith('\n\n')) {
-            // already has blank line
-          } else if (paddedBefore.endsWith('\n')) {
-            // single newline is fine
-          } else {
-            paddedBefore += '\n\n';
-          }
+      let paddedBefore = before;
+      if (paddedBefore.length) {
+        if (paddedBefore.endsWith('\n\n')) {
+          // already has blank line
+        } else if (paddedBefore.endsWith('\n')) {
+          // single newline is fine
+        } else {
+          paddedBefore += '\n\n';
         }
+      }
 
       const next = paddedBefore + templateBlock + after;
       nextCursor = paddedBefore.length + templateBlock.length;
@@ -123,7 +123,11 @@ export function useRetrospect() {
         }
       });
     },
-    [customRetrospectiveTemplates, setRetrospectContent, setIsTemplatePickerOpen]
+    [
+      customRetrospectiveTemplates,
+      setRetrospectContent,
+      setIsTemplatePickerOpen,
+    ]
   );
 
   // 회고 내용 자동 저장 (디바운스)

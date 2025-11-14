@@ -440,7 +440,6 @@ export default function App() {
             summariesError={summariesError}
             aiSummaries={aiSummaries}
             aiSelectValue={aiSelectValue}
-            selectedSummaryIndex={selectedSummaryIndex}
             setSelectedSummaryIndex={setSelectedSummaryIndex}
             selectedSummary={selectedSummary}
             getSummaryLabel={getSummaryLabel}

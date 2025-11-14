@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import type { PluggableList } from 'unified';
 
 import type { Components } from 'react-markdown';
+import type { PluggableList } from 'unified';
 
 interface MemoizedReactMarkdownProps {
   children: string;

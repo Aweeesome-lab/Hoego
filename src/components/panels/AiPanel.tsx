@@ -18,7 +18,6 @@ interface AiPanelProps {
   summariesError: string | null;
   aiSummaries: AiSummaryEntry[];
   aiSelectValue: string | undefined;
-  selectedSummaryIndex: number;
   setSelectedSummaryIndex: (index: number) => void;
   selectedSummary: AiSummaryEntry | null;
   getSummaryLabel: (summary: AiSummaryEntry) => string;
@@ -33,7 +32,6 @@ export const AiPanel = React.memo(function AiPanel({
   summariesError,
   aiSummaries,
   aiSelectValue,
-  selectedSummaryIndex,
   setSelectedSummaryIndex,
   selectedSummary,
   getSummaryLabel,

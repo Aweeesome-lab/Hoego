@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
-import type { ListItem, Point, Position } from 'unist';
+import type { Point, Position } from 'unist';
 
 import { getTodayMarkdown, saveTodayMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
@@ -52,6 +52,7 @@ export function useMarkdown() {
       let latestMinute = '';
       for (let i = lines.length - 1; i >= 0; i--) {
         const rawLine = lines[i];
+        if (!rawLine) continue;
         const trimmedLine = rawLine.trim();
         if (!trimmedLine) {
           continue;
@@ -138,7 +139,7 @@ export function useMarkdown() {
 
       let offset = 0;
       for (let i = 0; i < lineIndex && i < lines.length; i += 1) {
-        offset += lines[i].length + 1;
+        offset += (lines[i]?.length ?? 0) + 1;
       }
 
       const columnIndex = Math.max(point.column - 1, 0);
@@ -183,7 +184,7 @@ export function useMarkdown() {
   );
 
   const handleTaskCheckboxToggle = useCallback(
-    async (listItem: ListItem, nextChecked: boolean) => {
+    async (listItem: any, nextChecked: boolean) => {
       if (isSaving) {
         return;
       }

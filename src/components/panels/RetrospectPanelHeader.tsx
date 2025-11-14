@@ -14,9 +14,7 @@ interface RetrospectPanelHeaderProps {
   isDarkMode: boolean;
   isSavingRetrospect: boolean;
   isTemplatePickerOpen: boolean;
-  setIsTemplatePickerOpen: (
-    value: boolean | ((prev: boolean) => boolean)
-  ) => void;
+  setIsTemplatePickerOpen: (isOpen: boolean) => void;
   templateTriggerRef: React.RefObject<HTMLButtonElement>;
   retrospectViewMode: 'edit' | 'preview' | 'split';
   setRetrospectViewMode: (mode: 'edit' | 'preview' | 'split') => void;
@@ -62,7 +60,7 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
             ref={templateTriggerRef}
             type="button"
             onMouseDown={(e) => e.stopPropagation()}
-            onClick={() => setIsTemplatePickerOpen((prev) => !prev)}
+            onClick={() => setIsTemplatePickerOpen(!isTemplatePickerOpen)}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-sm transition ${
               isDarkMode
                 ? 'border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30'

@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import { FileText, Save, RotateCcw, Clock, Trash2, Check } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { FileText, Save, RotateCcw, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface PromptConfig {
@@ -17,7 +17,7 @@ interface PromptSettingsProps {
 
 export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
   const [prompts, setPrompts] = useState<PromptConfig[]>([]);
-  const [activePrompt, setActivePrompt] = useState<PromptConfig | null>(null);
+  const [_activePrompt, setActivePrompt] = useState<PromptConfig | null>(null);
   const [editingPrompt, setEditingPrompt] = useState('');
   const [promptName, setPromptName] = useState('');
   const [isSaving, setIsSaving] = useState(false);

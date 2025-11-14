@@ -4,7 +4,6 @@ import {
   Check,
   AlertCircle,
   HardDrive,
-  Cpu,
   Info,
   Loader2,
 } from 'lucide-react';

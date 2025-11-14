@@ -33,6 +33,12 @@ export default [
         console: 'readonly',
         confirm: 'readonly',
         alert: 'readonly',
+        localStorage: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        navigator: 'readonly',
+        crypto: 'readonly',
+        React: 'readonly',
       },
     },
     plugins: {

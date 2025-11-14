@@ -9,9 +9,7 @@ export interface RetrospectPanelProps {
   retrospectRef: React.RefObject<HTMLTextAreaElement>;
   isSavingRetrospect: boolean;
   isTemplatePickerOpen: boolean;
-  setIsTemplatePickerOpen: (
-    value: boolean | ((prev: boolean) => boolean)
-  ) => void;
+  setIsTemplatePickerOpen: (isOpen: boolean) => void;
   templateTriggerRef: React.RefObject<HTMLButtonElement>;
   templateDropdownRef: React.RefObject<HTMLDivElement>;
   templateDropdownPosition: { top: number; left: number; width: number };

@@ -42,9 +42,11 @@ describe('useTheme', () => {
     };
 
     // Setup Zustand store mock to return values from mockStore
-    (useAppStore as ReturnType<typeof vi.fn>).mockImplementation((selector) => {
-      return selector(mockStore);
-    });
+    (useAppStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector) => {
+        return selector(mockStore);
+      }
+    );
 
     localStorage.clear();
     vi.clearAllMocks();
@@ -78,7 +80,7 @@ describe('useTheme', () => {
   });
 
   it('should handle storage events from other windows', () => {
-    const { result } = renderHook(() => useTheme());
+    renderHook(() => useTheme());
 
     act(() => {
       const storageData = {
@@ -135,7 +137,7 @@ describe('useTheme', () => {
   });
 
   it('should ignore invalid storage event data', () => {
-    const { result } = renderHook(() => useTheme());
+    renderHook(() => useTheme());
 
     act(() => {
       const event = new StorageEvent('storage', {
