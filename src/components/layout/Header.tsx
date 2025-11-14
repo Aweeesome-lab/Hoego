@@ -15,33 +15,157 @@ import {
 import { hideOverlayWindow } from "@/lib/tauri";
 
 interface HeaderProps {
+  /**
+   * 현재 시간 (HH:MM 형식)
+   * @example "14:30"
+   */
   currentTime: string;
+
+  /**
+   * 입력 필드 ref
+   * 외부에서 입력 필드 포커스 제어에 사용
+   */
   inputRef: React.RefObject<HTMLInputElement>;
+
+  /**
+   * 입력 필드의 현재 값
+   */
   inputValue: string;
+
+  /**
+   * 입력 값 변경 핸들러
+   */
   setInputValue: (value: string) => void;
+
+  /**
+   * 폼 제출 핸들러 (항목 추가)
+   */
   handleSubmit: (e: React.FormEvent) => void;
+
+  /**
+   * 편집 모드 활성화 여부
+   * - true: 편집 모드 (textarea 표시)
+   * - false: 뷰 모드 (markdown 렌더링)
+   */
   isEditing: boolean;
+
+  /**
+   * 편집 모드 상태 변경 함수
+   */
   setIsEditing: (value: boolean) => void;
+
+  /**
+   * 편집 중인 내용 설정 함수
+   */
   setEditingContent: (content: string) => void;
+
+  /**
+   * 현재 마크다운 내용
+   */
   markdownContent: string;
+
+  /**
+   * 마크다운 에디터 textarea ref
+   */
   editorRef: React.RefObject<HTMLTextAreaElement>;
+
+  /**
+   * 편집 중인 마크다운 내용
+   */
   editingContent: string;
+
+  /**
+   * 현재 줄에 타임스탬프를 추가하는 함수
+   * @param line - 타임스탬프를 추가할 텍스트 줄
+   * @returns 타임스탬프가 추가된 줄
+   */
   appendTimestampToLine: (line: string) => string;
+
+  /**
+   * 마크다운 내용 저장 함수
+   */
   saveTodayMarkdown: (content: string) => Promise<void>;
+
+  /**
+   * 마지막으로 저장된 내용 ref
+   * 변경 감지 및 중복 저장 방지에 사용
+   */
   lastSavedRef: React.MutableRefObject<string>;
+
+  /**
+   * 마크다운 내용 로드 함수
+   */
   loadMarkdown: () => Promise<void>;
+
+  /**
+   * 저장 중 상태
+   */
   isSaving: boolean;
+
+  /**
+   * 저장 상태 변경 함수
+   */
   setIsSaving: (value: boolean) => void;
+
+  /**
+   * AI 피드백 생성 핸들러
+   */
   handleGenerateAiFeedback: () => void;
+
+  /**
+   * AI 피드백 생성 중 상태
+   */
   isGeneratingAiFeedback: boolean;
+
+  /**
+   * AI 패널 확장 상태
+   */
   isAiPanelExpanded: boolean;
+
+  /**
+   * AI 패널 확장 상태 변경 함수
+   * @param value - 새로운 상태값 또는 이전 상태를 받는 함수
+   */
   setIsAiPanelExpanded: (value: boolean | ((prev: boolean) => boolean)) => void;
+
+  /**
+   * 회고 패널 확장 상태
+   */
   isRetrospectPanelExpanded: boolean;
+
+  /**
+   * 회고 패널 확장 상태 변경 함수
+   * @param value - 새로운 상태값 또는 이전 상태를 받는 함수
+   */
   setIsRetrospectPanelExpanded: (value: boolean | ((prev: boolean) => boolean)) => void;
+
+  /**
+   * 수동 동기화 핸들러
+   * 마크다운과 AI 요약을 다시 로드합니다
+   */
   handleManualSync: () => void;
+
+  /**
+   * 동기화 중 상태
+   */
   isSyncing: boolean;
+
+  /**
+   * 테마 모드
+   * - "light": 라이트 모드
+   * - "dark": 다크 모드
+   * - "system": 시스템 설정 따름
+   */
   themeMode: "light" | "dark" | "system";
+
+  /**
+   * 테마 전환 함수 (light → dark → system → light)
+   */
   toggleTheme: () => void;
+
+  /**
+   * 다크모드 활성화 여부 (계산된 값)
+   */
   isDarkMode: boolean;
 }
 

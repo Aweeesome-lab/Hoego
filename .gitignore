@@ -21,6 +21,8 @@ coverage/
 Thumbs.db
 .tauri/
 .claude/
+!.claude/docs/
+.claude/settings.local.json
 src-tauri/binaries/*.zip
 src-tauri/binaries/llama-server-*
  
