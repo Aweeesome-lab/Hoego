@@ -21,6 +21,8 @@ coverage/
 Thumbs.db
 .tauri/
 .claude/
+src-tauri/binaries/*.zip
+src-tauri/binaries/llama-server-*
  
 # Local development assets (not for commit)
 image/
