@@ -15,8 +15,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: path.resolve(rootDir, "src/index.html"),
-        settings: path.resolve(rootDir, "src/settings.html"),
+        main: path.resolve(rootDir, "index.html"),
       },
     },
   },

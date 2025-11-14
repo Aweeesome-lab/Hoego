@@ -56,7 +56,7 @@
         "focus": true,
         "skipTaskbar": true,
         "fileDropEnabled": false,
-        "url": "src/index.html"
+        "url": "index.html"
       },
       {
         "label": "history",
@@ -71,7 +71,7 @@
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "fileDropEnabled": true,
-        "url": "src/index.html#history"
+        "url": "index.html#history"
       },
       {
         "label": "settings",
@@ -86,7 +86,7 @@
         "alwaysOnTop": true,
         "skipTaskbar": false,
         "fileDropEnabled": false,
-        "url": "src/settings.html"
+        "url": "index.html#settings"
       }
     ],
     "systemTray": {

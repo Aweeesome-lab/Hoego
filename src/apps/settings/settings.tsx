@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
 
-import './index.css';
+import '@/styles/index.css';
 import {
   Brain,
   Download,

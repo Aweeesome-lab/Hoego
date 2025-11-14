@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import { llmApi } from '../lib/llm';
+import { llmApi } from '@/lib/llm';
 
-import type { ModelInfo, LocalModel, DownloadProgress } from '../lib/llm';
+import type { ModelInfo, LocalModel, DownloadProgress } from '@/lib/llm';
 
 interface LLMSettingsProps {
   isDarkMode?: boolean;
