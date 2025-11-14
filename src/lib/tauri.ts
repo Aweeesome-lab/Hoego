@@ -1,45 +1,28 @@
 import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import type {
+  HistoryFileInfo,
+  HistoryOverview,
+  TodayMarkdown,
+  AppendHistoryEntryPayload,
+  AiSummaryInfo,
+} from "@/types/tauri-commands";
 
 // ============================================================================
 // 타입 정의
 // ============================================================================
 
-export interface HistoryFileInfo {
-  date: string;
-  filename: string;
-  title?: string;
-  path?: string;
-  preview?: string;
-}
+// Re-export types for backward compatibility
+export type {
+  HistoryFileInfo,
+  HistoryOverview,
+  TodayMarkdown,
+  AppendHistoryEntryPayload,
+};
 
-export interface HistoryOverview {
-  directory?: string;
-  files?: HistoryFileInfo[];
-}
-
-export interface TodayMarkdown {
-  dateKey: string;
-  shortLabel: string;
-  headerTitle: string;
-  filePath: string;
-  content: string;
-}
-
-export interface AppendHistoryEntryPayload {
-  timestamp: string;
-  minuteKey?: string;
-  task: string;
-  isNewMinute: boolean;
-}
-
-export interface AiSummaryEntry {
-  filename: string;
-  path: string;
-  createdAt?: string;
-  content: string;
-}
+// Legacy type alias
+export type AiSummaryEntry = AiSummaryInfo;
 
 // ============================================================================
 // 윈도우 제어
