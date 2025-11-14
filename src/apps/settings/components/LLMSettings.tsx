@@ -6,12 +6,19 @@ import {
   HardDrive,
   Info,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import { llmApi } from '@/lib/llm';
+import {
+  getAllModelOptions,
+  getSelectedModel,
+  setSelectedModel,
+} from '@/lib/model-selection';
 
 import type { ModelInfo, LocalModel, DownloadProgress } from '@/lib/llm';
+import type { ModelOption, SelectedModel } from '@/types/model-selection';
 
 interface LLMSettingsProps {
   isDarkMode?: boolean;
@@ -29,6 +36,12 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
   const [storageUsed, setStorageUsed] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [defaultModelId, setDefaultModelId] = useState<string | null>(null);
+
+  // Unified model selection
+  const [allModelOptions, setAllModelOptions] = useState<ModelOption[]>([]);
+  const [selectedModel, setSelectedModelState] =
+    useState<SelectedModel>(getSelectedModel());
+  const [showModelPicker, setShowModelPicker] = useState(false);
 
   useEffect(() => {
     loadModels();
@@ -74,17 +87,20 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
 
   const loadModels = async () => {
     try {
-      const [available, local, storage, defaultId] = await Promise.all([
-        llmApi.getAvailableModels(),
-        llmApi.getLocalModels(),
-        llmApi.getStorageUsage(),
-        llmApi.getDefaultModelId(),
-      ]);
+      const [available, local, storage, defaultId, modelOptions] =
+        await Promise.all([
+          llmApi.getAvailableModels(),
+          llmApi.getLocalModels(),
+          llmApi.getStorageUsage(),
+          llmApi.getDefaultModelId(),
+          getAllModelOptions(),
+        ]);
 
       setAvailableModels(available);
       setLocalModels(local);
       setStorageUsed(storage);
       setDefaultModelId(defaultId);
+      setAllModelOptions(modelOptions);
       setError(null);
     } catch (err) {
       setError('Failed to load models');
@@ -92,6 +108,18 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectModel = (option: ModelOption) => {
+    const newSelection: SelectedModel = {
+      type: option.type,
+      modelId: option.id,
+      provider: option.provider,
+      displayName: option.displayName,
+    };
+    setSelectedModel(newSelection);
+    setSelectedModelState(newSelection);
+    setShowModelPicker(false);
   };
 
   const handleDownload = async (model: ModelInfo) => {
@@ -148,8 +176,125 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     );
   }
 
+  const currentModelOption = allModelOptions.find(
+    (opt) =>
+      opt.id === selectedModel.modelId &&
+      opt.type === selectedModel.type &&
+      opt.provider === selectedModel.provider
+  );
+
   return (
     <div className="space-y-6">
+      {/* Selected Model */}
+      <div
+        className={`p-5 rounded-xl border ${
+          isDarkMode
+            ? 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30'
+            : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'
+        }`}
+      >
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles
+              className={`h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+            />
+            <span
+              className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                isDarkMode ? 'text-blue-400' : 'text-blue-600'
+              }`}
+            >
+              선택된 모델
+            </span>
+          </div>
+          <button
+            onClick={() => setShowModelPicker(!showModelPicker)}
+            className={`text-[12px] px-3 py-1.5 rounded-md transition ${
+              isDarkMode
+                ? 'bg-white/10 text-slate-300 hover:bg-white/15'
+                : 'bg-white/50 text-slate-700 hover:bg-white'
+            }`}
+          >
+            변경
+          </button>
+        </div>
+
+        {currentModelOption ? (
+          <div className="space-y-1">
+            <div
+              className={`text-[14px] font-semibold ${
+                isDarkMode ? 'text-slate-100' : 'text-slate-900'
+              }`}
+            >
+              {currentModelOption.displayName}
+            </div>
+            <div
+              className={`text-[12px] ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-600'
+              }`}
+            >
+              {currentModelOption.type === 'local'
+                ? '로컬 모델'
+                : `클라우드 • ${currentModelOption.provider}`}
+              {currentModelOption.description && ` • ${currentModelOption.description}`}
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`text-[13px] ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-600'
+            }`}
+          >
+            모델이 선택되지 않았습니다
+          </div>
+        )}
+
+        {/* Model Picker Modal */}
+        {showModelPicker && (
+          <div
+            className={`mt-4 p-4 rounded-lg border max-h-64 overflow-y-auto ${
+              isDarkMode
+                ? 'bg-slate-900/50 border-white/10'
+                : 'bg-white border-slate-200'
+            }`}
+          >
+            <div className="space-y-2">
+              {allModelOptions.map((option) => (
+                <button
+                  key={`${option.type}-${option.id}-${option.provider || ''}`}
+                  onClick={() => option.isAvailable && handleSelectModel(option)}
+                  disabled={!option.isAvailable}
+                  className={`w-full text-left p-3 rounded-md transition ${
+                    option.id === selectedModel.modelId &&
+                    option.type === selectedModel.type
+                      ? isDarkMode
+                        ? 'bg-blue-500/20 border border-blue-500/50'
+                        : 'bg-blue-50 border border-blue-200'
+                      : isDarkMode
+                        ? 'bg-white/5 hover:bg-white/10 border border-transparent'
+                        : 'bg-slate-50 hover:bg-slate-100 border border-transparent'
+                  } ${!option.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div
+                    className={`text-[13px] font-medium ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
+                    {option.displayName}
+                  </div>
+                  <div
+                    className={`text-[11px] ${
+                      isDarkMode ? 'text-slate-500' : 'text-slate-600'
+                    }`}
+                  >
+                    {option.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Storage Info */}
       <div
         className={`p-4 rounded-xl border ${

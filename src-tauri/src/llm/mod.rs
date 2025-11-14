@@ -1,3 +1,4 @@
+// 로컬 LLM 모듈 (기존)
 pub mod download;
 pub mod engine;
 // pub mod native_engine;  // Disabled - llama-cpp-2 has macOS compatibility issues
@@ -6,9 +7,19 @@ pub mod prompt_config;
 pub mod prompts;
 pub mod summarize;
 
+// 클라우드 LLM 모듈 (신규)
+pub mod commands;
+pub mod providers;
+pub mod security;
+pub mod traits;
+pub mod types;
+
 pub use engine::LlamaCppEngine;
 // pub use native_engine::NativeLlamaEngine;  // Disabled for now
 pub use models::ModelManager;
+
+// 클라우드 LLM exports
+pub use commands::CloudLLMState;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;

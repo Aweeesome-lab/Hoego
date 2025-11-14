@@ -1,6 +1,7 @@
 mod ai_summary;
 mod history;
 mod llm;
+mod model_selection;
 mod shortcuts;
 mod tray;
 mod utils;
@@ -238,9 +239,17 @@ fn main() {
     // Initialize LLM Manager
     let llm_manager = Arc::new(llm::LLMManager::new().expect("Failed to initialize LLM manager"));
 
+    // Initialize Cloud LLM State
+    let cloud_llm_state = llm::CloudLLMState::new();
+
+    // Initialize Model Selection State
+    let model_selection_state = model_selection::ModelSelectionState::new();
+
     tauri::Builder::default()
         .manage(HistoryState::default())
         .manage(llm_manager.clone())
+        .manage(cloud_llm_state)
+        .manage(model_selection_state)
         .system_tray(build_tray())
         .on_system_tray_event(handle_tray_event)
         .invoke_handler(tauri::generate_handler![
@@ -276,7 +285,19 @@ fn main() {
             get_prompt_configs,
             save_prompt_config,
             activate_prompt_config,
-            delete_prompt_config
+            delete_prompt_config,
+            // Cloud LLM commands
+            llm::commands::set_cloud_api_key,
+            llm::commands::test_cloud_api_key,
+            llm::commands::cloud_llm_complete,
+            llm::commands::has_cloud_api_key,
+            llm::commands::delete_cloud_api_key,
+            llm::commands::get_supported_providers,
+            llm::commands::get_provider_models,
+            llm::commands::initialize_cloud_provider,
+            // Model selection commands
+            model_selection::set_selected_model,
+            model_selection::get_selected_model
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();

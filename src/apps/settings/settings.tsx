@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 
 import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
+import { CloudLLMSettings } from './components/CloudLLMSettings';
 
 import '@/styles/index.css';
 import {
@@ -15,6 +16,7 @@ import {
   MonitorSmartphone,
   FileText,
   NotebookPen,
+  Cloud,
 } from 'lucide-react';
 
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
@@ -103,6 +105,7 @@ function LLMSettingsApp() {
 
   const sidebarItems = [
     { id: 'models', label: '모델', icon: Brain },
+    { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
     { id: 'prompts', label: '프롬프트', icon: FileText },
     { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
     { id: 'downloads', label: '다운로드', icon: Download },
@@ -252,6 +255,10 @@ function LLMSettingsApp() {
         <div className="flex-1 overflow-y-auto">
           <div className="px-6 py-4">
             {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />}
+
+            {activeTab === 'cloud' && (
+              <CloudLLMSettings isDarkMode={isDarkMode} />
+            )}
 
             {activeTab === 'prompts' && (
               <PromptSettings isDarkMode={isDarkMode} />

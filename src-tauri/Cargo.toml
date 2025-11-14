@@ -35,6 +35,11 @@ specta = { version = "1.0.5", features = ["serde"] }
 # LLM support - using process-based llama-server for now
 # llama-cpp-2 = { version = "0.1", features = ["metal"] }  # Disabled due to macOS compatibility issues
 
+# Cloud LLM support
+async-trait = "0.1"
+keyring = "2"
+thiserror = "1"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

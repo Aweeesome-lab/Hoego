@@ -116,6 +116,8 @@ pub async fn generate_ai_feedback_stream(
     app: AppHandle,
     history: State<'_, HistoryState>,
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
+    cloud_llm_state: State<'_, llm::CloudLLMState>,
+    model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
 ) -> Result<(), String> {
     let now = current_local_time()?;
     let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
@@ -129,41 +131,116 @@ pub async fn generate_ai_feedback_stream(
     let prompt = llm::prompts::PromptTemplate::for_business_journal_coach(&today_content);
     let chat_messages = prompt.to_chat_format();
 
-    // 엔진 준비
-    let mut engine = llm_state.engine.lock().await;
-    if !engine.is_running() {
-        return Err("No model loaded".into());
-    }
+    // 선택된 모델 확인
+    let selected_model_lock = model_selection_state.selected.read().await;
+    let selected_model = selected_model_lock.clone();
+    drop(selected_model_lock);
 
-    let model_used = engine
-        .get_model_info()
-        .map(|m| m.name)
-        .unwrap_or_else(|| "unknown".to_string());
+    // 모델 타입 결정
+    let use_cloud_llm = if let Some(ref model) = selected_model {
+        model.model_type == "cloud"
+    } else {
+        // 선택된 모델이 없으면 로컬 모델 확인
+        let engine = llm_state.engine.lock().await;
+        !engine.is_running()
+    };
 
     let start_time = std::time::Instant::now();
+    let result: Result<String, String>;
+    let model_used: String;
 
-    let mut last_emit_ok = true;
-    let emit_handle = app.clone();
+    if use_cloud_llm {
+        // Cloud LLM 사용
+        eprintln!("[AI Feedback] Using Cloud LLM");
 
-    // 스트리밍 호출
-    let result = engine
-        .chat_complete_stream(
-            chat_messages,
-            None,
-            None,
-            |delta| {
-                if last_emit_ok {
-                    if let Err(e) = emit_handle.emit_all(
+        // 선택된 모델 정보 가져오기
+        let cloud_model_id = selected_model
+            .as_ref()
+            .map(|m| m.model_id.clone())
+            .unwrap_or_else(|| "gpt-4-turbo".to_string());
+
+        eprintln!("[AI Feedback] Selected cloud model: {}", cloud_model_id);
+
+        // 프롬프트를 Cloud LLM 형식으로 변환
+        let messages: Vec<llm::types::Message> = chat_messages
+            .iter()
+            .map(|msg| llm::types::Message {
+                role: match msg.role.as_str() {
+                    "system" => llm::types::Role::System,
+                    "user" => llm::types::Role::User,
+                    "assistant" => llm::types::Role::Assistant,
+                    _ => llm::types::Role::User,
+                },
+                content: msg.content.clone(),
+            })
+            .collect();
+
+        let request = llm::types::CompletionRequest {
+            messages,
+            model: cloud_model_id.clone(),
+            temperature: Some(0.7),
+            max_tokens: Some(1000),
+            system_prompt: None,
+            metadata: None,
+        };
+
+        // CloudLLM provider 가져오기
+        let provider_lock = cloud_llm_state.current_provider.read().await;
+
+        if let Some(provider) = provider_lock.as_ref() {
+            match provider.complete(request).await {
+                Ok(response) => {
+                    model_used = response.model.clone();
+                    result = Ok(response.content.clone());
+
+                    // 텍스트를 한 번에 emit (스트리밍 아님)
+                    let _ = app.emit_all(
                         "ai_feedback_stream_delta",
-                        &serde_json::json!({ "text": delta }),
-                    ) {
-                        eprintln!("[AI Stream] emit delta failed: {}", e);
-                        last_emit_ok = false;
-                    }
+                        &serde_json::json!({ "text": &response.content }),
+                    );
                 }
-            },
-        )
-        .await;
+                Err(e) => {
+                    model_used = "Cloud LLM (failed)".to_string();
+                    result = Err(format!("Cloud LLM 오류: {}", e.to_string()));
+                }
+            }
+        } else {
+            model_used = "Cloud LLM (not configured)".to_string();
+            result = Err("Cloud LLM이 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.".to_string());
+        }
+    } else {
+        // 로컬 LLM 사용
+        let mut engine = llm_state.engine.lock().await;
+
+        model_used = engine
+            .get_model_info()
+            .map(|m| m.name)
+            .unwrap_or_else(|| "unknown".to_string());
+
+        let mut last_emit_ok = true;
+        let emit_handle = app.clone();
+
+        // 스트리밍 호출
+        result = engine
+            .chat_complete_stream(
+                chat_messages,
+                None,
+                None,
+                |delta| {
+                    if last_emit_ok {
+                        if let Err(e) = emit_handle.emit_all(
+                            "ai_feedback_stream_delta",
+                            &serde_json::json!({ "text": delta }),
+                        ) {
+                            eprintln!("[AI Stream] emit delta failed: {}", e);
+                            last_emit_ok = false;
+                        }
+                    }
+                },
+            )
+            .await
+            .map_err(|e| e.to_string());
+    }
 
     match result {
         Ok(full_text) => {
