@@ -227,6 +227,14 @@ async fn delete_prompt_config(prompt_id: String) -> Result<(), String> {
 }
 
 fn main() {
+    // Initialize tracing subscriber
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"))
+        )
+        .init();
+
     // Initialize LLM Manager
     let llm_manager = Arc::new(llm::LLMManager::new().expect("Failed to initialize LLM manager"));
 
@@ -272,15 +280,15 @@ fn main() {
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();
-            debug_log!("[hoego] 앱 시작 - 히스토리 디렉토리: {:?}", state.directory);
+            tracing::info!("앱 시작 - 히스토리 디렉토리: {:?}", state.directory);
             history::ensure_history_dir(&state.directory).map_err(|error| {
                 format!(
                     "히스토리 디렉토리 생성 실패: {error}, 경로: {:?}",
                     state.directory
                 )
             })?;
-            debug_log!(
-                "[hoego] 히스토리 디렉토리 확인/생성 완료: {:?}",
+            tracing::info!(
+                "히스토리 디렉토리 확인/생성 완료: {:?}",
                 state.directory
             );
 
@@ -315,8 +323,8 @@ fn main() {
         .on_window_event(|event| match event.event() {
             WindowEvent::Moved(position) => {
                 if event.window().label() == "main" {
-                    let _pos = *position;
-                    debug_log!("[hoego] 창 이동 이벤트: ({}, {})", _pos.x, _pos.y);
+                    let pos = *position;
+                    tracing::debug!("창 이동 이벤트: ({}, {})", pos.x, pos.y);
                 }
             }
             WindowEvent::CloseRequested { api, .. } => {

@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, LogicalPosition, Manager, PhysicalPosition, Position, Window};
 
-use crate::debug_log;
-
 #[cfg(target_os = "macos")]
 use core_graphics::event::CGEvent;
 #[cfg(target_os = "macos")]
@@ -28,7 +26,7 @@ pub struct WindowPositionPayload {
 pub fn ensure_accessibility_permission() {
     unsafe {
         if AXIsProcessTrusted() {
-            debug_log!("[shortcut] accessibility permission already granted");
+            tracing::info!("Accessibility permission already granted");
             return;
         }
 
@@ -118,11 +116,11 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
             return Ok(());
         }
     };
-    debug_log!("[hoego] 커서: ({:.2}, {:.2})", cursor.x, cursor.y);
+    tracing::debug!("커서: ({:.2}, {:.2})", cursor.x, cursor.y);
 
     // 2. 모든 모니터 가져오기
     let monitors = window.available_monitors()?;
-    debug_log!("[hoego] 모니터 {}개", monitors.len());
+    tracing::debug!("모니터 {}개", monitors.len());
 
     // 3. 커서가 위치한 모니터 찾기 (즉시)
     let mut target_monitor: Option<(i32, i32, i32, i32, f64)> = None;
@@ -142,8 +140,8 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
                 size.height as i32,
                 monitor.scale_factor(),
             ));
-            debug_log!(
-                "[hoego] 커서 모니터: origin=({}, {}), size=({}, {})",
+            tracing::debug!(
+                "커서 모니터: origin=({}, {}), size=({}, {})",
                 pos.x,
                 pos.y,
                 size.width,
@@ -158,8 +156,8 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         let first = monitors.first().expect("모니터가 없습니다");
         let pos = first.position();
         let size = first.size();
-        debug_log!(
-            "[hoego] 첫 번째 모니터 사용: origin=({}, {}), size=({}, {})",
+        tracing::debug!(
+            "첫 번째 모니터 사용: origin=({}, {}), size=({}, {})",
             pos.x,
             pos.y,
             size.width,
@@ -197,8 +195,8 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         pos_y_logical.round(),
     )))?;
 
-    debug_log!(
-        "[hoego] 창 이동 이벤트: ({}, {})",
+    tracing::debug!(
+        "창 이동 이벤트: ({}, {})",
         pos_x_logical.round(),
         pos_y_logical.round()
     );

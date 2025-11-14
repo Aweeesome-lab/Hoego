@@ -7,7 +7,6 @@ use time::format_description::well_known::Rfc3339;
 use time::{OffsetDateTime, UtcOffset};
 
 use crate::utils::*;
-use crate::debug_log;
 
 pub struct HistoryState {
     pub directory: PathBuf,
@@ -60,10 +59,10 @@ pub struct TodayMarkdown {
 
 /// 히스토리 디렉토리를 생성합니다
 pub fn ensure_history_dir(path: &Path) -> Result<(), String> {
-    debug_log!("[hoego] ensure_history_dir: {:?}", path);
+    tracing::debug!("ensure_history_dir: {:?}", path);
     fs::create_dir_all(path)
         .map_err(|error| format!("디렉토리 생성 실패: {error}, 경로: {:?}", path))?;
-    debug_log!("[hoego] 디렉토리 확인/생성 완료: {:?}", path);
+    tracing::debug!("디렉토리 확인/생성 완료: {:?}", path);
     Ok(())
 }
 
@@ -72,22 +71,22 @@ pub fn ensure_daily_file(
     state: &HistoryState,
     timestamp: &OffsetDateTime,
 ) -> Result<(PathBuf, String), String> {
-    debug_log!("[hoego] 히스토리 디렉토리: {:?}", state.directory);
+    tracing::debug!("히스토리 디렉토리: {:?}", state.directory);
     ensure_history_dir(&state.directory)?;
 
     let date_key = format_date_key(timestamp)?;
     let filename = format!("{date_key}.md");
     let file_path = state.directory.join(filename);
 
-    debug_log!("[hoego] 파일 경로 확인: {:?}", file_path);
+    tracing::debug!("파일 경로 확인: {:?}", file_path);
 
     if !file_path.exists() {
         let header = format!("# {}\n\n", format_date_label(timestamp));
         fs::write(&file_path, header)
             .map_err(|error| format!("파일 생성 실패: {error}, 경로: {:?}", file_path))?;
-        debug_log!("[hoego] 새 파일 생성: {:?}", file_path);
+        tracing::debug!("새 파일 생성: {:?}", file_path);
     } else {
-        debug_log!("[hoego] 기존 파일 사용: {:?}", file_path);
+        tracing::debug!("기존 파일 사용: {:?}", file_path);
     }
 
     Ok((file_path, date_key))
@@ -98,8 +97,8 @@ fn append_markdown_entry(
     state: &HistoryState,
     payload: &AppendHistoryEntryPayload,
 ) -> Result<PathBuf, String> {
-    debug_log!("[hoego] append_markdown_entry 시작");
-    debug_log!("[hoego] timestamp 문자열: {}", payload.timestamp);
+    tracing::debug!("append_markdown_entry 시작");
+    tracing::debug!("timestamp 문자열: {}", payload.timestamp);
 
     // ISO 8601 형식 파싱
     let timestamp = OffsetDateTime::parse(&payload.timestamp, &Rfc3339).map_err(|error| {
@@ -109,22 +108,22 @@ fn append_markdown_entry(
         )
     })?;
 
-    debug_log!("[hoego] 파싱된 시간(UTC): {:?}", timestamp);
+    tracing::debug!("파싱된 시간(UTC): {:?}", timestamp);
 
     let kst_offset =
         UtcOffset::from_hms(9, 0, 0).map_err(|error| format!("KST 오프셋 계산 실패: {error}"))?;
 
     let kst_timestamp = timestamp.to_offset(kst_offset);
-    debug_log!("[hoego] 변환된 시간(KST): {:?}", kst_timestamp);
+    tracing::debug!("변환된 시간(KST): {:?}", kst_timestamp);
 
     let time_label_with_seconds = format_time_with_seconds(&kst_timestamp)?;
-    debug_log!("[hoego] 시간 레이블(초 포함): {}", time_label_with_seconds);
+    tracing::debug!("시간 레이블(초 포함): {}", time_label_with_seconds);
 
     // 일일 파일 확인/생성
     let (file_path, _) = ensure_daily_file(state, &kst_timestamp)?;
-    debug_log!("[hoego] 파일 경로: {:?}", file_path);
-    debug_log!("[hoego] 작업 내용: {}", payload.task);
-    debug_log!("[hoego] 새 분 여부: {}", payload.is_new_minute);
+    tracing::debug!("파일 경로: {:?}", file_path);
+    tracing::debug!("작업 내용: {}", payload.task);
+    tracing::debug!("새 분 여부: {}", payload.is_new_minute);
 
     // 파일 열기 (추가 모드)
     let mut file = OpenOptions::new()
@@ -141,8 +140,8 @@ fn append_markdown_entry(
     file.flush()
         .map_err(|error| format!("파일 flush 실패: {error}"))?;
 
-    debug_log!("[hoego] 항목 추가 완료: {}", payload.task);
-    debug_log!("[hoego] append_markdown_entry 성공");
+    tracing::debug!("항목 추가 완료: {}", payload.task);
+    tracing::debug!("append_markdown_entry 성공");
 
     Ok(file_path)
 }
@@ -205,24 +204,24 @@ pub fn emit_history_update(app: &AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub fn get_today_markdown(state: State<'_, HistoryState>) -> Result<TodayMarkdown, String> {
-    debug_log!("[hoego] get_today_markdown 호출됨");
+    tracing::debug!("get_today_markdown 호출됨");
     let now = current_local_time()?;
-    debug_log!("[hoego] 현재 시간: {:?}", now);
+    tracing::debug!("현재 시간: {:?}", now);
     let (file_path, date_key) = ensure_daily_file(state.inner(), &now)?;
-    debug_log!("[hoego] 파일 경로: {:?}, date_key: {}", file_path, date_key);
+    tracing::debug!("파일 경로: {:?}, date_key: {}", file_path, date_key);
 
     let mut content = fs::read_to_string(&file_path).unwrap_or_default();
-    debug_log!("[hoego] 파일 내용 길이: {}", content.len());
+    tracing::debug!("파일 내용 길이: {}", content.len());
 
     if content.trim().is_empty() {
         content = format!("# {}\n\n", format_date_label(&now));
         fs::write(&file_path, &content)
             .map_err(|error| format!("파일 쓰기 실패: {error}, 경로: {:?}", file_path))?;
-        debug_log!("[hoego] 빈 파일에 헤더 작성 완료");
+        tracing::debug!("빈 파일에 헤더 작성 완료");
     }
 
-    debug_log!(
-        "[hoego] get_today_markdown 완료, 내용 길이: {}",
+    tracing::debug!(
+        "get_today_markdown 완료, 내용 길이: {}",
         content.len()
     );
     Ok(TodayMarkdown {
@@ -240,21 +239,21 @@ pub fn append_history_entry(
     app: AppHandle,
     state: State<'_, HistoryState>,
 ) -> Result<(), String> {
-    debug_log!("[hoego] ===== append_history_entry 호출됨 =====");
-    debug_log!("[hoego] payload 전체: {:?}", payload);
-    debug_log!("[hoego] timestamp: {}", payload.timestamp);
-    debug_log!("[hoego] task: {}", payload.task);
-    debug_log!("[hoego] is_new_minute: {}", payload.is_new_minute);
-    debug_log!("[hoego] minute_key: {:?}", payload.minute_key);
+    tracing::debug!("===== append_history_entry 호출됨 =====");
+    tracing::debug!("payload 전체: {:?}", payload);
+    tracing::debug!("timestamp: {}", payload.timestamp);
+    tracing::debug!("task: {}", payload.task);
+    tracing::debug!("is_new_minute: {}", payload.is_new_minute);
+    tracing::debug!("minute_key: {:?}", payload.minute_key);
 
     // 파일에 항목 추가
     match append_markdown_entry(state.inner(), &payload) {
         Ok(_path) => {
-            debug_log!("[hoego] 파일 저장 완료: {:?}", _path);
+            tracing::debug!("파일 저장 완료: {:?}", _path);
         }
         Err(e) => {
-            eprintln!("[hoego] 파일 저장 실패: {}", e);
-            debug_log!("[hoego] ===== append_history_entry 실패 =====");
+            tracing::error!("파일 저장 실패: {}", e);
+            tracing::debug!("===== append_history_entry 실패 =====");
             return Err(e);
         }
     }
@@ -262,14 +261,14 @@ pub fn append_history_entry(
     // 히스토리 업데이트 이벤트 발송
     match emit_history_update(&app) {
         Ok(_) => {
-            debug_log!("[hoego] 히스토리 업데이트 이벤트 발송 완료");
-            debug_log!("[hoego] ===== append_history_entry 성공 =====");
+            tracing::debug!("히스토리 업데이트 이벤트 발송 완료");
+            tracing::debug!("===== append_history_entry 성공 =====");
             Ok(())
         }
         Err(e) => {
-            eprintln!("[hoego] 히스토리 업데이트 이벤트 발송 실패: {}", e);
+            tracing::error!("히스토리 업데이트 이벤트 발송 실패: {}", e);
             // 파일 저장은 성공했으므로 경고만 출력하고 성공으로 처리
-            debug_log!("[hoego] 경고: 파일은 저장되었지만 이벤트 발송 실패");
+            tracing::warn!("경고: 파일은 저장되었지만 이벤트 발송 실패");
             Ok(())
         }
     }

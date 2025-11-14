@@ -89,9 +89,3 @@ pub fn format_time_with_seconds(date: &OffsetDateTime) -> Result<String, String>
     date.format(&format_description!("[hour]:[minute]:[second]"))
         .map_err(|error| error.to_string())
 }
-
-// Debug logging macro disabled: avoid stdout noise
-#[macro_export]
-macro_rules! debug_log {
-    ($($arg:tt)*) => {{}};
-}

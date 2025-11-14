@@ -3,7 +3,6 @@ use tauri::{
     SystemTrayMenuItem,
 };
 
-use crate::debug_log;
 use crate::history::HistoryState;
 use crate::window_manager::{open_settings_window, toggle_overlay};
 
@@ -42,15 +41,15 @@ pub fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
             "open_history_folder" => {
                 if let Some(state) = app.try_state::<HistoryState>() {
                     let target = state.directory.to_string_lossy().to_string();
-                    debug_log!("[hoego] 히스토리 폴더 열기: {}", target);
+                    tracing::info!("히스토리 폴더 열기: {}", target);
                     if let Err(error) = tauri::api::shell::open(&app.shell_scope(), target, None) {
-                        eprintln!("[hoego] 폴더 열기 실패: {}", error);
+                        tracing::error!("폴더 열기 실패: {}", error);
                     }
                 }
             }
             "ai_settings" => {
                 if let Err(e) = open_settings_window(app) {
-                    eprintln!("[hoego] Failed to open AI settings: {}", e);
+                    tracing::error!("Failed to open AI settings: {}", e);
                 }
             }
             "quit" => app.exit(0),
