@@ -42,7 +42,7 @@ impl ModelManager {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let models_dir = dirs::data_dir()
             .ok_or("Could not determine data directory")?
-            .join("otra")
+            .join("hoego")
             .join("models");
 
         std::fs::create_dir_all(&models_dir)?;

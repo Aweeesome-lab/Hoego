@@ -9,7 +9,7 @@ import { RetrospectiveTemplateSettings } from "./components/RetrospectiveTemplat
 function LLMSettingsApp() {
   // Theme mode: 'light' | 'dark' | 'system'
   const [themeMode, setThemeMode] = React.useState<'light' | 'dark' | 'system'>(() => {
-    const stored = localStorage.getItem('otra_theme_mode');
+    const stored = localStorage.getItem('hoego_theme_mode');
     if (stored === 'light' || stored === 'dark' || stored === 'system') {
       return stored;
     }
@@ -18,7 +18,7 @@ function LLMSettingsApp() {
 
   // Actual dark mode state (computed from themeMode)
   const [isDarkMode, setIsDarkMode] = React.useState(() => {
-    const stored = localStorage.getItem('otra_theme_mode');
+    const stored = localStorage.getItem('hoego_theme_mode');
     if (stored === 'light') return false;
     if (stored === 'dark') return true;
     // system or no stored value
@@ -57,7 +57,7 @@ function LLMSettingsApp() {
 
   // Save themeMode to localStorage
   React.useEffect(() => {
-    localStorage.setItem('otra_theme_mode', themeMode);
+    localStorage.setItem('hoego_theme_mode', themeMode);
 
     // Update isDarkMode based on themeMode
     if (themeMode === 'light') {
@@ -71,7 +71,7 @@ function LLMSettingsApp() {
   // Cross-window theme synchronization
   React.useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'otra_theme_mode' && e.newValue) {
+      if (e.key === 'hoego_theme_mode' && e.newValue) {
         const newMode = e.newValue;
         if (newMode === 'light' || newMode === 'dark' || newMode === 'system') {
           setThemeMode(newMode);
@@ -112,7 +112,7 @@ function LLMSettingsApp() {
           <p className={`text-[11px] mt-0.5 ${
             isDarkMode ? 'text-slate-500' : 'text-slate-400'
           }`}>
-            OTRA 설정 관리
+            Hoego 설정 관리
           </p>
         </div>
 
@@ -257,7 +257,7 @@ function LLMSettingsApp() {
                     <div className={`font-mono text-[12px] mb-3 ${
                       isDarkMode ? 'text-slate-300' : 'text-slate-700'
                     }`}>
-                      ~/Library/Application Support/otra/models/
+                      ~/Library/Application Support/hoego/models/
                     </div>
                     <button className={`text-[12px] px-3 py-1.5 rounded-md transition ${
                       isDarkMode
@@ -331,7 +331,7 @@ function LLMSettingsApp() {
                     <h3 className={`text-[13px] font-semibold mb-1 ${
                       isDarkMode ? 'text-slate-200' : 'text-slate-900'
                     }`}>
-                      OTRA Local LLM
+                      Hoego Local LLM
                     </h3>
                     <p className={`text-[12px] ${
                       isDarkMode ? 'text-slate-400' : 'text-slate-500'

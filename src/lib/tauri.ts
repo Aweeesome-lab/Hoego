@@ -50,7 +50,7 @@ export const hideOverlayWindow = async () => {
   try {
     await appWindow.hide();
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] overlay hide failed", error);
+    if (import.meta.env.DEV) console.error("[hoego] overlay hide failed", error);
     await tauriInvoke<void>("hide_main_window");
   }
 };
@@ -59,7 +59,7 @@ export const toggleOverlayWindow = async () => {
   try {
     await tauriInvoke<void>("toggle_overlay_window");
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] overlay toggle failed", error);
+    if (import.meta.env.DEV) console.error("[hoego] overlay toggle failed", error);
     // 토글 실패 시 기본 hide 시도로 폴백
     await hideOverlayWindow();
   }
@@ -86,7 +86,7 @@ export const readWindowPosition = async () => {
   try {
     return await tauriInvoke<{ x: number; y: number }>("get_window_position");
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] failed to fetch window position", error);
+    if (import.meta.env.DEV) console.error("[hoego] failed to fetch window position", error);
     return null;
   }
 };
@@ -122,7 +122,7 @@ export const saveTodayMarkdown = async (content: string): Promise<void> => {
   try {
     await tauriInvoke<void>("save_today_markdown", { content });
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] saveTodayMarkdown 실패:", error);
+    if (import.meta.env.DEV) console.error("[hoego] saveTodayMarkdown 실패:", error);
     throw error;
   }
 };
@@ -141,7 +141,7 @@ export const appendHistoryEntry = async (
       },
     });
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] appendHistoryEntry 실패:", error);
+    if (import.meta.env.DEV) console.error("[hoego] appendHistoryEntry 실패:", error);
     throw error;
   }
 };
@@ -178,14 +178,14 @@ export const onHistoryUpdated = async (
         try {
           callback(event.payload);
         } catch (error) {
-          if (import.meta.env.DEV) console.error("[otra] history update handler error", error);
+          if (import.meta.env.DEV) console.error("[hoego] history update handler error", error);
         }
       }
     );
 
     return unlisten;
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[otra] failed to listen to history_updated", error);
+    if (import.meta.env.DEV) console.error("[hoego] failed to listen to history_updated", error);
     return () => {};
   }
 };

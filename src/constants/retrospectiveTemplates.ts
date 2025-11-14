@@ -8,7 +8,7 @@ export interface RetrospectiveTemplate {
 }
 
 export const CUSTOM_RETROSPECTIVE_STORAGE_KEY =
-  "otra.customRetrospectiveTemplates";
+  "hoego.customRetrospectiveTemplates";
 
 export const RETROSPECTIVE_TEMPLATES: RetrospectiveTemplate[] = [
   {

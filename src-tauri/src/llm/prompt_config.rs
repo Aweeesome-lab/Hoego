@@ -55,7 +55,7 @@ impl PromptConfigStore {
         let data_dir = dirs::data_dir()
             .ok_or("Could not determine data directory")?;
 
-        Ok(data_dir.join("otra").join("prompt_configs.json"))
+        Ok(data_dir.join("hoego").join("prompt_configs.json"))
     }
 
     pub fn add_config(&mut self, name: String, user_prompt: String) -> Result<PromptConfig, Box<dyn std::error::Error>> {

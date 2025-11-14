@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "OTRA",
+    "productName": "Hoego",
     "version": "0.3.0"
   },
   "tauri": {
@@ -39,7 +39,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "OTRA",
+        "title": "Hoego",
         "width": 1000,
         "height": 700,
         "minWidth": 800,
@@ -96,7 +96,7 @@
     "macOSPrivateApi": true,
     "bundle": {
       "active": true,
-      "identifier": "com.tony.otra",
+      "identifier": "com.tony.hoego",
       "targets": "all",
       "icon": ["icons/icon.png"]
     },

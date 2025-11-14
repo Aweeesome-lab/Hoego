@@ -1,7 +1,7 @@
 {
-  "name": "otra",
+  "name": "hoego",
   "version": "0.3.0",
-  "description": "OTRA — ambient time tracker overlay built with Tauri",
+  "description": "Hoego — ambient time tracker overlay built with Tauri",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

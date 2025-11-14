@@ -95,15 +95,15 @@ impl LlamaCppEngine {
     fn get_binary_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
         let data_dir = dirs::data_dir().ok_or("Could not determine data directory")?;
 
-        let otra_dir = data_dir.join("otra").join("llm");
-        std::fs::create_dir_all(&otra_dir)?;
+        let hoego_dir = data_dir.join("hoego").join("llm");
+        std::fs::create_dir_all(&hoego_dir)?;
 
-        Ok(otra_dir.join(Self::get_binary_name()))
+        Ok(hoego_dir.join(Self::get_binary_name()))
     }
 
     fn get_cache_path() -> Result<PathBuf, Box<dyn std::error::Error>> {
         let data_dir = dirs::data_dir().ok_or("Could not determine data directory")?;
-        let cache_dir = data_dir.join("otra").join("llm");
+        let cache_dir = data_dir.join("hoego").join("llm");
         std::fs::create_dir_all(&cache_dir)?;
         Ok(cache_dir.join("prompt-cache.bin"))
     }

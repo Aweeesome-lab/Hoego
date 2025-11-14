@@ -26,7 +26,7 @@ function loadCustomTemplates(): RetrospectiveTemplate[] {
     return parsed.filter((item) => typeof item?.id === "string");
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.warn("[otra] 커스텀 회고 템플릿 로드 실패", error);
+      console.warn("[hoego] 커스텀 회고 템플릿 로드 실패", error);
     }
     return [];
   }

@@ -1,4 +1,4 @@
-use otra::llm::{self};
+use hoego::llm::{self};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("[smoke] starting LLM smoke test");
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await
             .ok()
             .flatten()
-            .ok_or("no default model found; place a .gguf under ~/Library/Application Support/otra/models and set default_model.txt")?;
+            .ok_or("no default model found; place a .gguf under ~/Library/Application Support/hoego/models and set default_model.txt")?;
 
         eprintln!("[smoke] loading model: {:?}", default_model.path);
         engine.load_model(default_model.path.clone())?;

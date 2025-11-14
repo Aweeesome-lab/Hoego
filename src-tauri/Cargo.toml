@@ -1,5 +1,5 @@
 [package]
-name = "otra"
+name = "hoego"
 version = "0.3.0"
 edition = "2021"
 description = "Ambient time tracker overlay built with Tauri"

@@ -86,7 +86,7 @@ export function ModelsContent() {
       const eng = await aiEngineStatus();
       setEngine(eng);
     } catch (e) {
-      console.error("[otra] refreshInstalled error:", e);
+      console.error("[hoego] refreshInstalled error:", e);
     }
   };
 
@@ -111,7 +111,7 @@ export function ModelsContent() {
     });
     const u3 = listen("ai:model_download_error", (e: any) => {
       const p = e.payload as { filename: string; message: string };
-      console.error("[otra] model download error", p);
+      console.error("[hoego] model download error", p);
       setInstalling(null);
       const errorMsg = p.message || "unknown error";
       alert(
@@ -141,7 +141,7 @@ export function ModelsContent() {
     });
     const u7 = listen("ai:engine_install_error", (e: any) => {
       const p = e.payload as { message: string };
-      console.error("[otra] engine install error", p);
+      console.error("[hoego] engine install error", p);
       setInstallingEngine(false);
       setEngineProgress(null);
       alert(
@@ -355,7 +355,7 @@ export function ModelsContent() {
                               await aiEngineInstall();
                             } catch (engineErr) {
                               console.error(
-                                "[otra] 엔진 설치 실패:",
+                                "[hoego] 엔진 설치 실패:",
                                 engineErr
                               );
                               throw new Error(
@@ -375,7 +375,7 @@ export function ModelsContent() {
                           await aiModelDownload(p.url, p.filename);
                           await refreshInstalled();
                         } catch (e) {
-                          console.error("[otra] preset install failed", e);
+                          console.error("[hoego] preset install failed", e);
                           const errorMsg =
                             e instanceof Error ? e.message : String(e);
                           alert(

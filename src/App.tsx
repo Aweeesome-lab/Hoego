@@ -92,7 +92,7 @@ export default function App() {
   // Theme mode: 'light' | 'dark' | 'system'
   const [themeMode, setThemeMode] = React.useState<"light" | "dark" | "system">(
     () => {
-      const stored = localStorage.getItem("otra_theme_mode");
+      const stored = localStorage.getItem("hoego_theme_mode");
       if (stored === "light" || stored === "dark" || stored === "system") {
         return stored;
       }
@@ -102,7 +102,7 @@ export default function App() {
 
   // Actual dark mode state (computed from themeMode)
   const [isDarkMode, setIsDarkMode] = React.useState(() => {
-    const stored = localStorage.getItem("otra_theme_mode");
+    const stored = localStorage.getItem("hoego_theme_mode");
     if (stored === "light") return false;
     if (stored === "dark") return true;
     // system or no stored value
@@ -139,7 +139,7 @@ export default function App() {
   }, []);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
   const [retrospectContent, setRetrospectContent] = React.useState(() => {
-    return localStorage.getItem("otra.retrospectContent") || "";
+    return localStorage.getItem("hoego.retrospectContent") || "";
   });
   const retrospectRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [isSavingRetrospect, setIsSavingRetrospect] = React.useState(false);
@@ -167,7 +167,7 @@ export default function App() {
         return [];
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.warn("[otra] 커스텀 회고 템플릿 파싱 실패", error);
+          console.warn("[hoego] 커스텀 회고 템플릿 파싱 실패", error);
         }
         return [];
       }
@@ -307,7 +307,7 @@ export default function App() {
     retrospectDebounceIdRef.current = window.setTimeout(() => {
       try {
         setIsSavingRetrospect(true);
-        localStorage.setItem("otra.retrospectContent", retrospectContent);
+        localStorage.setItem("hoego.retrospectContent", retrospectContent);
         setTimeout(() => setIsSavingRetrospect(false), 500);
       } catch (error) {
         console.error("Failed to save retrospect content:", error);
@@ -380,7 +380,7 @@ export default function App() {
           }
         } catch (error) {
           if (import.meta.env.DEV) {
-            console.warn("[otra] 커스텀 템플릿 동기화 실패", error);
+            console.warn("[hoego] 커스텀 템플릿 동기화 실패", error);
           }
         }
       }
@@ -418,7 +418,7 @@ export default function App() {
 
   // Save themeMode to localStorage
   React.useEffect(() => {
-    localStorage.setItem("otra_theme_mode", themeMode);
+    localStorage.setItem("hoego_theme_mode", themeMode);
 
     // Update isDarkMode based on themeMode
     if (themeMode === "light") {
@@ -432,7 +432,7 @@ export default function App() {
   // Cross-window theme synchronization
   React.useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "otra_theme_mode" && e.newValue) {
+      if (e.key === "hoego_theme_mode" && e.newValue) {
         const newMode = e.newValue;
         if (newMode === "light" || newMode === "dark" || newMode === "system") {
           setThemeMode(newMode);
@@ -480,7 +480,7 @@ export default function App() {
       }, 100);
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[otra] 마크다운 로드 실패", error);
+        console.error("[hoego] 마크다운 로드 실패", error);
       alert(
         `마크다운 로드 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -500,7 +500,7 @@ export default function App() {
       });
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[otra] AI summaries 로드 실패", error);
+        console.error("[hoego] AI summaries 로드 실패", error);
       setSummariesError(error instanceof Error ? error.message : String(error));
       setAiSummaries([]);
       setSelectedSummaryIndex(0);
@@ -579,7 +579,7 @@ export default function App() {
       await generateAiFeedbackStream();
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[otra] AI 피드백 스트리밍 시작 실패", error);
+        console.error("[hoego] AI 피드백 스트리밍 시작 실패", error);
       alert(
         `AI 피드백 생성에 실패했습니다: ${
           error instanceof Error ? error.message : String(error)
@@ -687,7 +687,7 @@ export default function App() {
         inputRef.current?.focus();
       }, 100);
     } catch (error) {
-      if (import.meta.env.DEV) console.error("[otra] 항목 추가 실패:", error);
+      if (import.meta.env.DEV) console.error("[hoego] 항목 추가 실패:", error);
       alert(
         `작업 저장 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -754,7 +754,7 @@ export default function App() {
               await loadMarkdown();
             } catch (error) {
               if (import.meta.env.DEV)
-                console.error("[otra] Cmd+E 저장 실패:", error);
+                console.error("[hoego] Cmd+E 저장 실패:", error);
             } finally {
               setIsSaving(false);
               setIsEditing(false);
@@ -782,7 +782,7 @@ export default function App() {
                 await loadMarkdown();
               } catch (error) {
                 if (import.meta.env.DEV)
-                  console.error("[otra] 저장 실패:", error);
+                  console.error("[hoego] 저장 실패:", error);
               } finally {
                 setIsSaving(false);
                 setIsEditing(false);
@@ -822,7 +822,7 @@ export default function App() {
         await saveTodayMarkdown(editingContent);
         lastSavedRef.current = editingContent;
       } catch (error) {
-        if (import.meta.env.DEV) console.error("[otra] 자동 저장 실패:", error);
+        if (import.meta.env.DEV) console.error("[hoego] 자동 저장 실패:", error);
       } finally {
         setIsSaving(false);
       }
@@ -974,7 +974,7 @@ export default function App() {
         setMarkdownContent(previousContent);
         lastSavedRef.current = previousContent;
         if (import.meta.env.DEV) {
-          console.error("[otra] 체크박스 상태 저장 실패:", error);
+          console.error("[hoego] 체크박스 상태 저장 실패:", error);
         }
         alert(
           `체크박스 업데이트 실패: ${
@@ -1194,7 +1194,7 @@ export default function App() {
       await loadAiSummaries();
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[otra] 마크다운 동기화 실패", error);
+        console.error("[hoego] 마크다운 동기화 실패", error);
     } finally {
       setIsSyncing(false);
     }
@@ -1289,7 +1289,7 @@ export default function App() {
                   await loadMarkdown();
                 } catch (error) {
                   if (import.meta.env.DEV)
-                    console.error("[otra] 저장 실패:", error);
+                    console.error("[hoego] 저장 실패:", error);
                 } finally {
                   setIsSaving(false);
                   setIsEditing(false);
