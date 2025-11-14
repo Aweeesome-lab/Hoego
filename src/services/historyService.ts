@@ -5,20 +5,26 @@
  * Tauri 백엔드와의 통신을 추상화하고 타입 안전성을 제공합니다.
  */
 
-import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
+
 import type {
   HistoryFileInfo,
   HistoryOverview,
   TodayMarkdown,
   AppendHistoryEntryPayload,
-} from "@/types/tauri-commands";
+} from '@/types/tauri-commands';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type { HistoryFileInfo, HistoryOverview, TodayMarkdown, AppendHistoryEntryPayload };
+export type {
+  HistoryFileInfo,
+  HistoryOverview,
+  TodayMarkdown,
+  AppendHistoryEntryPayload,
+};
 
 // ============================================================================
 // History Operations
@@ -29,14 +35,14 @@ export type { HistoryFileInfo, HistoryOverview, TodayMarkdown, AppendHistoryEntr
  * @returns 히스토리 개요 정보
  */
 export async function getHistoryList(): Promise<HistoryOverview> {
-  return tauriInvoke<HistoryOverview>("list_history");
+  return tauriInvoke<HistoryOverview>('list_history');
 }
 
 /**
  * 히스토리 폴더를 파일 탐색기에서 엽니다
  */
 export async function openHistoryFolder(): Promise<void> {
-  return tauriInvoke<void>("open_history_folder");
+  return tauriInvoke<void>('open_history_folder');
 }
 
 /**
@@ -44,7 +50,7 @@ export async function openHistoryFolder(): Promise<void> {
  * @returns 오늘의 마크다운 데이터
  */
 export async function getTodayMarkdown(): Promise<TodayMarkdown> {
-  return tauriInvoke<TodayMarkdown>("get_today_markdown");
+  return tauriInvoke<TodayMarkdown>('get_today_markdown');
 }
 
 /**
@@ -54,10 +60,10 @@ export async function getTodayMarkdown(): Promise<TodayMarkdown> {
  */
 export async function saveTodayMarkdown(content: string): Promise<void> {
   try {
-    await tauriInvoke<void>("save_today_markdown", { content });
+    await tauriInvoke<void>('save_today_markdown', { content });
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[historyService] saveTodayMarkdown failed:", error);
+      console.error('[historyService] saveTodayMarkdown failed:', error);
     }
     throw error;
   }
@@ -72,7 +78,7 @@ export async function appendHistoryEntry(
   payload: AppendHistoryEntryPayload
 ): Promise<void> {
   try {
-    await tauriInvoke<void>("append_history_entry", {
+    await tauriInvoke<void>('append_history_entry', {
       payload: {
         timestamp: payload.timestamp,
         task: payload.task,
@@ -82,7 +88,7 @@ export async function appendHistoryEntry(
     });
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[historyService] appendHistoryEntry failed:", error);
+      console.error('[historyService] appendHistoryEntry failed:', error);
     }
     throw error;
   }
@@ -100,19 +106,22 @@ export async function appendHistoryEntry(
 export async function onHistoryUpdated(
   callback: (overview: HistoryOverview | undefined) => void
 ): Promise<UnlistenFn> {
-  if (typeof callback !== "function") {
+  if (typeof callback !== 'function') {
     return () => {};
   }
 
   try {
     const unlisten = await listen<HistoryOverview>(
-      "history_updated",
+      'history_updated',
       (event) => {
         try {
           callback(event.payload);
         } catch (error) {
           if (import.meta.env.DEV) {
-            console.error("[historyService] history update handler error:", error);
+            console.error(
+              '[historyService] history update handler error:',
+              error
+            );
           }
         }
       }
@@ -121,7 +130,10 @@ export async function onHistoryUpdated(
     return unlisten;
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[historyService] failed to listen to history_updated:", error);
+      console.error(
+        '[historyService] failed to listen to history_updated:',
+        error
+      );
     }
     return () => {};
   }
@@ -139,11 +151,11 @@ export async function onHistoryUpdated(
  */
 export function sortHistoryFiles(
   files: HistoryFileInfo[],
-  order: "asc" | "desc" = "desc"
+  order: 'asc' | 'desc' = 'desc'
 ): HistoryFileInfo[] {
   return [...files].sort((a, b) => {
     const comparison = new Date(b.date).getTime() - new Date(a.date).getTime();
-    return order === "asc" ? -comparison : comparison;
+    return order === 'asc' ? -comparison : comparison;
   });
 }
 
@@ -159,7 +171,7 @@ export function groupHistoryFilesByMonth(
 
   files.forEach((file) => {
     const date = new Date(file.date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
     if (!grouped.has(monthKey)) {
       grouped.set(monthKey, []);

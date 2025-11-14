@@ -1,13 +1,15 @@
-import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
-import { appWindow, LogicalSize } from "@tauri-apps/api/window";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { listen } from '@tauri-apps/api/event';
+import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
+import { appWindow, LogicalSize } from '@tauri-apps/api/window';
+
 import type {
   HistoryFileInfo,
   HistoryOverview,
   TodayMarkdown,
   AppendHistoryEntryPayload,
   AiSummaryInfo,
-} from "@/types/tauri-commands";
+} from '@/types/tauri-commands';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 
 // ============================================================================
 // 타입 정의
@@ -37,16 +39,18 @@ export const hideOverlayWindow = async () => {
   try {
     await appWindow.hide();
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] overlay hide failed", error);
-    await tauriInvoke<void>("hide_main_window");
+    if (import.meta.env.DEV)
+      console.error('[hoego] overlay hide failed', error);
+    await tauriInvoke<void>('hide_main_window');
   }
 };
 
 export const toggleOverlayWindow = async () => {
   try {
-    await tauriInvoke<void>("toggle_overlay_window");
+    await tauriInvoke<void>('toggle_overlay_window');
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] overlay toggle failed", error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] overlay toggle failed', error);
     // 토글 실패 시 기본 hide 시도로 폴백
     await hideOverlayWindow();
   }
@@ -58,22 +62,23 @@ export const applyWindowPosition = async (position: {
 }) => {
   if (
     !position ||
-    typeof position.x !== "number" ||
+    typeof position.x !== 'number' ||
     Number.isNaN(position.x) ||
-    typeof position.y !== "number" ||
+    typeof position.y !== 'number' ||
     Number.isNaN(position.y)
   ) {
     return;
   }
 
-  await tauriInvoke<void>("set_window_position", { position });
+  await tauriInvoke<void>('set_window_position', { position });
 };
 
 export const readWindowPosition = async () => {
   try {
-    return await tauriInvoke<{ x: number; y: number }>("get_window_position");
+    return await tauriInvoke<{ x: number; y: number }>('get_window_position');
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] failed to fetch window position", error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] failed to fetch window position', error);
     return null;
   }
 };
@@ -97,22 +102,23 @@ export const resizeWindowTo = async (
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
 
 export const listHistory = async (): Promise<HistoryOverview> => {
-  return tauriInvoke<HistoryOverview>("list_history");
+  return tauriInvoke<HistoryOverview>('list_history');
 };
 
 export const openHistoryFolder = async (): Promise<void> => {
-  return tauriInvoke<void>("open_history_folder");
+  return tauriInvoke<void>('open_history_folder');
 };
 
 export const getTodayMarkdown = async (): Promise<TodayMarkdown> => {
-  return tauriInvoke<TodayMarkdown>("get_today_markdown");
+  return tauriInvoke<TodayMarkdown>('get_today_markdown');
 };
 
 export const saveTodayMarkdown = async (content: string): Promise<void> => {
   try {
-    await tauriInvoke<void>("save_today_markdown", { content });
+    await tauriInvoke<void>('save_today_markdown', { content });
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] saveTodayMarkdown 실패:", error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] saveTodayMarkdown 실패:', error);
     throw error;
   }
 };
@@ -122,7 +128,7 @@ export const appendHistoryEntry = async (
 ): Promise<void> => {
   try {
     // Rust 함수에 직접 전달 (camelCase로 자동 변환됨)
-    await tauriInvoke<void>("append_history_entry", {
+    await tauriInvoke<void>('append_history_entry', {
       payload: {
         timestamp: payload.timestamp,
         task: payload.task,
@@ -131,7 +137,8 @@ export const appendHistoryEntry = async (
       },
     });
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] appendHistoryEntry 실패:", error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] appendHistoryEntry 실패:', error);
     throw error;
   }
 };
@@ -139,43 +146,45 @@ export const appendHistoryEntry = async (
 export const listAiSummaries = async (
   limit = DEFAULT_AI_SUMMARY_LIMIT
 ): Promise<AiSummaryEntry[]> => {
-  return tauriInvoke<AiSummaryEntry[]>("list_ai_summaries", { limit });
+  return tauriInvoke<AiSummaryEntry[]>('list_ai_summaries', { limit });
 };
 
 export const createAiSummaryDraft = async (): Promise<AiSummaryEntry> => {
-  return tauriInvoke<AiSummaryEntry>("create_ai_summary_draft");
+  return tauriInvoke<AiSummaryEntry>('create_ai_summary_draft');
 };
 
 export const generateAiFeedback = async (): Promise<AiSummaryEntry> => {
-  return tauriInvoke<AiSummaryEntry>("generate_ai_feedback");
+  return tauriInvoke<AiSummaryEntry>('generate_ai_feedback');
 };
 
 export const generateAiFeedbackStream = async (): Promise<void> => {
-  return tauriInvoke<void>("generate_ai_feedback_stream");
+  return tauriInvoke<void>('generate_ai_feedback_stream');
 };
 
 export const onHistoryUpdated = async (
   callback: (overview: HistoryOverview | undefined) => void
 ): Promise<UnlistenFn> => {
-  if (typeof callback !== "function") {
+  if (typeof callback !== 'function') {
     return () => {};
   }
 
   try {
     const unlisten = await listen<HistoryOverview>(
-      "history_updated",
+      'history_updated',
       (event) => {
         try {
           callback(event.payload);
         } catch (error) {
-          if (import.meta.env.DEV) console.error("[hoego] history update handler error", error);
+          if (import.meta.env.DEV)
+            console.error('[hoego] history update handler error', error);
         }
       }
     );
 
     return unlisten;
   } catch (error) {
-    if (import.meta.env.DEV) console.error("[hoego] failed to listen to history_updated", error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] failed to listen to history_updated', error);
     return () => {};
   }
 };

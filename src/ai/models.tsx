@@ -1,4 +1,7 @@
-import React from "react";
+import { listen } from '@tauri-apps/api/event';
+import React from 'react';
+import toast from 'react-hot-toast';
+
 import {
   aiLlamaStatus,
   aiModelsList,
@@ -12,10 +15,8 @@ import {
   aiEngineStatus,
   aiEngineInstall,
   openEngineFolder,
-} from "./client";
-import { listen } from "@tauri-apps/api/event";
-import { MODEL_PRESETS } from "./presets";
-import toast from "react-hot-toast";
+} from './client';
+import { MODEL_PRESETS } from './presets';
 
 type Props = {
   onClose?: () => void;
@@ -24,22 +25,22 @@ type Props = {
 export function ModelsContent() {
   const [checking, setChecking] = React.useState(false);
   const [status, setStatus] = React.useState<{ text: string; ok: boolean }>({
-    text: "확인 전",
+    text: '확인 전',
     ok: false,
   });
   const [installed, setInstalled] = React.useState<
     { filename: string; sizeBytes: number }[]
   >([]);
-  const [modelsDir, setModelsDir] = React.useState<string>("");
+  const [modelsDir, setModelsDir] = React.useState<string>('');
   const [starting, setStarting] = React.useState<string | null>(null);
   const [progress, setProgress] = React.useState<
     Record<string, { received: number; total: number }>
   >({});
   const [installing, setInstalling] = React.useState<string | null>(null);
   const [testNote, setTestNote] = React.useState<string>(
-    "회의 요약 예시: 일정 조정, 다음 액션...\n- 프론트 QA 마감: 내일\n- 담당: A, 리뷰: B"
+    '회의 요약 예시: 일정 조정, 다음 액션...\n- 프론트 QA 마감: 내일\n- 담당: A, 리뷰: B'
   );
-  const [testResult, setTestResult] = React.useState<string>("");
+  const [testResult, setTestResult] = React.useState<string>('');
   const [running, setRunning] = React.useState(false);
   const [summarizing, setSummarizing] = React.useState(false);
   const [engine, setEngine] = React.useState<{
@@ -59,7 +60,7 @@ export function ModelsContent() {
       if (s.running) {
         setStatus({
           text: `Running on :${s.port}${
-            s.activeModel ? ` • ${s.activeModel}` : ""
+            s.activeModel ? ` • ${s.activeModel}` : ''
           }`,
           ok: true,
         });
@@ -68,7 +69,7 @@ export function ModelsContent() {
         setStatus({ text: `Reachable on :${s.port}`, ok: true });
         setRunning(false);
       } else {
-        setStatus({ text: "서버를 찾지 못했습니다", ok: false });
+        setStatus({ text: '서버를 찾지 못했습니다', ok: false });
         setRunning(false);
       }
     } catch (e) {
@@ -87,19 +88,19 @@ export function ModelsContent() {
       const eng = await aiEngineStatus();
       setEngine(eng);
     } catch (e) {
-      console.error("[hoego] refreshInstalled error:", e);
+      console.error('[hoego] refreshInstalled error:', e);
     }
   };
 
   React.useEffect(() => {
     void handleCheck();
     void refreshInstalled();
-    const u1 = listen("ai:model_download_started", (e: any) => {
+    const u1 = listen('ai:model_download_started', (e: any) => {
       const p = e.payload as { filename: string };
       const preset = MODEL_PRESETS.find((x) => x.filename === p.filename);
       if (preset) setInstalling(preset.id);
     });
-    const u2 = listen("ai:model_download_progress", (e: any) => {
+    const u2 = listen('ai:model_download_progress', (e: any) => {
       const p = e.payload as {
         filename: string;
         received: number;
@@ -110,17 +111,17 @@ export function ModelsContent() {
         [p.filename]: { received: p.received, total: p.total },
       }));
     });
-    const u3 = listen("ai:model_download_error", (e: any) => {
+    const u3 = listen('ai:model_download_error', (e: any) => {
       const p = e.payload as { filename: string; message: string };
-      console.error("[hoego] model download error", p);
+      console.error('[hoego] model download error', p);
       setInstalling(null);
-      const errorMsg = p.message || "unknown error";
+      const errorMsg = p.message || 'unknown error';
       toast.error(
         `모델 다운로드 실패\n\n파일: ${p.filename}\n오류: ${errorMsg}\n\n터미널에서 더 자세한 로그를 확인하세요.`,
         { duration: 5000 }
       );
     });
-    const u4 = listen("ai:model_download_done", async (e: any) => {
+    const u4 = listen('ai:model_download_done', async (e: any) => {
       await refreshInstalled();
       setInstalling(null);
       // 진행률 초기화
@@ -133,17 +134,17 @@ export function ModelsContent() {
     });
 
     // 엔진 설치 이벤트
-    const u5 = listen("ai:engine_install_started", () => {
+    const u5 = listen('ai:engine_install_started', () => {
       setInstallingEngine(true);
       setEngineProgress(null);
     });
-    const u6 = listen("ai:engine_install_progress", (e: any) => {
+    const u6 = listen('ai:engine_install_progress', (e: any) => {
       const p = e.payload as { received: number; total: number };
       setEngineProgress(p);
     });
-    const u7 = listen("ai:engine_install_error", (e: any) => {
+    const u7 = listen('ai:engine_install_error', (e: any) => {
       const p = e.payload as { message: string };
-      console.error("[hoego] engine install error", p);
+      console.error('[hoego] engine install error', p);
       setInstallingEngine(false);
       setEngineProgress(null);
       toast.error(
@@ -151,32 +152,32 @@ export function ModelsContent() {
         { duration: 5000 }
       );
     });
-    const u8 = listen("ai:engine_install_done", async () => {
+    const u8 = listen('ai:engine_install_done', async () => {
       await refreshInstalled();
       // 엔진 설치 완료 시 toast 표시 (모델 다운로드 중이면 자동으로 계속 진행)
       if (!installing) {
         setInstallingEngine(false);
         setEngineProgress(null);
         toast.success(
-          "✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다.",
+          '✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다.',
           { duration: 4000 }
         );
       }
     });
 
     // AI 요약 이벤트
-    const u9 = listen("ai:summarize_started", () => {
+    const u9 = listen('ai:summarize_started', () => {
       setSummarizing(true);
-      setTestResult("AI가 분석 중입니다... (30초~1분 소요)");
+      setTestResult('AI가 분석 중입니다... (30초~1분 소요)');
     });
-    const u10 = listen("ai:summarize_done", (e: any) => {
+    const u10 = listen('ai:summarize_done', (e: any) => {
       const p = e.payload as { result: any };
       // 마크다운 형식으로 표시
       const markdown = p.result?.markdown || JSON.stringify(p.result, null, 2);
       setTestResult(markdown);
       setSummarizing(false);
     });
-    const u11 = listen("ai:summarize_error", (e: any) => {
+    const u11 = listen('ai:summarize_error', (e: any) => {
       const p = e.payload as { message: string };
       setTestResult(`오류: ${p.message}`);
       setSummarizing(false);
@@ -202,17 +203,17 @@ export function ModelsContent() {
             <div
               className={`h-2.5 w-2.5 rounded-full ${
                 status.ok
-                  ? "bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse"
-                  : "bg-slate-500"
+                  ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse'
+                  : 'bg-slate-500'
               }`}
             />
             <div className="text-sm font-medium text-slate-100">
-              {status.ok ? "AI 실행 중" : "대기 중"}
+              {status.ok ? 'AI 실행 중' : '대기 중'}
             </div>
           </div>
           <div
             className={`mt-2 text-xs ${
-              status.ok ? "text-emerald-400" : "text-slate-400"
+              status.ok ? 'text-emerald-400' : 'text-slate-400'
             }`}
           >
             {status.text}
@@ -238,7 +239,7 @@ export function ModelsContent() {
           <div className="flex items-center gap-2 mb-3">
             <div
               className={`h-2 w-2 rounded-full ${
-                engine?.installed ? "bg-emerald-400" : "bg-amber-400"
+                engine?.installed ? 'bg-emerald-400' : 'bg-amber-400'
               }`}
             />
             <div className="text-xs font-semibold text-slate-200">
@@ -333,17 +334,17 @@ export function ModelsContent() {
                     <button
                       className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
                         isInstalling
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                           : isInstalled
-                          ? "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                          : "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+                            ? 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
+                            : 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30'
                       } disabled:opacity-60`}
                       onClick={async () => {
                         if (isInstalled) {
                           // 재다운로드 확인
                           if (
                             !confirm(
-                              "이미 설치된 모델입니다. 다시 다운로드하시겠습니까?"
+                              '이미 설치된 모델입니다. 다시 다운로드하시겠습니까?'
                             )
                           )
                             return;
@@ -359,7 +360,7 @@ export function ModelsContent() {
                               await aiEngineInstall();
                             } catch (engineErr) {
                               console.error(
-                                "[hoego] 엔진 설치 실패:",
+                                '[hoego] 엔진 설치 실패:',
                                 engineErr
                               );
                               throw new Error(
@@ -379,7 +380,7 @@ export function ModelsContent() {
                           await aiModelDownload(p.url, p.filename);
                           await refreshInstalled();
                         } catch (e) {
-                          console.error("[hoego] preset install failed", e);
+                          console.error('[hoego] preset install failed', e);
                           const errorMsg =
                             e instanceof Error ? e.message : String(e);
                           toast.error(
@@ -395,12 +396,12 @@ export function ModelsContent() {
                       disabled={isInstalling || installingEngine}
                     >
                       {installingEngine
-                        ? "엔진 준비 중..."
+                        ? '엔진 준비 중...'
                         : isInstalling
-                        ? "다운로드 중..."
-                        : isInstalled
-                        ? "재다운로드"
-                        : "다운로드"}
+                          ? '다운로드 중...'
+                          : isInstalled
+                            ? '재다운로드'
+                            : '다운로드'}
                     </button>
                   </div>
                   {(isInstalling ||
@@ -447,7 +448,7 @@ export function ModelsContent() {
                                   engineProgress.received /
                                   (1024 * 1024)
                                 ).toFixed(1)} MB`
-                              : "준비 중..."}
+                              : '준비 중...'}
                             {engineProgress &&
                               engineProgress.total > 0 &&
                               ` / ${(
@@ -463,7 +464,7 @@ export function ModelsContent() {
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-xs font-medium text-emerald-300">
-                              {installingEngine ? "2/2: " : ""}모델 다운로드
+                              {installingEngine ? '2/2: ' : ''}모델 다운로드
                               중...
                             </span>
                             {prog && prog.total > 0 && (
@@ -492,7 +493,7 @@ export function ModelsContent() {
                             {(() => {
                               const mb = (n: number) =>
                                 (n / (1024 * 1024)).toFixed(1);
-                              if (!prog) return "다운로드 준비 중...";
+                              if (!prog) return '다운로드 준비 중...';
                               if (prog.total > 0)
                                 return `${mb(prog.received)} MB / ${mb(
                                   prog.total
@@ -547,7 +548,7 @@ export function ModelsContent() {
                       </div>
                       <div className="text-xs text-slate-400 mt-1 font-mono">
                         {isNaN(m.sizeBytes) || m.sizeBytes === 0
-                          ? "크기 확인 중..."
+                          ? '크기 확인 중...'
                           : `${(m.sizeBytes / (1024 * 1024 * 1024)).toFixed(
                               2
                             )} GB`}
@@ -580,10 +581,10 @@ export function ModelsContent() {
                         disabled={starting === m.filename || running}
                       >
                         {starting === m.filename
-                          ? "시작 중..."
+                          ? '시작 중...'
                           : running
-                          ? "실행 중"
-                          : "서버 시작"}
+                            ? '실행 중'
+                            : '서버 시작'}
                       </button>
                       <button
                         className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-300 hover:bg-red-500/20 transition-all"
@@ -612,8 +613,8 @@ export function ModelsContent() {
           )}
           <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-black/10 border border-white/5">
             <div className="text-[11px] text-slate-500">
-              <span className="text-slate-400">저장 위치:</span>{" "}
-              {modelsDir || "확인 중..."}
+              <span className="text-slate-400">저장 위치:</span>{' '}
+              {modelsDir || '확인 중...'}
             </div>
             <button
               className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 transition-all"
@@ -645,16 +646,16 @@ export function ModelsContent() {
               <button
                 className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
                   running && !summarizing
-                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30'
                     : summarizing
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse"
-                    : "bg-white/5 text-slate-400 border border-white/10 cursor-not-allowed"
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse'
+                      : 'bg-white/5 text-slate-400 border border-white/10 cursor-not-allowed'
                 }`}
                 disabled={!running || summarizing}
                 onClick={async () => {
                   try {
                     setSummarizing(true);
-                    setTestResult("요청 전송 중...");
+                    setTestResult('요청 전송 중...');
                     await aiSummarizeV1({
                       port: 11435,
                       note: testNote,
@@ -667,10 +668,10 @@ export function ModelsContent() {
                 }}
               >
                 {summarizing
-                  ? "AI 분석 중..."
+                  ? 'AI 분석 중...'
                   : running
-                  ? "요약 실행"
-                  : "서버 대기 중"}
+                    ? '요약 실행'
+                    : '서버 대기 중'}
               </button>
               {!running && (
                 <span className="text-[11px] text-amber-400/70">

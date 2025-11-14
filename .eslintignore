@@ -1,0 +1,11 @@
+dist
+build
+node_modules
+src-tauri/target
+coverage
+*.config.js
+*.config.ts
+vite.config.ts
+vitest.config.ts
+tailwind.config.js
+postcss.config.js

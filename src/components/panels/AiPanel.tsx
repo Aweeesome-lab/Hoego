@@ -1,12 +1,14 @@
-import React from "react";
-import type { Components } from "react-markdown";
-import * as Select from "@radix-ui/react-select";
-import remarkGfm from "remark-gfm";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
-import type { AiSummaryEntry } from "@/lib/tauri";
-import { Response } from "@/components/ai/response";
-import { ThinkingIndicator } from "@/components/ai/thinking";
-import { MemoizedReactMarkdown } from "@/components/markdown";
+import * as Select from '@radix-ui/react-select';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import React from 'react';
+import remarkGfm from 'remark-gfm';
+
+import type { AiSummaryEntry } from '@/lib/tauri';
+import type { Components } from 'react-markdown';
+
+import { Response } from '@/components/ai/response';
+import { ThinkingIndicator } from '@/components/ai/thinking';
+import { MemoizedReactMarkdown } from '@/components/markdown';
 
 interface AiPanelProps {
   isDarkMode: boolean;
@@ -43,8 +45,8 @@ export const AiPanel = React.memo(function AiPanel({
     <section
       className={`flex flex-1 flex-col overflow-hidden border-r ${
         isDarkMode
-          ? "bg-[#111625] text-slate-100 border-white/10"
-          : "bg-white text-slate-900 border-slate-200"
+          ? 'bg-[#111625] text-slate-100 border-white/10'
+          : 'bg-white text-slate-900 border-slate-200'
       }`}
     >
       <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
@@ -60,8 +62,8 @@ export const AiPanel = React.memo(function AiPanel({
               <Select.Trigger
                 className={`inline-flex h-8 items-center justify-between gap-2 rounded-md border px-2.5 text-xs ${
                   isDarkMode
-                    ? "border-white/10 bg-[#0a0d13] text-slate-100"
-                    : "border-slate-200 bg-white text-slate-700"
+                    ? 'border-white/10 bg-[#0a0d13] text-slate-100'
+                    : 'border-slate-200 bg-white text-slate-700'
                 }`}
                 aria-label="요약 선택"
               >
@@ -74,8 +76,8 @@ export const AiPanel = React.memo(function AiPanel({
                 <Select.Content
                   className={`z-50 overflow-hidden rounded-md border bg-white text-slate-800 shadow ${
                     isDarkMode
-                      ? "border-white/10 bg-[#0a0d13] text-slate-100"
-                      : "border-slate-200 bg-white text-slate-800"
+                      ? 'border-white/10 bg-[#0a0d13] text-slate-100'
+                      : 'border-slate-200 bg-white text-slate-800'
                   }`}
                   position="popper"
                   sideOffset={6}
@@ -90,12 +92,12 @@ export const AiPanel = React.memo(function AiPanel({
                         value={String(index)}
                         className={`relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-1.5 text-xs outline-none transition hover:bg-slate-100/70 data-[state=checked]:font-semibold ${
                           isDarkMode
-                            ? "hover:bg-white/10"
-                            : "hover:bg-slate-100"
+                            ? 'hover:bg-white/10'
+                            : 'hover:bg-slate-100'
                         }`}
                       >
                         <Select.ItemText>
-                          #{aiSummaries.length - index}{" "}
+                          #{aiSummaries.length - index}{' '}
                           {getSummaryLabel(summary)}
                         </Select.ItemText>
                         <Select.ItemIndicator className="ml-auto">
@@ -139,10 +141,11 @@ export const AiPanel = React.memo(function AiPanel({
             <Response isDarkMode={isDarkMode}>
               <p
                 className={`text-sm ${
-                  isDarkMode ? "text-slate-200" : "text-slate-500"
+                  isDarkMode ? 'text-slate-200' : 'text-slate-500'
                 }`}
               >
-                오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을 생성해보세요.
+                오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을
+                생성해보세요.
               </p>
             </Response>
           ) : (
@@ -151,8 +154,7 @@ export const AiPanel = React.memo(function AiPanel({
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
-                {selectedSummary?.content?.trim() ||
-                  "요약 내용이 없습니다."}
+                {selectedSummary?.content?.trim() || '요약 내용이 없습니다.'}
               </MemoizedReactMarkdown>
             </Response>
           )}

@@ -1,5 +1,6 @@
-import { useEffect } from "react";
-import { useAppStore } from "@/store";
+import { useEffect } from 'react';
+
+import { useAppStore } from '@/store';
 
 /**
  * 테마 관리 커스텀 훅
@@ -29,18 +30,18 @@ export function useTheme() {
   // 다크모드 테마 적용 (document.documentElement에 클래스 추가/제거)
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.remove("light");
+      document.documentElement.classList.remove('light');
     } else {
-      document.documentElement.classList.add("light");
+      document.documentElement.classList.add('light');
     }
   }, [isDarkMode]);
 
   // System theme detection and update
   // themeMode가 "system"일 때만 시스템 테마 변경 감지
   useEffect(() => {
-    if (themeMode !== "system") return;
+    if (themeMode !== 'system') return;
 
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       setIsDarkMode(e.matches);
     };
@@ -49,15 +50,15 @@ export function useTheme() {
     handleChange(mediaQuery);
 
     // Listen for changes
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [themeMode, setIsDarkMode]);
 
   // Update isDarkMode based on themeMode changes
   useEffect(() => {
-    if (themeMode === "light") {
+    if (themeMode === 'light') {
       setIsDarkMode(false);
-    } else if (themeMode === "dark") {
+    } else if (themeMode === 'dark') {
       setIsDarkMode(true);
     }
     // For 'system', the effect above handles it
@@ -68,25 +69,29 @@ export function useTheme() {
   // This effect is kept for compatibility with external localStorage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "hoego-storage" && e.newValue) {
+      if (e.key === 'hoego-storage' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
           if (parsed?.state?.themeMode) {
             const newMode = parsed.state.themeMode;
-            if (newMode === "light" || newMode === "dark" || newMode === "system") {
+            if (
+              newMode === 'light' ||
+              newMode === 'dark' ||
+              newMode === 'system'
+            ) {
               setThemeMode(newMode);
             }
           }
         } catch (error) {
           if (import.meta.env.DEV) {
-            console.error("[hoego] Failed to parse storage event:", error);
+            console.error('[hoego] Failed to parse storage event:', error);
           }
         }
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [setThemeMode]);
 
   return {

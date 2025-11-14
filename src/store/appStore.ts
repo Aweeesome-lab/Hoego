@@ -1,7 +1,8 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import type { AiSummaryEntry } from "@/lib/tauri";
-import type { RetrospectiveTemplate } from "@/constants/retrospectiveTemplates";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+import type { RetrospectiveTemplate } from '@/constants/retrospectiveTemplates';
+import type { AiSummaryEntry } from '@/lib/tauri';
 
 /**
  * Theme 관련 상태 슬라이스
@@ -13,7 +14,7 @@ interface ThemeSlice {
    * - "dark": 다크 모드
    * - "system": 시스템 설정 따름
    */
-  themeMode: "light" | "dark" | "system";
+  themeMode: 'light' | 'dark' | 'system';
 
   /**
    * 다크모드 활성화 여부 (계산된 값)
@@ -25,7 +26,7 @@ interface ThemeSlice {
    * 테마 모드 설정
    * @param mode - 설정할 테마 모드
    */
-  setThemeMode: (mode: "light" | "dark" | "system") => void;
+  setThemeMode: (mode: 'light' | 'dark' | 'system') => void;
 
   /**
    * 다크모드 상태 직접 설정 (시스템 테마 감지용)
@@ -167,7 +168,9 @@ interface AiSlice {
    * AI 패널 확장 상태 변경
    * @param isExpanded - 확장 여부 또는 상태 변경 함수
    */
-  setIsAiPanelExpanded: (isExpanded: boolean | ((prev: boolean) => boolean)) => void;
+  setIsAiPanelExpanded: (
+    isExpanded: boolean | ((prev: boolean) => boolean)
+  ) => void;
 }
 
 /**
@@ -192,7 +195,7 @@ interface RetrospectSlice {
   /**
    * 회고 뷰 모드 (편집/미리보기/분할)
    */
-  retrospectViewMode: "edit" | "preview" | "split";
+  retrospectViewMode: 'edit' | 'preview' | 'split';
 
   /**
    * 커스텀 회고 템플릿 목록
@@ -226,7 +229,7 @@ interface RetrospectSlice {
    * 회고 뷰 모드 설정
    * @param mode - 뷰 모드
    */
-  setRetrospectViewMode: (mode: "edit" | "preview" | "split") => void;
+  setRetrospectViewMode: (mode: 'edit' | 'preview' | 'split') => void;
 
   /**
    * 커스텀 회고 템플릿 설정
@@ -246,10 +249,7 @@ interface RetrospectSlice {
 /**
  * 전체 애플리케이션 상태
  */
-export type AppStore = ThemeSlice &
-  MarkdownSlice &
-  AiSlice &
-  RetrospectSlice;
+export type AppStore = ThemeSlice & MarkdownSlice & AiSlice & RetrospectSlice;
 
 /**
  * Zustand 스토어
@@ -262,25 +262,25 @@ export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
       // Theme Slice
-      themeMode: "system",
+      themeMode: 'system',
       isDarkMode: false,
       setThemeMode: (mode) => set({ themeMode: mode }),
       setIsDarkMode: (isDark) => set({ isDarkMode: isDark }),
       toggleTheme: () =>
         set((state) => {
           const next =
-            state.themeMode === "light"
-              ? "dark"
-              : state.themeMode === "dark"
-              ? "system"
-              : "light";
+            state.themeMode === 'light'
+              ? 'dark'
+              : state.themeMode === 'dark'
+                ? 'system'
+                : 'light';
           return { themeMode: next };
         }),
 
       // Markdown Slice
-      markdownContent: "",
+      markdownContent: '',
       isEditing: false,
-      editingContent: "",
+      editingContent: '',
       isSaving: false,
       isSyncing: false,
       setMarkdownContent: (content) => set({ markdownContent: content }),
@@ -294,7 +294,7 @@ export const useAppStore = create<AppStore>()(
       selectedSummaryIndex: 0,
       summariesError: null,
       isGeneratingAiFeedback: false,
-      streamingAiText: "",
+      streamingAiText: '',
       isAiPanelExpanded: false,
       setAiSummaries: (summaries) => set({ aiSummaries: summaries }),
       setSelectedSummaryIndex: (index) => set({ selectedSummaryIndex: index }),
@@ -305,16 +305,16 @@ export const useAppStore = create<AppStore>()(
       setIsAiPanelExpanded: (isExpanded) =>
         set((state) => ({
           isAiPanelExpanded:
-            typeof isExpanded === "function"
+            typeof isExpanded === 'function'
               ? isExpanded(state.isAiPanelExpanded)
               : isExpanded,
         })),
 
       // Retrospect Slice
-      retrospectContent: "",
+      retrospectContent: '',
       isSavingRetrospect: false,
       isTemplatePickerOpen: false,
-      retrospectViewMode: "split",
+      retrospectViewMode: 'split',
       customRetrospectiveTemplates: [],
       isRetrospectPanelExpanded: false,
       setRetrospectContent: (content) => set({ retrospectContent: content }),
@@ -328,13 +328,13 @@ export const useAppStore = create<AppStore>()(
       setIsRetrospectPanelExpanded: (isExpanded) =>
         set((state) => ({
           isRetrospectPanelExpanded:
-            typeof isExpanded === "function"
+            typeof isExpanded === 'function'
               ? isExpanded(state.isRetrospectPanelExpanded)
               : isExpanded,
         })),
     }),
     {
-      name: "hoego-storage",
+      name: 'hoego-storage',
       storage: createJSONStorage(() => localStorage),
       // Only persist specific slices
       partialize: (state) => ({

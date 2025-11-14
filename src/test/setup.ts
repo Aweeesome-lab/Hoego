@@ -4,9 +4,9 @@
  * Global test configuration and setup
  */
 
-import { expect, afterEach, vi } from "vitest";
-import { cleanup } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
+import { cleanup } from '@testing-library/react';
+import { expect, afterEach, vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
 // Cleanup after each test
 afterEach(() => {
@@ -21,12 +21,12 @@ const mockTauri = {
   emit: vi.fn(),
 };
 
-vi.mock("@tauri-apps/api/tauri", () => mockTauri);
-vi.mock("@tauri-apps/api/event", () => ({
+vi.mock('@tauri-apps/api/tauri', () => mockTauri);
+vi.mock('@tauri-apps/api/event', () => ({
   listen: mockTauri.listen,
   emit: mockTauri.emit,
 }));
-vi.mock("@tauri-apps/api/window", () => ({
+vi.mock('@tauri-apps/api/window', () => ({
   appWindow: {
     hide: vi.fn(),
     show: vi.fn(),
@@ -63,7 +63,7 @@ const localStorageMock = {
 global.localStorage = localStorageMock as unknown as Storage;
 
 // Mock matchMedia
-Object.defineProperty(window, "matchMedia", {
+Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,

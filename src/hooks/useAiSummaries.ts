@@ -1,27 +1,37 @@
-import { useCallback, useRef } from "react";
-import type { AiSummaryEntry } from "@/lib/tauri";
-import { listAiSummaries } from "@/lib/tauri";
-import toast from "react-hot-toast";
-import { useAppStore } from "@/store";
+import { useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
+
+import type { AiSummaryEntry } from '@/lib/tauri';
+
+import { listAiSummaries } from '@/lib/tauri';
+import { useAppStore } from '@/store';
 
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
 
 export function useAiSummaries() {
   // Zustand store selectors
   const aiSummaries = useAppStore((state) => state.aiSummaries);
-  const selectedSummaryIndex = useAppStore((state) => state.selectedSummaryIndex);
+  const selectedSummaryIndex = useAppStore(
+    (state) => state.selectedSummaryIndex
+  );
   const summariesError = useAppStore((state) => state.summariesError);
-  const isGeneratingAiFeedback = useAppStore((state) => state.isGeneratingAiFeedback);
+  const isGeneratingAiFeedback = useAppStore(
+    (state) => state.isGeneratingAiFeedback
+  );
   const streamingAiText = useAppStore((state) => state.streamingAiText);
 
   const setAiSummaries = useAppStore((state) => state.setAiSummaries);
-  const setSelectedSummaryIndex = useAppStore((state) => state.setSelectedSummaryIndex);
+  const setSelectedSummaryIndex = useAppStore(
+    (state) => state.setSelectedSummaryIndex
+  );
   const setSummariesError = useAppStore((state) => state.setSummariesError);
-  const setIsGeneratingAiFeedback = useAppStore((state) => state.setIsGeneratingAiFeedback);
+  const setIsGeneratingAiFeedback = useAppStore(
+    (state) => state.setIsGeneratingAiFeedback
+  );
   const setStreamingAiText = useAppStore((state) => state.setStreamingAiText);
 
   // Refs (not in Zustand)
-  const streamingBufferRef = useRef("");
+  const streamingBufferRef = useRef('');
   const streamingTimerRef = useRef<number | null>(null);
   const streamingCleanupRef = useRef<(() => void) | null>(null);
 
@@ -36,7 +46,7 @@ export function useAiSummaries() {
       });
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[hoego] AI summaries 로드 실패", error);
+        console.error('[hoego] AI summaries 로드 실패', error);
       setSummariesError(error instanceof Error ? error.message : String(error));
       setAiSummaries([]);
       setSelectedSummaryIndex(0);
@@ -46,21 +56,23 @@ export function useAiSummaries() {
   const handleGenerateAiFeedback = useCallback(async () => {
     if (isGeneratingAiFeedback) return;
     setIsGeneratingAiFeedback(true);
-    setStreamingAiText("");
-    streamingBufferRef.current = "";
+    setStreamingAiText('');
+    streamingBufferRef.current = '';
 
     // 이벤트 구독: 델타/완료/에러
     const unsubs: Array<() => void> = [];
     const cleanup = () => {
       unsubs.forEach((u) => {
-        try { u(); } catch {}
+        try {
+          u();
+        } catch {}
       });
       if (streamingTimerRef.current) {
         clearInterval(streamingTimerRef.current);
         streamingTimerRef.current = null;
       }
-      streamingBufferRef.current = "";
-      setStreamingAiText("");
+      streamingBufferRef.current = '';
+      setStreamingAiText('');
       setIsGeneratingAiFeedback(false);
       streamingCleanupRef.current = null;
     };
@@ -68,12 +80,12 @@ export function useAiSummaries() {
     streamingCleanupRef.current = cleanup;
 
     try {
-      const { listen } = await import("@tauri-apps/api/event");
+      const { listen } = await import('@tauri-apps/api/event');
 
       const unDelta = await listen<{ text: string }>(
-        "ai_feedback_stream_delta",
+        'ai_feedback_stream_delta',
         (e) => {
-          const t = e.payload?.text || "";
+          const t = e.payload?.text || '';
           if (!t) return;
           streamingBufferRef.current += t;
           if (!streamingTimerRef.current) {
@@ -81,7 +93,7 @@ export function useAiSummaries() {
               if (!streamingBufferRef.current) return;
               setStreamingAiText((prev) => {
                 const next = prev + streamingBufferRef.current;
-                streamingBufferRef.current = "";
+                streamingBufferRef.current = '';
                 return next;
               });
             }, 50);
@@ -94,7 +106,7 @@ export function useAiSummaries() {
         filename: string;
         path: string;
         createdAt?: string;
-      }>("ai_feedback_stream_complete", async () => {
+      }>('ai_feedback_stream_complete', async () => {
         cleanup();
         await loadAiSummaries();
         setSelectedSummaryIndex(0);
@@ -102,20 +114,20 @@ export function useAiSummaries() {
       unsubs.push(unComplete);
 
       const unError = await listen<{ message: string }>(
-        "ai_feedback_stream_error",
+        'ai_feedback_stream_error',
         (e) => {
           cleanup();
-          const msg = e.payload?.message || "알 수 없는 오류";
+          const msg = e.payload?.message || '알 수 없는 오류';
           toast.error(`AI 피드백 생성에 실패했습니다: ${msg}`);
         }
       );
       unsubs.push(unError);
 
-      const { generateAiFeedbackStream } = await import("@/lib/tauri");
+      const { generateAiFeedbackStream } = await import('@/lib/tauri');
       await generateAiFeedbackStream();
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[hoego] AI 피드백 스트리밍 시작 실패", error);
+        console.error('[hoego] AI 피드백 스트리밍 시작 실패', error);
       toast.error(
         `AI 피드백 생성에 실패했습니다: ${
           error instanceof Error ? error.message : String(error)
@@ -133,14 +145,14 @@ export function useAiSummaries() {
     if (Number.isNaN(date.getTime())) {
       return summary.filename;
     }
-    const datePart = date.toLocaleDateString("ko-KR", {
-      month: "short",
-      day: "numeric",
-      weekday: "short",
+    const datePart = date.toLocaleDateString('ko-KR', {
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
     });
-    const timePart = date.toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
+    const timePart = date.toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
     return `${datePart} ${timePart}`;
   }, []);

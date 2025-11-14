@@ -1,17 +1,19 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import type { ListItem, Point, Position } from "unist";
-import { getTodayMarkdown, saveTodayMarkdown } from "@/lib/tauri";
-import toast from "react-hot-toast";
-import { useAppStore } from "@/store";
+import { useState, useRef, useCallback, useEffect } from 'react';
+import toast from 'react-hot-toast';
+
+import type { ListItem, Point, Position } from 'unist';
+
+import { getTodayMarkdown, saveTodayMarkdown } from '@/lib/tauri';
+import { useAppStore } from '@/store';
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
   const now = new Date();
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
   const kst = new Date(utcMs + 9 * 60 * 60000);
-  const hh = String(kst.getHours()).padStart(2, "0");
-  const mm = String(kst.getMinutes()).padStart(2, "0");
-  const ss = String(kst.getSeconds()).padStart(2, "0");
+  const hh = String(kst.getHours()).padStart(2, '0');
+  const mm = String(kst.getMinutes()).padStart(2, '0');
+  const ss = String(kst.getSeconds()).padStart(2, '0');
   return { hh, mm, ss };
 }
 
@@ -30,12 +32,12 @@ export function useMarkdown() {
   const setIsSyncing = useAppStore((state) => state.setIsSyncing);
 
   // Local state (not in Zustand)
-  const [lastMinute, setLastMinute] = useState("");
+  const [lastMinute, setLastMinute] = useState('');
 
   // Refs
   const markdownRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
-  const lastSavedRef = useRef<string>("");
+  const lastSavedRef = useRef<string>('');
   const debounceIdRef = useRef<number | null>(null);
 
   // 마크다운 로드 함수
@@ -46,8 +48,8 @@ export function useMarkdown() {
       lastSavedRef.current = data.content;
 
       // 마지막 시간 추출
-      const lines = data.content.split("\n");
-      let latestMinute = "";
+      const lines = data.content.split('\n');
+      let latestMinute = '';
       for (let i = lines.length - 1; i >= 0; i--) {
         const rawLine = lines[i];
         const trimmedLine = rawLine.trim();
@@ -55,12 +57,12 @@ export function useMarkdown() {
           continue;
         }
         const bulletMatch = trimmedLine.match(/\((\d{2}):(\d{2}):\d{2}\)\s*$/);
-        if (trimmedLine.startsWith("- ") && bulletMatch) {
+        if (trimmedLine.startsWith('- ') && bulletMatch) {
           latestMinute = `${bulletMatch[1]}:${bulletMatch[2]}`;
           break;
         }
-        if (trimmedLine.startsWith("## ")) {
-          latestMinute = trimmedLine.replace("## ", "").trim();
+        if (trimmedLine.startsWith('## ')) {
+          latestMinute = trimmedLine.replace('## ', '').trim();
           break;
         }
       }
@@ -74,7 +76,7 @@ export function useMarkdown() {
       }, 100);
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[hoego] 마크다운 로드 실패", error);
+        console.error('[hoego] 마크다운 로드 실패', error);
       toast.error(
         `마크다운 로드 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -84,7 +86,7 @@ export function useMarkdown() {
   }, []);
 
   const appendTimestampToLine = useCallback((line: string) => {
-    const trimmedLine = line.replace(/\s+$/, "");
+    const trimmedLine = line.replace(/\s+$/, '');
     if (!trimmedLine) {
       return trimmedLine;
     }
@@ -97,9 +99,9 @@ export function useMarkdown() {
     const normalized = trimmedLine.trim();
     if (
       !normalized ||
-      normalized.startsWith("#") ||
-      normalized.startsWith(">") ||
-      normalized.startsWith("```")
+      normalized.startsWith('#') ||
+      normalized.startsWith('>') ||
+      normalized.startsWith('```')
     ) {
       return trimmedLine;
     }
@@ -125,13 +127,13 @@ export function useMarkdown() {
     (point?: Point | null) => {
       if (
         !point ||
-        typeof point.line !== "number" ||
-        typeof point.column !== "number"
+        typeof point.line !== 'number' ||
+        typeof point.column !== 'number'
       ) {
         return null;
       }
 
-      const lines = markdownContent.split("\n");
+      const lines = markdownContent.split('\n');
       const lineIndex = Math.max(point.line - 1, 0);
 
       let offset = 0;
@@ -141,7 +143,7 @@ export function useMarkdown() {
 
       const columnIndex = Math.max(point.column - 1, 0);
       if (lineIndex < lines.length) {
-        const currentLine = lines[lineIndex] ?? "";
+        const currentLine = lines[lineIndex] ?? '';
         offset += Math.min(columnIndex, currentLine.length);
       } else {
         offset += columnIndex;
@@ -159,17 +161,17 @@ export function useMarkdown() {
       }
 
       const startOffset =
-        typeof position.start?.offset === "number"
+        typeof position.start?.offset === 'number'
           ? position.start.offset
           : getOffsetFromPoint(position.start);
       const endOffset =
-        typeof position.end?.offset === "number"
+        typeof position.end?.offset === 'number'
           ? position.end.offset
           : getOffsetFromPoint(position.end);
 
       if (
-        typeof startOffset !== "number" ||
-        typeof endOffset !== "number" ||
+        typeof startOffset !== 'number' ||
+        typeof endOffset !== 'number' ||
         startOffset >= endOffset
       ) {
         return null;
@@ -196,7 +198,7 @@ export function useMarkdown() {
       const slice = previousContent.slice(startOffset, endOffset);
       const updatedSlice = slice.replace(
         /\[( |x|X)\]/,
-        nextChecked ? "[x]" : "[ ]"
+        nextChecked ? '[x]' : '[ ]'
       );
 
       if (slice === updatedSlice) {
@@ -222,7 +224,7 @@ export function useMarkdown() {
         setMarkdownContent(previousContent);
         lastSavedRef.current = previousContent;
         if (import.meta.env.DEV) {
-          console.error("[hoego] 체크박스 상태 저장 실패:", error);
+          console.error('[hoego] 체크박스 상태 저장 실패:', error);
         }
         toast.error(
           `체크박스 업데이트 실패: ${
@@ -257,7 +259,8 @@ export function useMarkdown() {
         await saveTodayMarkdown(editingContent);
         lastSavedRef.current = editingContent;
       } catch (error) {
-        if (import.meta.env.DEV) console.error("[hoego] 자동 저장 실패:", error);
+        if (import.meta.env.DEV)
+          console.error('[hoego] 자동 저장 실패:', error);
       } finally {
         setIsSaving(false);
       }
@@ -275,12 +278,12 @@ export function useMarkdown() {
     setIsSyncing(true);
     try {
       await loadMarkdown();
-      toast.success("동기화 완료");
+      toast.success('동기화 완료');
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error("[hoego] 동기화 실패:", error);
+        console.error('[hoego] 동기화 실패:', error);
       }
-      toast.error("동기화에 실패했습니다.");
+      toast.error('동기화에 실패했습니다.');
     } finally {
       setIsSyncing(false);
     }

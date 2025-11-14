@@ -1,13 +1,17 @@
-import React from "react";
-import type { Components } from "react-markdown";
-import type { ListItem, Code, InlineCode } from "mdast";
-import * as Checkbox from "@radix-ui/react-checkbox";
-import { Check } from "lucide-react";
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { Check } from 'lucide-react';
+import React from 'react';
+
+import type { ListItem, Code, InlineCode } from 'mdast';
+import type { Components } from 'react-markdown';
 
 interface UseMarkdownComponentsProps {
   isDarkMode: boolean;
   isSaving: boolean;
-  handleTaskCheckboxToggle: (listItem: ListItem, nextChecked: boolean) => Promise<void>;
+  handleTaskCheckboxToggle: (
+    listItem: ListItem,
+    nextChecked: boolean
+  ) => Promise<void>;
 }
 
 export function useMarkdownComponents({
@@ -22,7 +26,7 @@ export function useMarkdownComponents({
         <h1
           {...props}
           className={`mb-3 text-base font-semibold ${
-            isDarkMode ? "text-slate-100" : "text-slate-900"
+            isDarkMode ? 'text-slate-100' : 'text-slate-900'
           }`}
         >
           {children}
@@ -32,7 +36,7 @@ export function useMarkdownComponents({
         <h2
           {...props}
           className={`mb-2 mt-3 text-sm font-semibold ${
-            isDarkMode ? "text-slate-200" : "text-slate-800"
+            isDarkMode ? 'text-slate-200' : 'text-slate-800'
           }`}
         >
           {children}
@@ -42,7 +46,7 @@ export function useMarkdownComponents({
         <h3
           {...props}
           className={`mb-1.5 mt-2 text-xs font-semibold ${
-            isDarkMode ? "text-slate-200" : "text-slate-800"
+            isDarkMode ? 'text-slate-200' : 'text-slate-800'
           }`}
         >
           {children}
@@ -66,20 +70,20 @@ export function useMarkdownComponents({
       ),
       li: ({ node, children, ...props }) => {
         const listItem = node as unknown as ListItem | undefined;
-        if (typeof listItem?.checked === "boolean") {
+        if (typeof listItem?.checked === 'boolean') {
           return (
             <li
               {...props}
               className="flex items-start gap-2 leading-5 text-[13px]"
-              style={{ listStyle: "none" }}
+              style={{ listStyle: 'none' }}
               onMouseDown={(e) => e.stopPropagation()}
             >
               <Checkbox.Root
                 className={`mt-1 flex h-4 w-4 items-center justify-center rounded border text-xs transition ${
                   isDarkMode
-                    ? "border-white/20 bg-white/5 data-[state=checked]:border-emerald-300 data-[state=checked]:bg-emerald-500/20"
-                    : "border-slate-300 bg-white data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500/15"
-                } ${isSaving ? "opacity-60" : ""}`}
+                    ? 'border-white/20 bg-white/5 data-[state=checked]:border-emerald-300 data-[state=checked]:bg-emerald-500/20'
+                    : 'border-slate-300 bg-white data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500/15'
+                } ${isSaving ? 'opacity-60' : ''}`}
                 checked={Boolean(listItem.checked)}
                 disabled={isSaving}
                 onCheckedChange={(value) => {
@@ -93,7 +97,7 @@ export function useMarkdownComponents({
                 <Checkbox.Indicator>
                   <Check
                     className={`h-3 w-3 ${
-                      isDarkMode ? "text-emerald-300" : "text-emerald-600"
+                      isDarkMode ? 'text-emerald-300' : 'text-emerald-600'
                     }`}
                     strokeWidth={3}
                   />
@@ -127,24 +131,24 @@ export function useMarkdownComponents({
       ),
       code: ({ node, className, children, ...props }) => {
         const codeNode = node as unknown as Code | InlineCode | undefined;
-        const isInline = codeNode?.type === "inlineCode";
+        const isInline = codeNode?.type === 'inlineCode';
         if (isInline) {
           return (
             <code
               {...props}
               className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-[11px] ${
-                isDarkMode ? "bg-slate-50/10 text-slate-100" : ""
+                isDarkMode ? 'bg-slate-50/10 text-slate-100' : ''
               }`}
             >
               {children}
             </code>
           );
         }
-        const language = className || "";
+        const language = className || '';
         return (
           <pre
             className={`my-3 overflow-x-auto rounded-md bg-slate-900/80 p-3 text-xs text-slate-100 ${
-              !isDarkMode ? "bg-slate-900/90" : ""
+              !isDarkMode ? 'bg-slate-900/90' : ''
             }`}
           >
             <code className={language} {...props}>
@@ -158,8 +162,8 @@ export function useMarkdownComponents({
           {...props}
           className={`my-3 border-l-2 pl-3 ${
             isDarkMode
-              ? "border-slate-500 text-slate-200"
-              : "border-slate-300 text-slate-700"
+              ? 'border-slate-500 text-slate-200'
+              : 'border-slate-300 text-slate-700'
           }`}
         >
           {children}
@@ -170,7 +174,7 @@ export function useMarkdownComponents({
           <table
             {...props}
             className={`w-full border-collapse text-[13px] leading-5 ${
-              isDarkMode ? "text-slate-200" : "text-slate-800"
+              isDarkMode ? 'text-slate-200' : 'text-slate-800'
             }`}
           >
             {children}
@@ -180,7 +184,7 @@ export function useMarkdownComponents({
       thead: ({ node, children, ...props }) => (
         <thead
           {...props}
-          className={isDarkMode ? "bg-white/5 text-slate-100" : "bg-slate-100"}
+          className={isDarkMode ? 'bg-white/5 text-slate-100' : 'bg-slate-100'}
         >
           {children}
         </thead>

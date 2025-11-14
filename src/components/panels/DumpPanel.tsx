@@ -1,7 +1,9 @@
-import React from "react";
-import type { Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { MemoizedReactMarkdown } from "@/components/markdown";
+import React from 'react';
+import remarkGfm from 'remark-gfm';
+
+import type { Components } from 'react-markdown';
+
+import { MemoizedReactMarkdown } from '@/components/markdown';
 
 interface DumpPanelProps {
   isDarkMode: boolean;
@@ -30,8 +32,8 @@ export const DumpPanel = React.memo(function DumpPanel({
     <section
       className={`flex flex-1 flex-col overflow-hidden border-r ${
         isDarkMode
-          ? "bg-[#0f141f] text-slate-100 border-white/10"
-          : "bg-white text-slate-900 border-slate-200"
+          ? 'bg-[#0f141f] text-slate-100 border-white/10'
+          : 'bg-white text-slate-900 border-slate-200'
       }`}
     >
       <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
@@ -40,8 +42,8 @@ export const DumpPanel = React.memo(function DumpPanel({
           <span
             className={`rounded-full px-3 py-1 text-[10px] ${
               isDarkMode
-                ? "bg-white/10 text-slate-200"
-                : "bg-slate-200 text-slate-700"
+                ? 'bg-white/10 text-slate-200'
+                : 'bg-slate-200 text-slate-700'
             }`}
           >
             편집 중
@@ -53,7 +55,7 @@ export const DumpPanel = React.memo(function DumpPanel({
           ref={markdownRef}
           className="h-full w-full overflow-y-auto"
           onMouseDown={(e) => e.stopPropagation()}
-          style={{ pointerEvents: "auto" }}
+          style={{ pointerEvents: 'auto' }}
         >
           {isEditing ? (
             <textarea
@@ -62,22 +64,22 @@ export const DumpPanel = React.memo(function DumpPanel({
               onChange={(e) => setEditingContent(e.target.value)}
               className={`w-full min-h-[260px] resize-none border text-[13px] leading-5 outline-none ${
                 isDarkMode
-                  ? "border-white/10 bg-[#05070c] text-slate-100 placeholder:text-slate-500"
-                  : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
+                  ? 'border-white/10 bg-[#05070c] text-slate-100 placeholder:text-slate-500'
+                  : 'border-slate-200 bg-white text-slate-900 placeholder:text-slate-400'
               }`}
               style={{
                 fontFamily:
                   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 padding: 12,
-                height: "100%",
+                height: '100%',
               }}
               placeholder="# 오늘\n\n작업을 기록해보세요."
               onKeyDown={(e) => {
-                if (e.key === "Escape") {
+                if (e.key === 'Escape') {
                   e.stopPropagation();
                 }
                 if (
-                  e.key === "Enter" &&
+                  e.key === 'Enter' &&
                   !e.shiftKey &&
                   !e.metaKey &&
                   !e.ctrlKey &&
@@ -91,18 +93,15 @@ export const DumpPanel = React.memo(function DumpPanel({
                   const end = el.selectionEnd;
                   const before = editingContent.slice(0, start);
                   const after = editingContent.slice(end);
-                  const lineStart = before.lastIndexOf("\n") + 1;
+                  const lineStart = before.lastIndexOf('\n') + 1;
                   const currentLine = before.slice(lineStart);
 
                   const stampedLine = appendTimestampToLine(currentLine);
 
-                  const nextPrefix = "";
-                  const newContent =
-                    editingContent.slice(0, lineStart) +
-                    stampedLine +
-                    "\n" +
-                    nextPrefix +
-                    after;
+                  const nextPrefix = '';
+                  const newContent = `${
+                    editingContent.slice(0, lineStart) + stampedLine
+                  }\n${nextPrefix}${after}`;
                   const newCaret =
                     lineStart + stampedLine.length + 1 + nextPrefix.length;
 
@@ -117,16 +116,14 @@ export const DumpPanel = React.memo(function DumpPanel({
           ) : (
             <div
               className={`prose prose-sm max-w-none ${
-                isDarkMode
-                  ? "prose-invert text-slate-200"
-                  : "text-slate-700"
+                isDarkMode ? 'prose-invert text-slate-200' : 'text-slate-700'
               }`}
             >
               <MemoizedReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
-                {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
+                {markdownContent || '# 오늘\n\n작업을 기록해보세요.'}
               </MemoizedReactMarkdown>
             </div>
           )}

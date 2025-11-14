@@ -5,14 +5,14 @@
  * 테마, 윈도우, LLM 설정 등을 관리합니다.
  */
 
-import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
-import { appWindow, LogicalSize } from "@tauri-apps/api/window";
+import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
+import { appWindow, LogicalSize } from '@tauri-apps/api/window';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ThemeMode = "light" | "dark" | "system";
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface WindowPosition {
   x: number;
@@ -32,7 +32,7 @@ const MIN_WINDOW_WIDTH = 320;
 const MIN_WINDOW_HEIGHT = 200;
 const DEFAULT_WINDOW_PADDING = 24;
 
-const THEME_STORAGE_KEY = "hoego_theme_mode";
+const THEME_STORAGE_KEY = 'hoego_theme_mode';
 
 // ============================================================================
 // Theme Settings
@@ -44,10 +44,10 @@ const THEME_STORAGE_KEY = "hoego_theme_mode";
  */
 export function getStoredThemeMode(): ThemeMode {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === "light" || stored === "dark" || stored === "system") {
+  if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
-  return "system";
+  return 'system';
 }
 
 /**
@@ -63,7 +63,10 @@ export function saveThemeMode(mode: ThemeMode): void {
  * @returns 시스템이 다크모드인지 여부
  */
 export function getSystemDarkMode(): boolean {
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return (
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 }
 
 /**
@@ -74,14 +77,14 @@ export function getSystemDarkMode(): boolean {
  */
 export function getNextThemeMode(currentMode: ThemeMode): ThemeMode {
   switch (currentMode) {
-    case "light":
-      return "dark";
-    case "dark":
-      return "system";
-    case "system":
-      return "light";
+    case 'light':
+      return 'dark';
+    case 'dark':
+      return 'system';
+    case 'system':
+      return 'light';
     default:
-      return "system";
+      return 'system';
   }
 }
 
@@ -91,8 +94,8 @@ export function getNextThemeMode(currentMode: ThemeMode): ThemeMode {
  * @returns 다크모드 활성화 여부
  */
 export function isDarkModeActive(mode: ThemeMode): boolean {
-  if (mode === "light") return false;
-  if (mode === "dark") return true;
+  if (mode === 'light') return false;
+  if (mode === 'dark') return true;
   return getSystemDarkMode();
 }
 
@@ -108,9 +111,9 @@ export async function hideOverlayWindow(): Promise<void> {
     await appWindow.hide();
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[settingsService] overlay hide failed:", error);
+      console.error('[settingsService] overlay hide failed:', error);
     }
-    await tauriInvoke<void>("hide_main_window");
+    await tauriInvoke<void>('hide_main_window');
   }
 }
 
@@ -119,10 +122,10 @@ export async function hideOverlayWindow(): Promise<void> {
  */
 export async function toggleOverlayWindow(): Promise<void> {
   try {
-    await tauriInvoke<void>("toggle_overlay_window");
+    await tauriInvoke<void>('toggle_overlay_window');
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[settingsService] overlay toggle failed:", error);
+      console.error('[settingsService] overlay toggle failed:', error);
     }
     await hideOverlayWindow();
   }
@@ -132,18 +135,20 @@ export async function toggleOverlayWindow(): Promise<void> {
  * 윈도우 위치를 설정합니다
  * @param position 설정할 윈도우 위치
  */
-export async function setWindowPosition(position: WindowPosition): Promise<void> {
+export async function setWindowPosition(
+  position: WindowPosition
+): Promise<void> {
   if (
     !position ||
-    typeof position.x !== "number" ||
+    typeof position.x !== 'number' ||
     Number.isNaN(position.x) ||
-    typeof position.y !== "number" ||
+    typeof position.y !== 'number' ||
     Number.isNaN(position.y)
   ) {
     return;
   }
 
-  await tauriInvoke<void>("set_window_position", { position });
+  await tauriInvoke<void>('set_window_position', { position });
 }
 
 /**
@@ -152,10 +157,13 @@ export async function setWindowPosition(position: WindowPosition): Promise<void>
  */
 export async function getWindowPosition(): Promise<WindowPosition | null> {
   try {
-    return await tauriInvoke<WindowPosition>("get_window_position");
+    return await tauriInvoke<WindowPosition>('get_window_position');
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[settingsService] failed to fetch window position:", error);
+      console.error(
+        '[settingsService] failed to fetch window position:',
+        error
+      );
     }
     return null;
   }
@@ -188,14 +196,14 @@ export async function resizeWindow(
  * LLM 설정 윈도우를 엽니다
  */
 export async function openLLMSettings(): Promise<void> {
-  return tauriInvoke<void>("open_llm_settings");
+  return tauriInvoke<void>('open_llm_settings');
 }
 
 /**
  * 설정 윈도우를 엽니다
  */
 export async function openSettingsWindow(): Promise<void> {
-  return tauriInvoke<void>("open_settings_window");
+  return tauriInvoke<void>('open_settings_window');
 }
 
 // ============================================================================

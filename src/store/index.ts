@@ -1,2 +1,2 @@
-export { useAppStore } from "./appStore";
-export type { AppStore } from "./appStore";
+export { useAppStore } from './appStore';
+export type { AppStore } from './appStore';

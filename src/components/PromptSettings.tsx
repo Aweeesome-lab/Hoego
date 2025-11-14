@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import { FileText, Save, RotateCcw, Clock, Trash2, Check } from "lucide-react";
-import toast from "react-hot-toast";
+import { invoke } from '@tauri-apps/api/tauri';
+import { FileText, Save, RotateCcw, Clock, Trash2, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface PromptConfig {
   id: string;
@@ -18,12 +18,13 @@ interface PromptSettingsProps {
 export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
   const [prompts, setPrompts] = useState<PromptConfig[]>([]);
   const [activePrompt, setActivePrompt] = useState<PromptConfig | null>(null);
-  const [editingPrompt, setEditingPrompt] = useState("");
-  const [promptName, setPromptName] = useState("");
+  const [editingPrompt, setEditingPrompt] = useState('');
+  const [promptName, setPromptName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // System prompt is fixed
-  const systemPrompt = "당신은 '사고 피드백 코치(Logical Mirror)'입니다. 사용자가 덤프한 하루 기록을 읽고, 그중 사고의 질을 바꾸는 데 의미 있는 부분만 선별하여 피드백을 제공합니다. 감정에 치우치지 말고, 객관적·논리적 사고 관점에서 평가하고 제안하세요. 감정보다 사고 구조·논리 전개·판단 근거를 중심으로 분석하고, 반복되는 사고 패턴, 왜곡, 모순을 찾아내며, 사용자가 스스로 사고 습관을 재정의할 수 있도록 구체적 질문을 제시하세요.";
+  const systemPrompt =
+    "당신은 '사고 피드백 코치(Logical Mirror)'입니다. 사용자가 덤프한 하루 기록을 읽고, 그중 사고의 질을 바꾸는 데 의미 있는 부분만 선별하여 피드백을 제공합니다. 감정에 치우치지 말고, 객관적·논리적 사고 관점에서 평가하고 제안하세요. 감정보다 사고 구조·논리 전개·판단 근거를 중심으로 분석하고, 반복되는 사고 패턴, 왜곡, 모순을 찾아내며, 사용자가 스스로 사고 습관을 재정의할 수 있도록 구체적 질문을 제시하세요.";
 
   // Default user prompt template
   const defaultUserPrompt = `아래는 사용자가 오늘 작성한 일지입니다:
@@ -67,10 +68,10 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
   const loadPrompts = async () => {
     try {
-      const configs = await invoke<PromptConfig[]>("get_prompt_configs");
+      const configs = await invoke<PromptConfig[]>('get_prompt_configs');
       setPrompts(configs);
 
-      const active = configs.find(p => p.is_active);
+      const active = configs.find((p) => p.is_active);
       if (active) {
         setActivePrompt(active);
         setEditingPrompt(active.user_prompt);
@@ -78,33 +79,33 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
       } else {
         // If no saved prompts, use default
         setEditingPrompt(defaultUserPrompt);
-        setPromptName("기본 프롬프트");
+        setPromptName('기본 프롬프트');
       }
     } catch (error) {
-      console.error("Failed to load prompts:", error);
+      console.error('Failed to load prompts:', error);
       // Use default on error
       setEditingPrompt(defaultUserPrompt);
-      setPromptName("기본 프롬프트");
+      setPromptName('기본 프롬프트');
     }
   };
 
   const savePrompt = async () => {
     if (!promptName.trim()) {
-      toast.error("프롬프트 이름을 입력해주세요.");
+      toast.error('프롬프트 이름을 입력해주세요.');
       return;
     }
 
     setIsSaving(true);
     try {
-      await invoke("save_prompt_config", {
+      await invoke('save_prompt_config', {
         name: promptName,
-        userPrompt: editingPrompt
+        userPrompt: editingPrompt,
       });
       await loadPrompts();
-      toast.success("프롬프트가 저장되었습니다.");
+      toast.success('프롬프트가 저장되었습니다.');
     } catch (error) {
-      console.error("Failed to save prompt:", error);
-      toast.error("프롬프트 저장에 실패했습니다.");
+      console.error('Failed to save prompt:', error);
+      toast.error('프롬프트 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
     }
@@ -112,11 +113,11 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
   const activatePrompt = async (promptId: string) => {
     try {
-      await invoke("activate_prompt_config", { promptId });
+      await invoke('activate_prompt_config', { promptId });
       await loadPrompts();
     } catch (error) {
-      console.error("Failed to activate prompt:", error);
-      toast.error("프롬프트 활성화에 실패했습니다.");
+      console.error('Failed to activate prompt:', error);
+      toast.error('프롬프트 활성화에 실패했습니다.');
     }
   };
 
@@ -128,26 +129,32 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
   const resetToDefault = () => {
     setEditingPrompt(defaultUserPrompt);
-    setPromptName("기본 프롬프트");
+    setPromptName('기본 프롬프트');
   };
 
   return (
     <div className="space-y-6">
       {/* System Prompt (Read-only) */}
       <div>
-        <h3 className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-          isDarkMode ? 'text-slate-400' : 'text-slate-500'
-        }`}>
+        <h3
+          className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
+            isDarkMode ? 'text-slate-400' : 'text-slate-500'
+          }`}
+        >
           시스템 프롬프트 (고정)
         </h3>
-        <div className={`rounded-xl border p-4 ${
-          isDarkMode
-            ? 'bg-white/5 border-white/10'
-            : 'bg-white border-slate-200'
-        }`}>
-          <p className={`text-[12px] leading-relaxed ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-600'
-          }`}>
+        <div
+          className={`rounded-xl border p-4 ${
+            isDarkMode
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white border-slate-200'
+          }`}
+        >
+          <p
+            className={`text-[12px] leading-relaxed ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-600'
+            }`}
+          >
             {systemPrompt}
           </p>
         </div>
@@ -156,9 +163,11 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
       {/* User Prompt (Editable) */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-500'
-          }`}>
+          <h3
+            className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
             사용자 프롬프트 템플릿
           </h3>
           <button
@@ -174,16 +183,20 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
           </button>
         </div>
 
-        <div className={`rounded-xl border p-4 ${
-          isDarkMode
-            ? 'bg-white/5 border-white/10'
-            : 'bg-white border-slate-200'
-        }`}>
+        <div
+          className={`rounded-xl border p-4 ${
+            isDarkMode
+              ? 'bg-white/5 border-white/10'
+              : 'bg-white border-slate-200'
+          }`}
+        >
           {/* Prompt Name */}
           <div className="mb-3">
-            <label className={`block text-[11px] font-medium mb-1.5 ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>
+            <label
+              className={`block text-[11px] font-medium mb-1.5 ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}
+            >
               프롬프트 이름
             </label>
             <input
@@ -201,9 +214,11 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
           {/* Prompt Template Editor */}
           <div className="mb-3">
-            <label className={`block text-[11px] font-medium mb-1.5 ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>
+            <label
+              className={`block text-[11px] font-medium mb-1.5 ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}
+            >
               프롬프트 템플릿 (마크다운 지원)
             </label>
             <textarea
@@ -217,9 +232,11 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
               }`}
               placeholder="프롬프트 템플릿을 입력하세요. {content}는 일지 내용으로 치환됩니다."
             />
-            <p className={`text-[10px] mt-1.5 ${
-              isDarkMode ? 'text-slate-500' : 'text-slate-400'
-            }`}>
+            <p
+              className={`text-[10px] mt-1.5 ${
+                isDarkMode ? 'text-slate-500' : 'text-slate-400'
+              }`}
+            >
               팁: {'{content}'} 부분에 사용자의 일지 내용이 자동으로 삽입됩니다.
             </p>
           </div>
@@ -245,9 +262,11 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
       {/* Version History */}
       {prompts.length > 0 && (
         <div>
-          <h3 className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-500'
-          }`}>
+          <h3
+            className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
             저장된 프롬프트 버전
           </h3>
           <div className="space-y-2">
@@ -264,31 +283,37 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <FileText className="h-3.5 w-3.5" />
-                      <h4 className={`text-[12px] font-medium ${
-                        isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                      }`}>
+                      <h4
+                        className={`text-[12px] font-medium ${
+                          isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                        }`}
+                      >
                         {prompt.name}
                       </h4>
                       {prompt.is_active && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                          isDarkMode
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-green-50 text-green-600'
-                        }`}>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                            isDarkMode
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'bg-green-50 text-green-600'
+                          }`}
+                        >
                           활성
                         </span>
                       )}
                     </div>
-                    <div className={`flex items-center gap-1 text-[10px] ${
-                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                    }`}>
+                    <div
+                      className={`flex items-center gap-1 text-[10px] ${
+                        isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                      }`}
+                    >
                       <Clock className="h-3 w-3" />
                       {new Date(prompt.created_at).toLocaleString('ko-KR', {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       })}
                     </div>
                   </div>

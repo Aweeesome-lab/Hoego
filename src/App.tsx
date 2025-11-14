@@ -1,57 +1,61 @@
-import React from "react";
-import toast, { Toaster } from "react-hot-toast";
-import { Pencil, Eye, Columns } from "lucide-react";
+import { Pencil, Eye, Columns } from 'lucide-react';
+import React from 'react';
+import toast, { Toaster } from 'react-hot-toast';
+
+import { Header, Footer } from '@/components/layout';
+import { useMarkdownComponents } from '@/components/markdown';
+import { DumpPanel } from '@/components/panels';
+import { useTheme, useMarkdown, useAiSummaries, useRetrospect } from '@/hooks';
 import {
   hideOverlayWindow,
   appendHistoryEntry,
   onHistoryUpdated,
-} from "@/lib/tauri";
-import { Header, Footer } from "@/components/layout";
-import { DumpPanel } from "@/components/panels";
-import { useMarkdownComponents } from "@/components/markdown";
-import { useTheme, useMarkdown, useAiSummaries, useRetrospect } from "@/hooks";
+} from '@/lib/tauri';
 
 // Code splitting: lazy load panels that are conditionally rendered
 const AiPanel = React.lazy(() =>
-  import("@/components/panels").then((module) => ({ default: module.AiPanel }))
+  import('@/components/panels').then((module) => ({ default: module.AiPanel }))
 );
 const RetrospectPanel = React.lazy(() =>
-  import("@/components/panels").then((module) => ({ default: module.RetrospectPanel }))
+  import('@/components/panels').then((module) => ({
+    default: module.RetrospectPanel,
+  }))
 );
 
 const RETROSPECT_VIEW_OPTIONS: Array<{
-  value: "edit" | "preview" | "split";
+  value: 'edit' | 'preview' | 'split';
   label: string;
   description: string;
   icon: React.ReactNode;
 }> = [
   {
-    value: "edit",
-    label: "편집",
-    description: "텍스트 입력 전용",
+    value: 'edit',
+    label: '편집',
+    description: '텍스트 입력 전용',
     icon: <Pencil className="h-3.5 w-3.5" />,
   },
   {
-    value: "preview",
-    label: "미리보기",
-    description: "렌더된 마크다운만 보기",
+    value: 'preview',
+    label: '미리보기',
+    description: '렌더된 마크다운만 보기',
     icon: <Eye className="h-3.5 w-3.5" />,
   },
   {
-    value: "split",
-    label: "듀얼",
-    description: "편집·미리보기 나란히",
+    value: 'split',
+    label: '듀얼',
+    description: '편집·미리보기 나란히',
     icon: <Columns className="h-3.5 w-3.5" />,
   },
 ];
 
 export default function App() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
-  const [inputValue, setInputValue] = React.useState("");
-  const [currentTime, setCurrentTime] = React.useState("");
+  const [inputValue, setInputValue] = React.useState('');
+  const [currentTime, setCurrentTime] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);
   const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(true);
-  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] = React.useState(true);
+  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
+    React.useState(true);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
 
   // Use custom hooks
@@ -151,8 +155,8 @@ export default function App() {
   React.useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const hours = now.getHours().toString().padStart(2, "0");
-      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
       setCurrentTime(`${hours}:${minutes}`);
     };
 
@@ -200,8 +204,8 @@ export default function App() {
     };
 
     focusInput();
-    window.addEventListener("focus", focusInput);
-    return () => window.removeEventListener("focus", focusInput);
+    window.addEventListener('focus', focusInput);
+    return () => window.removeEventListener('focus', focusInput);
   }, []);
 
   // Submit handler
@@ -216,15 +220,15 @@ export default function App() {
 
     const now = new Date();
     const timestamp = now.toISOString();
-    const currentMinute = `${now.getHours().toString().padStart(2, "0")}:${now
+    const currentMinute = `${now.getHours().toString().padStart(2, '0')}:${now
       .getMinutes()
       .toString()
-      .padStart(2, "0")}`;
+      .padStart(2, '0')}`;
     const isNewMinute = lastMinute !== currentMinute;
 
     // 입력 필드 즉시 초기화
     const savedTask = taskText;
-    setInputValue("");
+    setInputValue('');
     setLastMinute(currentMinute);
 
     try {
@@ -244,7 +248,7 @@ export default function App() {
         inputRef.current?.focus();
       }, 100);
     } catch (error) {
-      if (import.meta.env.DEV) console.error("[hoego] 항목 추가 실패:", error);
+      if (import.meta.env.DEV) console.error('[hoego] 항목 추가 실패:', error);
       toast.error(
         `작업 저장 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -259,7 +263,7 @@ export default function App() {
   React.useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       // 패널 토글: Cmd/Ctrl + 2 for AI panel
-      if ((event.metaKey || event.ctrlKey) && event.key === "2") {
+      if ((event.metaKey || event.ctrlKey) && event.key === '2') {
         event.preventDefault();
         event.stopPropagation();
         setIsAiPanelExpanded((prev) => !prev);
@@ -267,7 +271,7 @@ export default function App() {
       }
 
       // 패널 토글: Cmd/Ctrl + 3 for Retrospect panel
-      if ((event.metaKey || event.ctrlKey) && event.key === "3") {
+      if ((event.metaKey || event.ctrlKey) && event.key === '3') {
         event.preventDefault();
         event.stopPropagation();
         setIsRetrospectPanelExpanded((prev) => !prev);
@@ -275,7 +279,7 @@ export default function App() {
       }
 
       // 편집 토글 / 편집 중이면 현재 줄 타임스탬프 후 저장 종료
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "e") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         event.stopPropagation();
         if (isEditing) {
@@ -284,7 +288,7 @@ export default function App() {
           const end = el ? el.selectionEnd : start;
           const before = editingContent.slice(0, start);
           const after = editingContent.slice(end);
-          const lineStart = before.lastIndexOf("\n") + 1;
+          const lineStart = before.lastIndexOf('\n') + 1;
           const currentLine = before.slice(lineStart);
 
           const stampedLine = appendTimestampToLine(currentLine);
@@ -302,7 +306,7 @@ export default function App() {
               await loadMarkdown();
             } catch (error) {
               if (import.meta.env.DEV)
-                console.error("[hoego] Cmd+E 저장 실패:", error);
+                console.error('[hoego] Cmd+E 저장 실패:', error);
             } finally {
               setIsSaving(false);
               setIsEditing(false);
@@ -316,7 +320,7 @@ export default function App() {
       }
 
       // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
         if (isEditing) {
@@ -330,7 +334,7 @@ export default function App() {
                 await loadMarkdown();
               } catch (error) {
                 if (import.meta.env.DEV)
-                  console.error("[hoego] 저장 실패:", error);
+                  console.error('[hoego] 저장 실패:', error);
               } finally {
                 setIsSaving(false);
                 setIsEditing(false);
@@ -345,8 +349,8 @@ export default function App() {
       }
     };
 
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, [
     isEditing,
     editingContent,
@@ -369,7 +373,7 @@ export default function App() {
       await loadAiSummaries();
     } catch (error) {
       if (import.meta.env.DEV)
-        console.error("[hoego] 마크다운 동기화 실패", error);
+        console.error('[hoego] 마크다운 동기화 실패', error);
     } finally {
       setIsSyncing(false);
     }
@@ -378,7 +382,7 @@ export default function App() {
   return (
     <div
       className={`relative flex h-full w-full flex-col overflow-hidden ${
-        isDarkMode ? "bg-[#0d1016]" : "bg-white"
+        isDarkMode ? 'bg-[#0d1016]' : 'bg-white'
       }`}
     >
       <Header
@@ -488,8 +492,8 @@ export default function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            background: "#333",
-            color: "#fff",
+            background: '#333',
+            color: '#fff',
           },
         }}
       />

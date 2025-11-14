@@ -5,7 +5,7 @@
  * Tauri 백엔드 에러를 사용자 친화적인 메시지로 변환합니다.
  */
 
-import toast from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 // ============================================================================
 // Types
@@ -17,7 +17,7 @@ export interface AppError {
   details?: unknown;
 }
 
-export type ErrorSeverity = "error" | "warning" | "info";
+export type ErrorSeverity = 'error' | 'warning' | 'info';
 
 export interface ErrorHandlerOptions {
   /**
@@ -50,43 +50,43 @@ export interface ErrorHandlerOptions {
 
 const ERROR_MESSAGES: Record<string, string> = {
   // File System Errors
-  FILE_NOT_FOUND: "파일을 찾을 수 없습니다.",
-  PERMISSION_DENIED: "파일에 접근할 권한이 없습니다.",
-  FILE_ALREADY_EXISTS: "파일이 이미 존재합니다.",
-  IO_ERROR: "파일 입출력 중 오류가 발생했습니다.",
+  FILE_NOT_FOUND: '파일을 찾을 수 없습니다.',
+  PERMISSION_DENIED: '파일에 접근할 권한이 없습니다.',
+  FILE_ALREADY_EXISTS: '파일이 이미 존재합니다.',
+  IO_ERROR: '파일 입출력 중 오류가 발생했습니다.',
 
   // Network Errors
-  NETWORK_ERROR: "네트워크 연결을 확인해주세요.",
-  TIMEOUT_ERROR: "요청 시간이 초과되었습니다.",
-  CONNECTION_REFUSED: "서버에 연결할 수 없습니다.",
+  NETWORK_ERROR: '네트워크 연결을 확인해주세요.',
+  TIMEOUT_ERROR: '요청 시간이 초과되었습니다.',
+  CONNECTION_REFUSED: '서버에 연결할 수 없습니다.',
 
   // Validation Errors
-  VALIDATION_ERROR: "입력값이 올바르지 않습니다.",
-  INVALID_FORMAT: "형식이 올바르지 않습니다.",
-  MISSING_REQUIRED_FIELD: "필수 항목이 누락되었습니다.",
+  VALIDATION_ERROR: '입력값이 올바르지 않습니다.',
+  INVALID_FORMAT: '형식이 올바르지 않습니다.',
+  MISSING_REQUIRED_FIELD: '필수 항목이 누락되었습니다.',
 
   // AI / LLM Errors
-  AI_MODEL_NOT_FOUND: "AI 모델을 찾을 수 없습니다.",
-  AI_GENERATION_FAILED: "AI 생성에 실패했습니다.",
-  AI_MODEL_LOAD_FAILED: "AI 모델을 로드하는데 실패했습니다.",
+  AI_MODEL_NOT_FOUND: 'AI 모델을 찾을 수 없습니다.',
+  AI_GENERATION_FAILED: 'AI 생성에 실패했습니다.',
+  AI_MODEL_LOAD_FAILED: 'AI 모델을 로드하는데 실패했습니다.',
 
   // Window Errors
-  WINDOW_NOT_FOUND: "윈도우를 찾을 수 없습니다.",
-  WINDOW_OPERATION_FAILED: "윈도우 작업에 실패했습니다.",
+  WINDOW_NOT_FOUND: '윈도우를 찾을 수 없습니다.',
+  WINDOW_OPERATION_FAILED: '윈도우 작업에 실패했습니다.',
 
   // Generic Errors
-  UNKNOWN_ERROR: "알 수 없는 오류가 발생했습니다.",
-  INTERNAL_ERROR: "내부 오류가 발생했습니다.",
+  UNKNOWN_ERROR: '알 수 없는 오류가 발생했습니다.',
+  INTERNAL_ERROR: '내부 오류가 발생했습니다.',
 };
 
 const ERROR_SUGGESTIONS: Record<string, string> = {
-  FILE_NOT_FOUND: "파일 경로를 확인하고 다시 시도해주세요.",
-  PERMISSION_DENIED: "파일 권한을 확인하고 다시 시도해주세요.",
-  NETWORK_ERROR: "인터넷 연결을 확인하고 다시 시도해주세요.",
-  TIMEOUT_ERROR: "잠시 후 다시 시도해주세요.",
-  VALIDATION_ERROR: "입력값을 확인하고 다시 시도해주세요.",
-  AI_MODEL_NOT_FOUND: "AI 모델을 다운로드하거나 설정을 확인해주세요.",
-  AI_GENERATION_FAILED: "잠시 후 다시 시도하거나 다른 모델을 선택해주세요.",
+  FILE_NOT_FOUND: '파일 경로를 확인하고 다시 시도해주세요.',
+  PERMISSION_DENIED: '파일 권한을 확인하고 다시 시도해주세요.',
+  NETWORK_ERROR: '인터넷 연결을 확인하고 다시 시도해주세요.',
+  TIMEOUT_ERROR: '잠시 후 다시 시도해주세요.',
+  VALIDATION_ERROR: '입력값을 확인하고 다시 시도해주세요.',
+  AI_MODEL_NOT_FOUND: 'AI 모델을 다운로드하거나 설정을 확인해주세요.',
+  AI_GENERATION_FAILED: '잠시 후 다시 시도하거나 다른 모델을 선택해주세요.',
 };
 
 // ============================================================================
@@ -100,22 +100,25 @@ const ERROR_SUGGESTIONS: Record<string, string> = {
  */
 export function parseError(error: unknown): AppError {
   // String error
-  if (typeof error === "string") {
+  if (typeof error === 'string') {
     return {
-      code: "UNKNOWN_ERROR",
+      code: 'UNKNOWN_ERROR',
       message: error,
     };
   }
 
   // Error object with code
-  if (error && typeof error === "object") {
+  if (error && typeof error === 'object') {
     const err = error as Record<string, unknown>;
 
     // Tauri error format
-    if (typeof err.code === "string") {
+    if (typeof err.code === 'string') {
       return {
         code: err.code,
-        message: typeof err.message === "string" ? err.message : ERROR_MESSAGES[err.code] || "오류가 발생했습니다.",
+        message:
+          typeof err.message === 'string'
+            ? err.message
+            : ERROR_MESSAGES[err.code] || '오류가 발생했습니다.',
         details: err.details,
       };
     }
@@ -123,7 +126,7 @@ export function parseError(error: unknown): AppError {
     // Standard Error object
     if (error instanceof Error) {
       return {
-        code: "INTERNAL_ERROR",
+        code: 'INTERNAL_ERROR',
         message: error.message,
         details: error.stack,
       };
@@ -132,8 +135,8 @@ export function parseError(error: unknown): AppError {
 
   // Unknown error format
   return {
-    code: "UNKNOWN_ERROR",
-    message: "알 수 없는 오류가 발생했습니다.",
+    code: 'UNKNOWN_ERROR',
+    message: '알 수 없는 오류가 발생했습니다.',
     details: error,
   };
 }
@@ -155,7 +158,7 @@ export function handleError(
   const {
     showToast = true,
     logToConsole = import.meta.env.DEV,
-    severity = "error",
+    severity = 'error',
     customMessage,
   } = options;
 
@@ -163,7 +166,7 @@ export function handleError(
 
   // Log to console in development
   if (logToConsole) {
-    console.error("[ErrorHandler]", {
+    console.error('[ErrorHandler]', {
       code: appError.code,
       message: appError.message,
       details: appError.details,
@@ -177,14 +180,14 @@ export function handleError(
     const fullMessage = suggestion ? `${message}\n${suggestion}` : message;
 
     switch (severity) {
-      case "error":
+      case 'error':
         toast.error(fullMessage);
         break;
-      case "warning":
-        toast(fullMessage, { icon: "⚠️" });
+      case 'warning':
+        toast(fullMessage, { icon: '⚠️' });
         break;
-      case "info":
-        toast(fullMessage, { icon: "ℹ️" });
+      case 'info':
+        toast(fullMessage, { icon: 'ℹ️' });
         break;
     }
   }
@@ -261,7 +264,10 @@ export function withFallback<TArgs extends unknown[], TReturn>(
       return await fn(...args);
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.warn("[withFallback] Error occurred, returning default value:", error);
+        console.warn(
+          '[withFallback] Error occurred, returning default value:',
+          error
+        );
       }
       return defaultValue;
     }

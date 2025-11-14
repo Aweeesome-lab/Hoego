@@ -1,22 +1,33 @@
-import React from "react";
-import * as Select from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp, NotebookPen, Columns } from "lucide-react";
-import { RETROSPECT_VIEW_OPTIONS } from "./constants/retrospect-view-options";
+import * as Select from '@radix-ui/react-select';
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  NotebookPen,
+  Columns,
+} from 'lucide-react';
+import React from 'react';
+
+import { RETROSPECT_VIEW_OPTIONS } from './constants/retrospect-view-options';
 
 interface RetrospectPanelHeaderProps {
   isDarkMode: boolean;
   isSavingRetrospect: boolean;
   isTemplatePickerOpen: boolean;
-  setIsTemplatePickerOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  setIsTemplatePickerOpen: (
+    value: boolean | ((prev: boolean) => boolean)
+  ) => void;
   templateTriggerRef: React.RefObject<HTMLButtonElement>;
-  retrospectViewMode: "edit" | "preview" | "split";
-  setRetrospectViewMode: (mode: "edit" | "preview" | "split") => void;
-  activeRetrospectViewOption: {
-    value: "edit" | "preview" | "split";
-    label: string;
-    description: string;
-    icon: React.ReactNode;
-  } | undefined;
+  retrospectViewMode: 'edit' | 'preview' | 'split';
+  setRetrospectViewMode: (mode: 'edit' | 'preview' | 'split') => void;
+  activeRetrospectViewOption:
+    | {
+        value: 'edit' | 'preview' | 'split';
+        label: string;
+        description: string;
+        icon: React.ReactNode;
+      }
+    | undefined;
 }
 
 export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
@@ -39,8 +50,8 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
           <span
             className={`rounded-full px-3 py-1 text-[10px] ${
               isDarkMode
-                ? "bg-white/10 text-slate-200"
-                : "bg-slate-200 text-slate-700"
+                ? 'bg-white/10 text-slate-200'
+                : 'bg-slate-200 text-slate-700'
             }`}
           >
             저장 중
@@ -54,8 +65,8 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
             onClick={() => setIsTemplatePickerOpen((prev) => !prev)}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-sm transition ${
               isDarkMode
-                ? "border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
+                ? 'border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
             }`}
             title="검증된 회고 템플릿 삽입"
           >
@@ -65,14 +76,14 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
           <Select.Root
             value={retrospectViewMode}
             onValueChange={(value) =>
-              setRetrospectViewMode(value as "edit" | "preview" | "split")
+              setRetrospectViewMode(value as 'edit' | 'preview' | 'split')
             }
           >
             <Select.Trigger
               className={`inline-flex h-8 w-10 items-center justify-center rounded-full border px-2 text-sm transition ${
                 isDarkMode
-                  ? "border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
+                  ? 'border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
               }`}
               aria-label="회고 보기 모드"
               title="회고 보기 모드"
@@ -87,8 +98,8 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
               <Select.Content
                 className={`z-50 overflow-hidden rounded-lg border shadow ${
                   isDarkMode
-                    ? "border-white/10 bg-[#05070c] text-slate-100"
-                    : "border-slate-200 bg-white text-slate-900"
+                    ? 'border-white/10 bg-[#05070c] text-slate-100'
+                    : 'border-slate-200 bg-white text-slate-900'
                 }`}
                 position="popper"
                 sideOffset={6}
@@ -102,7 +113,7 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
                       key={option.value}
                       value={option.value}
                       className={`relative flex cursor-pointer select-none flex-col gap-1 rounded px-3 py-2 text-xs transition hover:bg-slate-100 data-[state=checked]:font-semibold ${
-                        isDarkMode ? "hover:bg-white/10" : ""
+                        isDarkMode ? 'hover:bg-white/10' : ''
                       }`}
                     >
                       <Select.ItemText>
@@ -113,7 +124,7 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
                       </Select.ItemText>
                       <span
                         className={`text-[11px] ${
-                          isDarkMode ? "text-slate-400" : "text-slate-500"
+                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
                         }`}
                       >
                         {option.description}

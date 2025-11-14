@@ -185,7 +185,9 @@ export type TauriCommands = {
 
   // LLM summarization commands
   summarize_note: (request: SummaryRequest) => Promise<SummaryResult>;
-  batch_summarize: (request: BatchSummaryRequest) => Promise<BatchSummaryResult>;
+  batch_summarize: (
+    request: BatchSummaryRequest
+  ) => Promise<BatchSummaryResult>;
   get_note_insights: (content: string) => Promise<string>;
   create_meeting_minutes: (content: string) => Promise<string>;
   daily_review: (content: string) => Promise<string>;

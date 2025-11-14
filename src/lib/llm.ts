@@ -1,5 +1,5 @@
-import { invoke } from '@tauri-apps/api/tauri';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/tauri';
 
 // Types
 export interface ModelInfo {
@@ -32,10 +32,21 @@ export interface DownloadProgress {
   percentage: number;
   speed: number; // MB/s
   eta_seconds?: number;
-  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'failed' | 'verifying';
+  status:
+    | 'pending'
+    | 'downloading'
+    | 'paused'
+    | 'completed'
+    | 'failed'
+    | 'verifying';
 }
 
-export type SummarizationStyle = 'Bullet' | 'Paragraph' | 'Keywords' | 'Outline' | 'Brief';
+export type SummarizationStyle =
+  | 'Bullet'
+  | 'Paragraph'
+  | 'Keywords'
+  | 'Outline'
+  | 'Brief';
 
 export interface SummaryRequest {
   content: string;
@@ -112,7 +123,9 @@ export const llmApi = {
     return invoke('summarize_note', { request });
   },
 
-  async batchSummarize(request: BatchSummaryRequest): Promise<BatchSummaryResult> {
+  async batchSummarize(
+    request: BatchSummaryRequest
+  ): Promise<BatchSummaryResult> {
     return invoke('batch_summarize', { request });
   },
 
@@ -129,7 +142,9 @@ export const llmApi = {
   },
 
   // Event Listeners
-  onDownloadProgress(callback: (progress: DownloadProgress) => void): Promise<() => void> {
+  onDownloadProgress(
+    callback: (progress: DownloadProgress) => void
+  ): Promise<() => void> {
     return listen<DownloadProgress>('llm_download_progress', (event) => {
       callback(event.payload);
     });

@@ -1,7 +1,8 @@
-import React from "react";
-import ReactMarkdown from "react-markdown";
-import type { Components } from "react-markdown";
-import type { PluggableList } from "react-markdown/lib";
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+
+import type { Components } from 'react-markdown';
+import type { PluggableList } from 'react-markdown/lib';
 
 interface MemoizedReactMarkdownProps {
   children: string;

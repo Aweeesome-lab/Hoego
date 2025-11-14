@@ -4,7 +4,7 @@ import {
   openHistoryFolder,
   onHistoryUpdated,
   type HistoryOverview,
-  type HistoryFileInfo
+  type HistoryFileInfo,
 } from './lib/tauri';
 
 const directoryElement = document.getElementById('history-directory');
@@ -72,7 +72,8 @@ const renderHistoryOverview = (overview?: HistoryOverview) => {
         await navigator.clipboard.writeText(fileInfo.path);
         copyButton.textContent = '복사 완료!';
       } catch (error) {
-        if (import.meta.env.DEV) console.error('[hoego] 클립보드 복사 실패', error);
+        if (import.meta.env.DEV)
+          console.error('[hoego] 클립보드 복사 실패', error);
         copyButton.textContent = '복사 실패';
       }
       window.setTimeout(() => {
@@ -108,7 +109,8 @@ const loadHistory = async () => {
     const overview = await listHistory();
     renderHistoryOverview(overview);
   } catch (error) {
-    if (import.meta.env.DEV) console.error('[hoego] 히스토리를 불러오는 중 오류', error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] 히스토리를 불러오는 중 오류', error);
   }
 };
 
@@ -129,14 +131,16 @@ onHistoryUpdated((overview) => {
     disposeHistoryListener = typeof dispose === 'function' ? dispose : null;
   })
   .catch((error) => {
-    if (import.meta.env.DEV) console.error('[hoego] 히스토리 이벤트 리스너 등록 실패', error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] 히스토리 이벤트 리스너 등록 실패', error);
   });
 
 window.addEventListener('beforeunload', () => {
   try {
     disposeHistoryListener?.();
   } catch (error) {
-    if (import.meta.env.DEV) console.error('[hoego] 히스토리 이벤트 해제 실패', error);
+    if (import.meta.env.DEV)
+      console.error('[hoego] 히스토리 이벤트 해제 실패', error);
   }
 });
 

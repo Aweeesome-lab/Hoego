@@ -1,2 +1,2 @@
-export { useMarkdownComponents } from "./MarkdownComponents";
-export { MemoizedReactMarkdown } from "./MemoizedReactMarkdown";
+export { useMarkdownComponents } from './MarkdownComponents';
+export { MemoizedReactMarkdown } from './MemoizedReactMarkdown';

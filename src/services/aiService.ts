@@ -5,8 +5,9 @@
  * Tauri 백엔드와의 통신을 추상화하고 타입 안전성을 제공합니다.
  */
 
-import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
-import type { AiSummaryInfo } from "@/types/tauri-commands";
+import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
+
+import type { AiSummaryInfo } from '@/types/tauri-commands';
 
 // ============================================================================
 // Types
@@ -29,7 +30,7 @@ const DEFAULT_AI_SUMMARY_LIMIT = 10;
 export async function getAiSummaries(
   limit = DEFAULT_AI_SUMMARY_LIMIT
 ): Promise<AiSummaryEntry[]> {
-  return tauriInvoke<AiSummaryEntry[]>("list_ai_summaries", { limit });
+  return tauriInvoke<AiSummaryEntry[]>('list_ai_summaries', { limit });
 }
 
 /**
@@ -37,7 +38,7 @@ export async function getAiSummaries(
  * @returns 생성된 AI 요약
  */
 export async function createAiSummaryDraft(): Promise<AiSummaryEntry> {
-  return tauriInvoke<AiSummaryEntry>("create_ai_summary_draft");
+  return tauriInvoke<AiSummaryEntry>('create_ai_summary_draft');
 }
 
 /**
@@ -45,7 +46,7 @@ export async function createAiSummaryDraft(): Promise<AiSummaryEntry> {
  * @returns 생성된 AI 피드백
  */
 export async function generateAiFeedback(): Promise<AiSummaryEntry> {
-  return tauriInvoke<AiSummaryEntry>("generate_ai_feedback");
+  return tauriInvoke<AiSummaryEntry>('generate_ai_feedback');
 }
 
 /**
@@ -53,7 +54,7 @@ export async function generateAiFeedback(): Promise<AiSummaryEntry> {
  * @returns 스트리밍 시작 완료
  */
 export async function generateAiFeedbackStream(): Promise<void> {
-  return tauriInvoke<void>("generate_ai_feedback_stream");
+  return tauriInvoke<void>('generate_ai_feedback_stream');
 }
 
 // ============================================================================
@@ -68,11 +69,11 @@ export async function generateAiFeedbackStream(): Promise<void> {
 export function getSummaryLabel(summary: AiSummaryEntry): string {
   try {
     const date = new Date(summary.timestamp);
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
   } catch {
-    return "시간 없음";
+    return '시간 없음';
   }
 }
 
@@ -89,7 +90,7 @@ export function groupSummariesByDate(
   summaries.forEach((summary) => {
     try {
       const date = new Date(summary.timestamp);
-      const dateKey = date.toISOString().split("T")[0]; // YYYY-MM-DD
+      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
       if (!grouped.has(dateKey)) {
         grouped.set(dateKey, []);
@@ -97,7 +98,7 @@ export function groupSummariesByDate(
       grouped.get(dateKey)!.push(summary);
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error("[aiService] Invalid timestamp for summary:", summary);
+        console.error('[aiService] Invalid timestamp for summary:', summary);
       }
     }
   });
@@ -113,14 +114,14 @@ export function groupSummariesByDate(
  */
 export function sortSummariesByTime(
   summaries: AiSummaryEntry[],
-  order: "asc" | "desc" = "desc"
+  order: 'asc' | 'desc' = 'desc'
 ): AiSummaryEntry[] {
   return [...summaries].sort((a, b) => {
     try {
       const timeA = new Date(a.timestamp).getTime();
       const timeB = new Date(b.timestamp).getTime();
       const comparison = timeB - timeA;
-      return order === "asc" ? -comparison : comparison;
+      return order === 'asc' ? -comparison : comparison;
     } catch {
       return 0;
     }
@@ -133,12 +134,9 @@ export function sortSummariesByTime(
  * @param maxLength 최대 길이 (기본값: 100)
  * @returns 미리보기 문자열
  */
-export function getSummaryPreview(
-  content: string,
-  maxLength = 100
-): string {
+export function getSummaryPreview(content: string, maxLength = 100): string {
   if (!content || content.trim().length === 0) {
-    return "내용 없음";
+    return '내용 없음';
   }
 
   const trimmed = content.trim();
@@ -146,5 +144,5 @@ export function getSummaryPreview(
     return trimmed;
   }
 
-  return trimmed.slice(0, maxLength) + "...";
+  return `${trimmed.slice(0, maxLength)}...`;
 }

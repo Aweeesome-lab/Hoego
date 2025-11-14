@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from '@tauri-apps/api/tauri';
 
 export type AiEngineStatus = {
   reachable: boolean;
@@ -15,9 +15,15 @@ export type LocalModel = {
 
 export async function aiLlamaStatus(port?: number): Promise<AiEngineStatus> {
   try {
-    return await invoke<AiEngineStatus>("ai_llama_status", { port });
+    return await invoke<AiEngineStatus>('ai_llama_status', { port });
   } catch (e) {
-    return { reachable: false, running: false, port: port ?? 11435, activeModel: null, message: String(e) };
+    return {
+      reachable: false,
+      running: false,
+      port: port ?? 11435,
+      activeModel: null,
+      message: String(e),
+    };
   }
 }
 
@@ -29,57 +35,67 @@ export async function aiLlamaStartServer(args: {
   ngl: number;
   threads: number;
 }): Promise<void> {
-  return await invoke("ai_llama_start_server", args as any);
+  return await invoke('ai_llama_start_server', args as any);
 }
 
 export async function aiLlamaStopServer(): Promise<void> {
-  return await invoke("ai_llama_stop_server");
+  return await invoke('ai_llama_stop_server');
 }
 
 export async function aiModelsDir(): Promise<string> {
-  return await invoke("ai_models_dir");
+  return await invoke('ai_models_dir');
 }
 
 export async function aiModelsList(): Promise<LocalModel[]> {
-  return await invoke("ai_models_list");
+  return await invoke('ai_models_list');
 }
 
-export async function aiModelDownload(url: string, filename: string): Promise<void> {
-  return await invoke("ai_model_download", { url, filename });
+export async function aiModelDownload(
+  url: string,
+  filename: string
+): Promise<void> {
+  return await invoke('ai_model_download', { url, filename });
 }
 
 export async function aiModelDelete(filename: string): Promise<void> {
-  return await invoke("ai_model_delete", { filename });
+  return await invoke('ai_model_delete', { filename });
 }
 
-export async function aiSummarizeV1(args: { model?: string; port: number; note: string }): Promise<void> {
-  return await invoke("ai_summarize_v1", { app: undefined, ...args } as any);
+export async function aiSummarizeV1(args: {
+  model?: string;
+  port: number;
+  note: string;
+}): Promise<void> {
+  return await invoke('ai_summarize_v1', { app: undefined, ...args } as any);
 }
 
 export async function saveAiSummary(content: string): Promise<string> {
-  return await invoke("save_ai_summary", { content });
+  return await invoke('save_ai_summary', { content });
 }
 
 export async function openModelsFolder(): Promise<void> {
-  return await invoke("open_models_folder");
+  return await invoke('open_models_folder');
 }
 
 export async function aiEngineDir(): Promise<string> {
-  return await invoke("ai_engine_dir");
+  return await invoke('ai_engine_dir');
 }
 
-export async function aiEngineStatus(): Promise<{ installed: boolean; path: string }>{
-  return await invoke("ai_engine_status");
+export async function aiEngineStatus(): Promise<{
+  installed: boolean;
+  path: string;
+}> {
+  return await invoke('ai_engine_status');
 }
 
 export async function aiEngineInstall(): Promise<void> {
-  return await invoke("ai_engine_install");
+  return await invoke('ai_engine_install');
 }
 
 export async function openEngineFolder(): Promise<void> {
-  return await invoke("open_engine_folder");
+  return await invoke('open_engine_folder');
 }
 
 export async function openSettingsWindow(): Promise<void> {
-  return await invoke("open_settings_window");
+  return await invoke('open_settings_window');
 }
