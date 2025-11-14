@@ -5,6 +5,7 @@ import type { Components } from "react-markdown";
 import type { ListItem, Code, InlineCode } from "mdast";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import remarkGfm from "remark-gfm";
+import toast, { Toaster } from "react-hot-toast";
 import {
   Clock,
   Moon,
@@ -481,7 +482,7 @@ export default function App() {
     } catch (error) {
       if (import.meta.env.DEV)
         console.error("[hoego] 마크다운 로드 실패", error);
-      alert(
+      toast.error(
         `마크다운 로드 실패: ${
           error instanceof Error ? error.message : String(error)
         }`
@@ -570,7 +571,7 @@ export default function App() {
         (e) => {
           cleanup();
           const msg = e.payload?.message || "알 수 없는 오류";
-          alert(`AI 피드백 생성에 실패했습니다: ${msg}`);
+          toast.error(`AI 피드백 생성에 실패했습니다: ${msg}`);
         }
       );
       unsubs.push(unError);
@@ -580,7 +581,7 @@ export default function App() {
     } catch (error) {
       if (import.meta.env.DEV)
         console.error("[hoego] AI 피드백 스트리밍 시작 실패", error);
-      alert(
+      toast.error(
         `AI 피드백 생성에 실패했습니다: ${
           error instanceof Error ? error.message : String(error)
         }`
@@ -688,7 +689,7 @@ export default function App() {
       }, 100);
     } catch (error) {
       if (import.meta.env.DEV) console.error("[hoego] 항목 추가 실패:", error);
-      alert(
+      toast.error(
         `작업 저장 실패: ${
           error instanceof Error ? error.message : String(error)
         }`
@@ -976,7 +977,7 @@ export default function App() {
         if (import.meta.env.DEV) {
           console.error("[hoego] 체크박스 상태 저장 실패:", error);
         }
-        alert(
+        toast.error(
           `체크박스 업데이트 실패: ${
             error instanceof Error ? error.message : String(error)
           }`
@@ -2024,6 +2025,16 @@ export default function App() {
           </span>
         </div>
       </div>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
     </div>
   );
 }

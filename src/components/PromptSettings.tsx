@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { FileText, Save, RotateCcw, Clock, Trash2, Check } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface PromptConfig {
   id: string;
@@ -89,7 +90,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
   const savePrompt = async () => {
     if (!promptName.trim()) {
-      alert("프롬프트 이름을 입력해주세요.");
+      toast.error("프롬프트 이름을 입력해주세요.");
       return;
     }
 
@@ -100,10 +101,10 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
         userPrompt: editingPrompt
       });
       await loadPrompts();
-      alert("프롬프트가 저장되었습니다.");
+      toast.success("프롬프트가 저장되었습니다.");
     } catch (error) {
       console.error("Failed to save prompt:", error);
-      alert("프롬프트 저장에 실패했습니다.");
+      toast.error("프롬프트 저장에 실패했습니다.");
     } finally {
       setIsSaving(false);
     }
@@ -115,7 +116,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
       await loadPrompts();
     } catch (error) {
       console.error("Failed to activate prompt:", error);
-      alert("프롬프트 활성화에 실패했습니다.");
+      toast.error("프롬프트 활성화에 실패했습니다.");
     }
   };
 

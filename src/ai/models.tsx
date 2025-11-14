@@ -15,6 +15,7 @@ import {
 } from "./client";
 import { listen } from "@tauri-apps/api/event";
 import { MODEL_PRESETS } from "./presets";
+import toast from "react-hot-toast";
 
 type Props = {
   onClose?: () => void;
@@ -114,8 +115,9 @@ export function ModelsContent() {
       console.error("[hoego] model download error", p);
       setInstalling(null);
       const errorMsg = p.message || "unknown error";
-      alert(
-        `모델 다운로드 실패\n\n파일: ${p.filename}\n오류: ${errorMsg}\n\n터미널에서 더 자세한 로그를 확인하세요.`
+      toast.error(
+        `모델 다운로드 실패\n\n파일: ${p.filename}\n오류: ${errorMsg}\n\n터미널에서 더 자세한 로그를 확인하세요.`,
+        { duration: 5000 }
       );
     });
     const u4 = listen("ai:model_download_done", async (e: any) => {
@@ -144,18 +146,20 @@ export function ModelsContent() {
       console.error("[hoego] engine install error", p);
       setInstallingEngine(false);
       setEngineProgress(null);
-      alert(
-        `엔진 설치 실패\n\n오류: ${p.message}\n\n터미널에서 더 자세한 로그를 확인하세요.`
+      toast.error(
+        `엔진 설치 실패\n\n오류: ${p.message}\n\n터미널에서 더 자세한 로그를 확인하세요.`,
+        { duration: 5000 }
       );
     });
     const u8 = listen("ai:engine_install_done", async () => {
       await refreshInstalled();
-      // 엔진 설치 완료 시 alert 제거 (모델 다운로드 중이면 자동으로 계속 진행)
+      // 엔진 설치 완료 시 toast 표시 (모델 다운로드 중이면 자동으로 계속 진행)
       if (!installing) {
         setInstallingEngine(false);
         setEngineProgress(null);
-        alert(
-          "✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다."
+        toast.success(
+          "✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다.",
+          { duration: 4000 }
         );
       }
     });
@@ -378,8 +382,9 @@ export function ModelsContent() {
                           console.error("[hoego] preset install failed", e);
                           const errorMsg =
                             e instanceof Error ? e.message : String(e);
-                          alert(
-                            `설치 실패: ${errorMsg}\n\n자세한 내용은 콘솔 로그를 확인하세요.`
+                          toast.error(
+                            `설치 실패: ${errorMsg}\n\n자세한 내용은 콘솔 로그를 확인하세요.`,
+                            { duration: 5000 }
                           );
                         } finally {
                           setInstalling(null);
@@ -563,7 +568,7 @@ export function ModelsContent() {
                             });
                             await handleCheck();
                           } catch (e) {
-                            alert(
+                            toast.error(
                               `서버 시작 실패: ${
                                 e instanceof Error ? e.message : String(e)
                               }`
@@ -589,7 +594,7 @@ export function ModelsContent() {
                             await aiModelDelete(m.filename);
                             await refreshInstalled();
                           } catch (e) {
-                            alert(
+                            toast.error(
                               `삭제 실패: ${
                                 e instanceof Error ? e.message : String(e)
                               }`
