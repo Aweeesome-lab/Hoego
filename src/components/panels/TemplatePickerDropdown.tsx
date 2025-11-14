@@ -12,7 +12,7 @@ interface TemplatePickerDropdownProps {
   handleApplyRetrospectiveTemplate: (templateId: string) => void;
 }
 
-export function TemplatePickerDropdown({
+export const TemplatePickerDropdown = React.memo(function TemplatePickerDropdown({
   isDarkMode,
   isTemplatePickerOpen,
   templateDropdownRef,
@@ -129,4 +129,4 @@ export function TemplatePickerDropdown({
     </div>,
     document.body
   );
-}
+});

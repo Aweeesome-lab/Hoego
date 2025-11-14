@@ -1,8 +1,10 @@
+import * as React from "react";
+
 interface ThinkingIndicatorProps {
   isDarkMode?: boolean;
 }
 
-export function ThinkingIndicator({ isDarkMode }: ThinkingIndicatorProps) {
+export const ThinkingIndicator = React.memo(function ThinkingIndicator({ isDarkMode }: ThinkingIndicatorProps) {
   const textColor = isDarkMode ? "text-slate-300" : "text-slate-500";
   const dotColor = isDarkMode ? "bg-slate-400" : "bg-slate-300";
 
@@ -25,4 +27,4 @@ export function ThinkingIndicator({ isDarkMode }: ThinkingIndicatorProps) {
       </span>
     </div>
   );
-}
+});

@@ -1,5 +1,4 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import * as Select from "@radix-ui/react-select";
 import remarkGfm from "remark-gfm";
@@ -7,6 +6,7 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import type { AiSummaryEntry } from "@/lib/tauri";
 import { Response } from "@/components/ai/response";
 import { ThinkingIndicator } from "@/components/ai/thinking";
+import { MemoizedReactMarkdown } from "@/components/markdown";
 
 interface AiPanelProps {
   isDarkMode: boolean;
@@ -23,7 +23,7 @@ interface AiPanelProps {
   markdownComponents: Components;
 }
 
-export function AiPanel({
+export const AiPanel = React.memo(function AiPanel({
   isDarkMode,
   isAiPanelExpanded,
   isGeneratingAiFeedback,
@@ -118,12 +118,12 @@ export function AiPanel({
           {isGeneratingAiFeedback ? (
             <Response isDarkMode={isDarkMode}>
               {streamingAiText ? (
-                <ReactMarkdown
+                <MemoizedReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={markdownComponents}
                 >
                   {streamingAiText}
-                </ReactMarkdown>
+                </MemoizedReactMarkdown>
               ) : (
                 <ThinkingIndicator isDarkMode={isDarkMode} />
               )}
@@ -147,17 +147,17 @@ export function AiPanel({
             </Response>
           ) : (
             <Response isDarkMode={isDarkMode}>
-              <ReactMarkdown
+              <MemoizedReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
                 {selectedSummary?.content?.trim() ||
                   "요약 내용이 없습니다."}
-              </ReactMarkdown>
+              </MemoizedReactMarkdown>
             </Response>
           )}
         </div>
       </div>
     </section>
   );
-}
+});

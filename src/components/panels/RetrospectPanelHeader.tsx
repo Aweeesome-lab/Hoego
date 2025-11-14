@@ -19,7 +19,7 @@ interface RetrospectPanelHeaderProps {
   } | undefined;
 }
 
-export function RetrospectPanelHeader({
+export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
   isDarkMode,
   isSavingRetrospect,
   isTemplatePickerOpen,
@@ -134,4 +134,4 @@ export function RetrospectPanelHeader({
       </div>
     </div>
   );
-}
+});

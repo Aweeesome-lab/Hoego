@@ -6,7 +6,7 @@ interface FooterProps {
   isDarkMode: boolean;
 }
 
-export function Footer({ isDarkMode }: FooterProps) {
+export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
   return (
     <div
       className={`relative z-50 flex h-12 shrink-0 items-center justify-between border-t px-4 ${
@@ -91,4 +91,4 @@ export function Footer({ isDarkMode }: FooterProps) {
       </div>
     </div>
   );
-}
+});

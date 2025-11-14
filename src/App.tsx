@@ -7,9 +7,17 @@ import {
   onHistoryUpdated,
 } from "@/lib/tauri";
 import { Header, Footer } from "@/components/layout";
-import { DumpPanel, AiPanel, RetrospectPanel } from "@/components/panels";
+import { DumpPanel } from "@/components/panels";
 import { useMarkdownComponents } from "@/components/markdown";
 import { useTheme, useMarkdown, useAiSummaries, useRetrospect } from "@/hooks";
+
+// Code splitting: lazy load panels that are conditionally rendered
+const AiPanel = React.lazy(() =>
+  import("@/components/panels").then((module) => ({ default: module.AiPanel }))
+);
+const RetrospectPanel = React.lazy(() =>
+  import("@/components/panels").then((module) => ({ default: module.RetrospectPanel }))
+);
 
 const RETROSPECT_VIEW_OPTIONS: Array<{
   value: "edit" | "preview" | "split";
@@ -420,41 +428,45 @@ export default function App() {
           markdownComponents={markdownComponents}
         />
 
-        <AiPanel
-          isDarkMode={isDarkMode}
-          isAiPanelExpanded={isAiPanelExpanded}
-          isGeneratingAiFeedback={isGeneratingAiFeedback}
-          streamingAiText={streamingAiText}
-          summariesError={summariesError}
-          aiSummaries={aiSummaries}
-          aiSelectValue={aiSelectValue}
-          selectedSummaryIndex={selectedSummaryIndex}
-          setSelectedSummaryIndex={setSelectedSummaryIndex}
-          selectedSummary={selectedSummary}
-          getSummaryLabel={getSummaryLabel}
-          markdownComponents={markdownComponents}
-        />
+        <React.Suspense fallback={<div className="flex flex-1" />}>
+          <AiPanel
+            isDarkMode={isDarkMode}
+            isAiPanelExpanded={isAiPanelExpanded}
+            isGeneratingAiFeedback={isGeneratingAiFeedback}
+            streamingAiText={streamingAiText}
+            summariesError={summariesError}
+            aiSummaries={aiSummaries}
+            aiSelectValue={aiSelectValue}
+            selectedSummaryIndex={selectedSummaryIndex}
+            setSelectedSummaryIndex={setSelectedSummaryIndex}
+            selectedSummary={selectedSummary}
+            getSummaryLabel={getSummaryLabel}
+            markdownComponents={markdownComponents}
+          />
+        </React.Suspense>
 
-        <RetrospectPanel
-          isDarkMode={isDarkMode}
-          isRetrospectPanelExpanded={isRetrospectPanelExpanded}
-          retrospectContent={retrospectContent}
-          setRetrospectContent={setRetrospectContent}
-          retrospectRef={retrospectRef}
-          isSavingRetrospect={isSavingRetrospect}
-          isTemplatePickerOpen={isTemplatePickerOpen}
-          setIsTemplatePickerOpen={setIsTemplatePickerOpen}
-          templateTriggerRef={templateTriggerRef}
-          templateDropdownRef={templateDropdownRef}
-          templateDropdownPosition={templateDropdownPosition}
-          retrospectiveTemplates={retrospectiveTemplates}
-          customRetrospectiveTemplates={customRetrospectiveTemplates}
-          handleApplyRetrospectiveTemplate={handleApplyRetrospectiveTemplate}
-          retrospectViewMode={retrospectViewMode}
-          setRetrospectViewMode={setRetrospectViewMode}
-          activeRetrospectViewOption={activeRetrospectViewOption}
-          markdownComponents={markdownComponents}
-        />
+        <React.Suspense fallback={<div className="flex flex-1" />}>
+          <RetrospectPanel
+            isDarkMode={isDarkMode}
+            isRetrospectPanelExpanded={isRetrospectPanelExpanded}
+            retrospectContent={retrospectContent}
+            setRetrospectContent={setRetrospectContent}
+            retrospectRef={retrospectRef}
+            isSavingRetrospect={isSavingRetrospect}
+            isTemplatePickerOpen={isTemplatePickerOpen}
+            setIsTemplatePickerOpen={setIsTemplatePickerOpen}
+            templateTriggerRef={templateTriggerRef}
+            templateDropdownRef={templateDropdownRef}
+            templateDropdownPosition={templateDropdownPosition}
+            retrospectiveTemplates={retrospectiveTemplates}
+            customRetrospectiveTemplates={customRetrospectiveTemplates}
+            handleApplyRetrospectiveTemplate={handleApplyRetrospectiveTemplate}
+            retrospectViewMode={retrospectViewMode}
+            setRetrospectViewMode={setRetrospectViewMode}
+            activeRetrospectViewOption={activeRetrospectViewOption}
+            markdownComponents={markdownComponents}
+          />
+        </React.Suspense>
       </div>
 
       {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}

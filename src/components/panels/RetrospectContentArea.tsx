@@ -1,7 +1,7 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MemoizedReactMarkdown } from "@/components/markdown";
 
 interface RetrospectContentAreaProps {
   isDarkMode: boolean;
@@ -12,7 +12,7 @@ interface RetrospectContentAreaProps {
   markdownComponents: Components;
 }
 
-export function RetrospectContentArea({
+export const RetrospectContentArea = React.memo(function RetrospectContentArea({
   isDarkMode,
   retrospectViewMode,
   retrospectContent,
@@ -57,17 +57,17 @@ export function RetrospectContentArea({
                 : "border-slate-200 bg-slate-50 text-slate-900"
             }`}
           >
-            <ReactMarkdown
+            <MemoizedReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={markdownComponents}
             >
               {retrospectContent.trim()
                 ? retrospectContent
                 : "## ✍️ 회고 미리보기\n\n템플릿을 삽입하거나 내용을 작성하면 이 영역에서 마크다운이 적용된 회고를 실시간으로 확인할 수 있어요."}
-            </ReactMarkdown>
+            </MemoizedReactMarkdown>
           </div>
         )}
       </div>
     </div>
   );
-}
+});

@@ -1,7 +1,7 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MemoizedReactMarkdown } from "@/components/markdown";
 
 interface DumpPanelProps {
   isDarkMode: boolean;
@@ -15,7 +15,7 @@ interface DumpPanelProps {
   markdownComponents: Components;
 }
 
-export function DumpPanel({
+export const DumpPanel = React.memo(function DumpPanel({
   isDarkMode,
   isEditing,
   markdownRef,
@@ -122,16 +122,16 @@ export function DumpPanel({
                   : "text-slate-700"
               }`}
             >
-              <ReactMarkdown
+              <MemoizedReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
                 {markdownContent || "# 오늘\n\n작업을 기록해보세요."}
-              </ReactMarkdown>
+              </MemoizedReactMarkdown>
             </div>
           )}
         </div>
       </div>
     </section>
   );
-}
+});

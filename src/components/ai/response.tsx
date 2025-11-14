@@ -5,7 +5,7 @@ interface ResponseProps extends React.HTMLAttributes<HTMLDivElement> {
   isDarkMode?: boolean;
 }
 
-export function Response({
+export const Response = React.memo(function Response({
   children,
   className,
   isDarkMode,
@@ -23,4 +23,4 @@ export function Response({
       <div className="text-[13px] leading-5 text-inherit">{children}</div>
     </div>
   );
-}
+});
