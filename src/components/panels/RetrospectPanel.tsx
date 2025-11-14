@@ -4,60 +4,9 @@ import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import * as Select from "@radix-ui/react-select";
 import remarkGfm from "remark-gfm";
-import { Check, ChevronDown, ChevronUp, NotebookPen, Eye, Columns, Pencil } from "lucide-react";
-import type { RetrospectiveTemplate } from "@/constants/retrospectiveTemplates";
-
-interface RetrospectPanelProps {
-  isDarkMode: boolean;
-  isRetrospectPanelExpanded: boolean;
-  retrospectContent: string;
-  setRetrospectContent: (content: string) => void;
-  retrospectRef: React.RefObject<HTMLTextAreaElement>;
-  isSavingRetrospect: boolean;
-  isTemplatePickerOpen: boolean;
-  setIsTemplatePickerOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  templateTriggerRef: React.RefObject<HTMLButtonElement>;
-  templateDropdownRef: React.RefObject<HTMLDivElement>;
-  templateDropdownPosition: { top: number; left: number; width: number };
-  retrospectiveTemplates: RetrospectiveTemplate[];
-  customRetrospectiveTemplates: RetrospectiveTemplate[];
-  handleApplyRetrospectiveTemplate: (templateId: string) => void;
-  retrospectViewMode: "edit" | "preview" | "split";
-  setRetrospectViewMode: (mode: "edit" | "preview" | "split") => void;
-  activeRetrospectViewOption: {
-    value: "edit" | "preview" | "split";
-    label: string;
-    description: string;
-    icon: React.ReactNode;
-  } | undefined;
-  markdownComponents: Components;
-}
-
-const RETROSPECT_VIEW_OPTIONS: Array<{
-  value: "edit" | "preview" | "split";
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-}> = [
-  {
-    value: "edit",
-    label: "편집",
-    description: "텍스트 입력 전용",
-    icon: <Pencil className="h-3.5 w-3.5" />,
-  },
-  {
-    value: "preview",
-    label: "미리보기",
-    description: "렌더된 마크다운만 보기",
-    icon: <Eye className="h-3.5 w-3.5" />,
-  },
-  {
-    value: "split",
-    label: "듀얼",
-    description: "편집·미리보기 나란히",
-    icon: <Columns className="h-3.5 w-3.5" />,
-  },
-];
+import { Check, ChevronDown, ChevronUp, NotebookPen, Columns } from "lucide-react";
+import type { RetrospectPanelProps } from "./types/RetrospectPanelProps";
+import { RETROSPECT_VIEW_OPTIONS } from "./constants/retrospect-view-options";
 
 export function RetrospectPanel({
   isDarkMode,
