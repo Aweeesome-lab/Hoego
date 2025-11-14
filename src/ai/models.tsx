@@ -23,7 +23,7 @@ type Props = {
 };
 
 export function ModelsContent() {
-  const [checking, setChecking] = React.useState(false);
+  const [_checking, setChecking] = React.useState(false);
   const [status, setStatus] = React.useState<{ text: string; ok: boolean }>({
     text: '확인 전',
     ok: false,

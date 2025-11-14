@@ -95,7 +95,7 @@ export function groupSummariesByDate(
       if (!grouped.has(dateKey)) {
         grouped.set(dateKey, []);
       }
-      grouped.get(dateKey)!.push(summary);
+      grouped.get(dateKey)?.push(summary);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('[aiService] Invalid timestamp for summary:', summary);

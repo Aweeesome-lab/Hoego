@@ -150,6 +150,9 @@ export interface AiSummaryInfo {
   summary: string;
   model: string;
   timestamp: string;
+  path?: string;
+  content?: string;
+  createdAt?: string;
 }
 
 // ============================================================================

@@ -63,7 +63,6 @@ export default function App() {
   const {
     markdownRef,
     markdownContent,
-    setMarkdownContent,
     lastMinute,
     setLastMinute,
     isEditing,

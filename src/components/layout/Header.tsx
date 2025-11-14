@@ -188,7 +188,7 @@ export function Header({
   saveTodayMarkdown,
   lastSavedRef,
   loadMarkdown,
-  isSaving,
+  isSaving: _isSaving,
   setIsSaving,
   handleGenerateAiFeedback,
   isGeneratingAiFeedback,

@@ -89,7 +89,6 @@ describe('Footer', () => {
     render(<Footer isDarkMode={false} />);
 
     const settingsButton = screen.getByRole('button', { name: /AI 설정/i });
-    const stopPropagationSpy = vi.fn();
 
     settingsButton.dispatchEvent(
       new MouseEvent('mousedown', {

@@ -92,11 +92,11 @@ export function useRetrospect() {
           : null;
 
       let nextCursor = 0;
-      setRetrospectContent((prev) => {
-        const start = selectionStart ?? prev.length;
-        const end = selectionEnd ?? start;
-        const before = prev.slice(0, start);
-        const after = prev.slice(end);
+      const prev = useAppStore.getState().retrospectContent;
+      const start = selectionStart ?? prev.length;
+      const end = selectionEnd ?? start;
+      const before = prev.slice(0, start);
+      const after = prev.slice(end);
 
         let paddedBefore = before;
         if (paddedBefore.length) {
@@ -109,10 +109,9 @@ export function useRetrospect() {
           }
         }
 
-        const next = paddedBefore + templateBlock + after;
-        nextCursor = paddedBefore.length + templateBlock.length;
-        return next;
-      });
+      const next = paddedBefore + templateBlock + after;
+      nextCursor = paddedBefore.length + templateBlock.length;
+      setRetrospectContent(next);
 
       setIsTemplatePickerOpen(false);
 
@@ -124,7 +123,7 @@ export function useRetrospect() {
         }
       });
     },
-    [customRetrospectiveTemplates]
+    [customRetrospectiveTemplates, setRetrospectContent, setIsTemplatePickerOpen]
   );
 
   // 회고 내용 자동 저장 (디바운스)

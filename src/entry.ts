@@ -50,7 +50,7 @@ async function bootstrap() {
       root.id = 'root';
       document.body.appendChild(root);
     }
-    await import('./main.tsx');
+    await import('./main');
   }
 }
 

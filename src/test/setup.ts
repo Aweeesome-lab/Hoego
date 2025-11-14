@@ -5,7 +5,7 @@
  */
 
 import { cleanup } from '@testing-library/react';
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Cleanup after each test
@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 // Mock Tauri API
-global.window = Object.create(window);
+(globalThis as any).window = Object.create(window);
 const mockTauri = {
   invoke: vi.fn(),
   listen: vi.fn(),
@@ -60,7 +60,7 @@ const localStorageMock = {
   },
   key: vi.fn((index: number) => Object.keys(storage)[index] || null),
 };
-global.localStorage = localStorageMock as unknown as Storage;
+(globalThis as any).localStorage = localStorageMock as unknown as Storage;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {

@@ -40,10 +40,12 @@ export function useAiSummaries() {
       setSummariesError(null);
       const summaries = await listAiSummaries(DEFAULT_AI_SUMMARY_LIMIT);
       setAiSummaries(summaries);
-      setSelectedSummaryIndex((prev) => {
-        if (!summaries.length) return 0;
-        return Math.min(prev, summaries.length - 1);
-      });
+      const currentIndex = useAppStore.getState().selectedSummaryIndex;
+      if (!summaries.length) {
+        setSelectedSummaryIndex(0);
+      } else {
+        setSelectedSummaryIndex(Math.min(currentIndex, summaries.length - 1));
+      }
     } catch (error) {
       if (import.meta.env.DEV)
         console.error('[hoego] AI summaries 로드 실패', error);
@@ -51,7 +53,7 @@ export function useAiSummaries() {
       setAiSummaries([]);
       setSelectedSummaryIndex(0);
     }
-  }, []);
+  }, [setAiSummaries, setSelectedSummaryIndex, setSummariesError]);
 
   const handleGenerateAiFeedback = useCallback(async () => {
     if (isGeneratingAiFeedback) return;
@@ -91,11 +93,10 @@ export function useAiSummaries() {
           if (!streamingTimerRef.current) {
             streamingTimerRef.current = window.setInterval(() => {
               if (!streamingBufferRef.current) return;
-              setStreamingAiText((prev) => {
-                const next = prev + streamingBufferRef.current;
-                streamingBufferRef.current = '';
-                return next;
-              });
+              const currentText = useAppStore.getState().streamingAiText;
+              const next = currentText + streamingBufferRef.current;
+              streamingBufferRef.current = '';
+              setStreamingAiText(next);
             }, 50);
           }
         }
