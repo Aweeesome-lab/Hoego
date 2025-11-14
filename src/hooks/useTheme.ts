@@ -1,28 +1,32 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useAppStore } from "@/store";
 
-type ThemeMode = "light" | "dark" | "system";
-
+/**
+ * 테마 관리 커스텀 훅
+ *
+ * Zustand 스토어를 사용하여 테마 상태를 관리합니다.
+ * - themeMode: localStorage에 자동 저장
+ * - isDarkMode: 시스템 테마 감지 및 자동 업데이트
+ * - toggleTheme: light → dark → system 순환
+ *
+ * @example
+ * ```tsx
+ * const { themeMode, isDarkMode, toggleTheme } = useTheme();
+ *
+ * // 다크모드 여부에 따라 스타일 적용
+ * <div className={isDarkMode ? "dark-mode" : "light-mode"}>
+ *   <button onClick={toggleTheme}>테마 전환</button>
+ * </div>
+ * ```
+ */
 export function useTheme() {
-  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    const stored = localStorage.getItem("hoego_theme_mode");
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      return stored;
-    }
-    return "system";
-  });
+  const themeMode = useAppStore((state) => state.themeMode);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const setThemeMode = useAppStore((state) => state.setThemeMode);
+  const setIsDarkMode = useAppStore((state) => state.setIsDarkMode);
+  const toggleTheme = useAppStore((state) => state.toggleTheme);
 
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem("hoego_theme_mode");
-    if (stored === "light") return false;
-    if (stored === "dark") return true;
-    // system or no stored value
-    return (
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
-  });
-
-  // 다크모드 테마 적용
+  // 다크모드 테마 적용 (document.documentElement에 클래스 추가/제거)
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.remove("light");
@@ -32,6 +36,7 @@ export function useTheme() {
   }, [isDarkMode]);
 
   // System theme detection and update
+  // themeMode가 "system"일 때만 시스템 테마 변경 감지
   useEffect(() => {
     if (themeMode !== "system") return;
 
@@ -46,48 +51,62 @@ export function useTheme() {
     // Listen for changes
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [themeMode]);
+  }, [themeMode, setIsDarkMode]);
 
-  // Save themeMode to localStorage
+  // Update isDarkMode based on themeMode changes
   useEffect(() => {
-    localStorage.setItem("hoego_theme_mode", themeMode);
-
-    // Update isDarkMode based on themeMode
     if (themeMode === "light") {
       setIsDarkMode(false);
     } else if (themeMode === "dark") {
       setIsDarkMode(true);
     }
     // For 'system', the effect above handles it
-  }, [themeMode]);
+  }, [themeMode, setIsDarkMode]);
 
   // Cross-window theme synchronization
+  // Zustand persist middleware handles this automatically via localStorage sync
+  // This effect is kept for compatibility with external localStorage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "hoego_theme_mode" && e.newValue) {
-        const newMode = e.newValue;
-        if (newMode === "light" || newMode === "dark" || newMode === "system") {
-          setThemeMode(newMode);
+      if (e.key === "hoego-storage" && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed?.state?.themeMode) {
+            const newMode = parsed.state.themeMode;
+            if (newMode === "light" || newMode === "dark" || newMode === "system") {
+              setThemeMode(newMode);
+            }
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error("[hoego] Failed to parse storage event:", error);
+          }
         }
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  // 테마 모드 전환: light → dark → system → light
-  const toggleTheme = () => {
-    setThemeMode((prev) => {
-      if (prev === "light") return "dark";
-      if (prev === "dark") return "system";
-      return "light";
-    });
-  };
+  }, [setThemeMode]);
 
   return {
+    /**
+     * 현재 테마 모드
+     * @type {"light" | "dark" | "system"}
+     */
     themeMode,
+
+    /**
+     * 다크모드 활성화 여부 (계산된 값)
+     * themeMode가 "system"일 때는 시스템 설정을 따름
+     * @type {boolean}
+     */
     isDarkMode,
+
+    /**
+     * 테마 모드 전환 (light → dark → system → light)
+     * @function
+     */
     toggleTheme,
   };
 }

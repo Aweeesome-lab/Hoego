@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ListItem, Point, Position } from "unist";
 import { getTodayMarkdown, saveTodayMarkdown } from "@/lib/tauri";
 import toast from "react-hot-toast";
+import { useAppStore } from "@/store";
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
@@ -15,12 +16,24 @@ function getKstHms() {
 }
 
 export function useMarkdown() {
-  const markdownRef = useRef<HTMLDivElement | null>(null);
-  const [markdownContent, setMarkdownContent] = useState("");
+  // Zustand store selectors
+  const markdownContent = useAppStore((state) => state.markdownContent);
+  const isEditing = useAppStore((state) => state.isEditing);
+  const editingContent = useAppStore((state) => state.editingContent);
+  const isSaving = useAppStore((state) => state.isSaving);
+  const isSyncing = useAppStore((state) => state.isSyncing);
+
+  const setMarkdownContent = useAppStore((state) => state.setMarkdownContent);
+  const setIsEditing = useAppStore((state) => state.setIsEditing);
+  const setEditingContent = useAppStore((state) => state.setEditingContent);
+  const setIsSaving = useAppStore((state) => state.setIsSaving);
+  const setIsSyncing = useAppStore((state) => state.setIsSyncing);
+
+  // Local state (not in Zustand)
   const [lastMinute, setLastMinute] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingContent, setEditingContent] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+
+  // Refs
+  const markdownRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSavedRef = useRef<string>("");
   const debounceIdRef = useRef<number | null>(null);
@@ -257,6 +270,22 @@ export function useMarkdown() {
     };
   }, [isEditing, editingContent]);
 
+  // 수동 동기화 핸들러
+  const handleManualSync = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      await loadMarkdown();
+      toast.success("동기화 완료");
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("[hoego] 동기화 실패:", error);
+      }
+      toast.error("동기화에 실패했습니다.");
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [loadMarkdown, setIsSyncing]);
+
   return {
     markdownRef,
     markdownContent,
@@ -269,11 +298,13 @@ export function useMarkdown() {
     setEditingContent,
     isSaving,
     setIsSaving,
+    isSyncing,
     editorRef,
     lastSavedRef,
     loadMarkdown,
     appendTimestampToLine,
     handleTaskCheckboxToggle,
     saveTodayMarkdown,
+    handleManualSync,
   };
 }

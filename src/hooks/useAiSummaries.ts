@@ -1,16 +1,26 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import type { AiSummaryEntry } from "@/lib/tauri";
 import { listAiSummaries } from "@/lib/tauri";
 import toast from "react-hot-toast";
+import { useAppStore } from "@/store";
 
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
 
 export function useAiSummaries() {
-  const [aiSummaries, setAiSummaries] = useState<AiSummaryEntry[]>([]);
-  const [selectedSummaryIndex, setSelectedSummaryIndex] = useState(0);
-  const [summariesError, setSummariesError] = useState<string | null>(null);
-  const [isGeneratingAiFeedback, setIsGeneratingAiFeedback] = useState(false);
-  const [streamingAiText, setStreamingAiText] = useState("");
+  // Zustand store selectors
+  const aiSummaries = useAppStore((state) => state.aiSummaries);
+  const selectedSummaryIndex = useAppStore((state) => state.selectedSummaryIndex);
+  const summariesError = useAppStore((state) => state.summariesError);
+  const isGeneratingAiFeedback = useAppStore((state) => state.isGeneratingAiFeedback);
+  const streamingAiText = useAppStore((state) => state.streamingAiText);
+
+  const setAiSummaries = useAppStore((state) => state.setAiSummaries);
+  const setSelectedSummaryIndex = useAppStore((state) => state.setSelectedSummaryIndex);
+  const setSummariesError = useAppStore((state) => state.setSummariesError);
+  const setIsGeneratingAiFeedback = useAppStore((state) => state.setIsGeneratingAiFeedback);
+  const setStreamingAiText = useAppStore((state) => state.setStreamingAiText);
+
+  // Refs (not in Zustand)
   const streamingBufferRef = useRef("");
   const streamingTimerRef = useRef<number | null>(null);
   const streamingCleanupRef = useRef<(() => void) | null>(null);

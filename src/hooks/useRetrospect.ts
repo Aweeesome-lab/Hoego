@@ -4,44 +4,36 @@ import {
   CUSTOM_RETROSPECTIVE_STORAGE_KEY,
   type RetrospectiveTemplate,
 } from "@/constants/retrospectiveTemplates";
+import { useAppStore } from "@/store";
 
 const TEMPLATE_DROPDOWN_WIDTH = 360;
 
 export function useRetrospect() {
-  const [retrospectContent, setRetrospectContent] = useState(() => {
-    return localStorage.getItem("hoego.retrospectContent") || "";
-  });
+  // Zustand store selectors
+  const retrospectContent = useAppStore((state) => state.retrospectContent);
+  const isSavingRetrospect = useAppStore((state) => state.isSavingRetrospect);
+  const isTemplatePickerOpen = useAppStore((state) => state.isTemplatePickerOpen);
+  const retrospectViewMode = useAppStore((state) => state.retrospectViewMode);
+  const customRetrospectiveTemplates = useAppStore((state) => state.customRetrospectiveTemplates);
+
+  const setRetrospectContent = useAppStore((state) => state.setRetrospectContent);
+  const setIsSavingRetrospect = useAppStore((state) => state.setIsSavingRetrospect);
+  const setIsTemplatePickerOpen = useAppStore((state) => state.setIsTemplatePickerOpen);
+  const setRetrospectViewMode = useAppStore((state) => state.setRetrospectViewMode);
+  const setCustomRetrospectiveTemplates = useAppStore((state) => state.setCustomRetrospectiveTemplates);
+
+  // Refs (not in Zustand)
   const retrospectRef = useRef<HTMLTextAreaElement | null>(null);
-  const [isSavingRetrospect, setIsSavingRetrospect] = useState(false);
   const retrospectDebounceIdRef = useRef<number | null>(null);
-  const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const templateDropdownRef = useRef<HTMLDivElement | null>(null);
   const templateTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  // Local state (not in Zustand)
   const [templateDropdownPosition, setTemplateDropdownPosition] = useState({
     top: 0,
     left: 0,
     width: TEMPLATE_DROPDOWN_WIDTH,
   });
-  const [retrospectViewMode, setRetrospectViewMode] = useState<
-    "edit" | "preview" | "split"
-  >("split");
-  const [customRetrospectiveTemplates, setCustomRetrospectiveTemplates] =
-    useState<RetrospectiveTemplate[]>(() => {
-      try {
-        const stored = localStorage.getItem(CUSTOM_RETROSPECTIVE_STORAGE_KEY);
-        if (!stored) return [];
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((item) => typeof item?.id === "string");
-        }
-        return [];
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn("[hoego] 커스텀 회고 템플릿 파싱 실패", error);
-        }
-        return [];
-      }
-    });
 
   const updateTemplateDropdownPosition = useCallback(() => {
     const trigger = templateTriggerRef.current;
@@ -124,6 +116,7 @@ export function useRetrospect() {
   );
 
   // 회고 내용 자동 저장 (디바운스)
+  // Zustand persist middleware handles localStorage automatically
   useEffect(() => {
     if (retrospectDebounceIdRef.current) {
       clearTimeout(retrospectDebounceIdRef.current);
@@ -132,7 +125,7 @@ export function useRetrospect() {
     retrospectDebounceIdRef.current = window.setTimeout(() => {
       try {
         setIsSavingRetrospect(true);
-        localStorage.setItem("hoego.retrospectContent", retrospectContent);
+        // Zustand persist middleware saves to localStorage automatically
         setTimeout(() => setIsSavingRetrospect(false), 500);
       } catch (error) {
         console.error("Failed to save retrospect content:", error);
@@ -145,7 +138,7 @@ export function useRetrospect() {
         clearTimeout(retrospectDebounceIdRef.current);
       }
     };
-  }, [retrospectContent]);
+  }, [retrospectContent, setIsSavingRetrospect]);
 
   useEffect(() => {
     if (!isTemplatePickerOpen) return;
