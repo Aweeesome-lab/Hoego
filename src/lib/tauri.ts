@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { invoke as tauriInvoke } from "@tauri-apps/api/tauri";
 import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
@@ -45,6 +44,11 @@ export interface AiSummaryEntry {
 // ============================================================================
 // 윈도우 제어
 // ============================================================================
+
+// Window size constraints
+const MIN_WINDOW_WIDTH = 320;
+const MIN_WINDOW_HEIGHT = 200;
+const DEFAULT_WINDOW_PADDING = 24;
 
 export const hideOverlayWindow = async () => {
   try {
@@ -94,17 +98,20 @@ export const readWindowPosition = async () => {
 export const resizeWindowTo = async (
   width: number,
   height: number,
-  padding = 24
+  padding = DEFAULT_WINDOW_PADDING
 ) => {
   if (Number.isNaN(width) || Number.isNaN(height)) return;
-  const targetWidth = Math.max(320, Math.ceil(width + padding));
-  const targetHeight = Math.max(200, Math.ceil(height + padding));
+  const targetWidth = Math.max(MIN_WINDOW_WIDTH, Math.ceil(width + padding));
+  const targetHeight = Math.max(MIN_WINDOW_HEIGHT, Math.ceil(height + padding));
   await appWindow.setSize(new LogicalSize(targetWidth, targetHeight));
 };
 
 // ============================================================================
 // 히스토리 관련 함수
 // ============================================================================
+
+// AI summary list default limit
+const DEFAULT_AI_SUMMARY_LIMIT = 10;
 
 export const listHistory = async (): Promise<HistoryOverview> => {
   return tauriInvoke<HistoryOverview>("list_history");
@@ -147,7 +154,7 @@ export const appendHistoryEntry = async (
 };
 
 export const listAiSummaries = async (
-  limit = 10
+  limit = DEFAULT_AI_SUMMARY_LIMIT
 ): Promise<AiSummaryEntry[]> => {
   return tauriInvoke<AiSummaryEntry[]>("list_ai_summaries", { limit });
 };
