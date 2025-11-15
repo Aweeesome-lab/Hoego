@@ -65,10 +65,10 @@ export const DumpPanel = React.memo(function DumpPanel({
             onClick={handleCategorizeDump}
             disabled={isCategorizingDump}
             title="AI 카테고리화"
-            className={`rounded-full p-2 transition-colors ${
+            className={`rounded-full p-2 transition-colors border ${
               isDarkMode
-                ? 'hover:bg-white/10 text-slate-300 hover:text-slate-100 disabled:text-slate-600 disabled:cursor-not-allowed'
-                : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900 disabled:text-slate-400 disabled:cursor-not-allowed'
+                ? 'border-white/20 hover:bg-white/10 text-slate-300 hover:text-slate-100 hover:border-white/30 disabled:text-slate-600 disabled:border-white/10 disabled:cursor-not-allowed'
+                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed'
             }`}
           >
             {isCategorizingDump ? (
