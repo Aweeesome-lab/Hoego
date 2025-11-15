@@ -49,8 +49,9 @@ export function useDumpCategorization() {
           },
         ],
         model: 'gpt-4o-mini', // Fast and cost-effective
-        temperature: 0.3, // Lower temperature for more consistent categorization
-        max_tokens: 2000,
+        temperature: 0.1, // Very low for consistent formatting
+        max_tokens: 3000, // More tokens for detailed analysis
+        system_prompt: 'You are an expert time analyst specializing in personal productivity. Analyze daily activity dumps with precision, calculate time spent per category, and present data in professional markdown tables.',
       });
 
       const categorizedSection = response.content.trim();
@@ -100,36 +101,62 @@ export function useDumpCategorization() {
 }
 
 /**
- * AI 카테고리화 프롬프트 생성
+ * AI 카테고리화 프롬프트 생성 (Few-shot learning)
  * @param content 원본 마크다운 내용
  * @returns 카테고리화 프롬프트
  */
 function buildCategorizationPrompt(content: string): string {
-  return `다음은 사용자가 하루 동안 작성한 dump 내용입니다. 이 내용을 분석하여 카테고리별로 정리해주세요.
+  return `당신은 하루 dump 내용을 분석하는 전문 시간 분석가입니다. 사용자의 dump를 분석하여 카테고리별 시간 사용 현황을 정리해주세요.
 
-**요구사항:**
-1. 다음 기본 카테고리를 사용하세요: 업무(Work), 개인(Personal), 건강(Health), 사회활동(Social), 학습(Learning), 여가(Entertainment)
-2. 필요하다면 추가 카테고리를 만들어도 좋습니다
-3. 비슷한 주제나 맥락의 항목들을 같은 카테고리로 묶어주세요
-4. 각 항목은 bullet point (-)로 표시하되, 원본 내용을 간결하게 요약해주세요
-5. 타임스탬프 (HH:MM:SS)는 포함하지 마세요
-6. 마크다운 형식으로 출력하되, 깔끔하고 읽기 쉽게 작성해주세요
+**분석 원칙:**
+1. 타임스탬프 (HH:MM:SS)를 활용해 각 활동의 소요 시간 계산
+2. 비슷한 활동을 카테고리로 묶어서 시간 집계
+3. 마크다운 표 형식으로 카테고리별 시간과 비율 표시
+4. 각 카테고리별 세부 활동 목록 작성
 
-**출력 형식:**
-## 📋 카테고리별 정리
+---
 
-### 업무
-- 항목1
-- 항목2
+**예시 입력:**
 
-### 개인
-- 항목1
-- 항목2
+- 오전 9시 기상 (09:00:00)
+- 아침 먹고 샤워 (09:30:00)
+- 러닝 3km, 발목 통증 (10:00:00)
+- 업무 시작 - MVP 개발 (10:45:00)
+- 점심 식사 (12:30:00)
+- 업무 재개 - API 작업 (13:30:00)
+- 유튜브 시청 (16:00:00)
 
-(기타 카테고리...)
+**예시 출력:**
 
-**원본 내용:**
+## 📋 카테고리별 시간 사용 분석
+
+| 카테고리 | 총 시간 | 비율 |
+|---------|---------|------|
+| 작업 (개발/업무/빌드) | 4시간 15분 | 60.7% |
+| 개인 루틴 (식사/샤워/정리 등) | 1시간 30분 | 21.4% |
+| 운동 | 45분 | 10.7% |
+| 오락/취미 | 30분 | 7.2% |
+
+### 작업 (개발/업무/빌드) - 4시간 15분
+- 업무 시작 - MVP 개발
+- 업무 재개 - API 작업
+
+### 개인 루틴 (식사/샤워/정리 등) - 1시간 30분
+- 오전 9시 기상
+- 아침 먹고 샤워
+- 점심 식사
+
+### 운동 - 45분
+- 러닝 3km, 발목 통증
+
+### 오락/취미 - 30분
+- 유튜브 시청
+
+---
+
+**이제 다음 dump를 동일한 형식으로 분석해주세요:**
+
 ${content}
 
-**카테고리별 정리:**`;
+**분석 결과:**`;
 }
