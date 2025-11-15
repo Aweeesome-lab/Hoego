@@ -179,7 +179,7 @@ pub async fn generate_ai_feedback_stream(
             messages,
             model: cloud_model_id.clone(),
             temperature: Some(0.7),
-            max_tokens: Some(1000),
+            max_tokens: Some(4000),
             system_prompt: None,
             metadata: None,
         };
