@@ -2,9 +2,59 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: ['class'],
-  content: ['index.html', 'src/**/*.{ts,tsx,html}'],
+  content: [
+    'index.html',
+    'src/**/*.{ts,tsx,html}',
+    '.storybook/**/*.{js,jsx,ts,tsx}', // Storybook 파일 포함
+  ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Pretendard Variable',
+          'Pretendard',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'system-ui',
+          'Roboto',
+          'Helvetica Neue',
+          'Segoe UI',
+          'Apple SD Gothic Neo',
+          'Noto Sans KR',
+          'Malgun Gothic',
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol',
+          'sans-serif',
+        ],
+        mono: [
+          'JetBrains Mono',
+          'Fira Code',
+          'Monaco',
+          'Consolas',
+          'monospace',
+        ],
+      },
+      fontSize: {
+        // Display
+        'display-lg': ['3rem', { lineHeight: '3.5rem', fontWeight: '700', letterSpacing: '-0.02em' }],
+        'display': ['2.25rem', { lineHeight: '2.75rem', fontWeight: '700', letterSpacing: '-0.02em' }],
+
+        // Headings
+        'h1': ['2rem', { lineHeight: '2.5rem', fontWeight: '600', letterSpacing: '-0.01em' }],
+        'h2': ['1.5rem', { lineHeight: '2rem', fontWeight: '600', letterSpacing: '-0.01em' }],
+        'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+        'h4': ['1.125rem', { lineHeight: '1.5rem', fontWeight: '600' }],
+
+        // Body
+        'body-lg': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '400' }],
+        'body': ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '400' }],
+
+        // Caption
+        'caption': ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],
+        'caption-sm': ['0.6875rem', { lineHeight: '0.875rem', fontWeight: '400' }],
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

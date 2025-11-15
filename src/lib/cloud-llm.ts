@@ -1,6 +1,7 @@
 // Cloud LLM Client - Tauri command wrapper
 
 import { invoke } from '@tauri-apps/api/tauri';
+
 import type {
   CompletionRequest,
   CompletionResponse,
@@ -20,7 +21,7 @@ export class CloudLLMClient {
    */
   static async setApiKey(
     provider: CloudProvider,
-    apiKey: string,
+    apiKey: string
   ): Promise<string> {
     return invoke('set_cloud_api_key', {
       providerName: provider,
@@ -36,7 +37,7 @@ export class CloudLLMClient {
    */
   static async testApiKey(
     provider: CloudProvider,
-    apiKey: string,
+    apiKey: string
   ): Promise<boolean> {
     return invoke('test_cloud_api_key', {
       providerName: provider,
@@ -50,7 +51,7 @@ export class CloudLLMClient {
    * @returns 완성 응답
    */
   static async complete(
-    request: CompletionRequest,
+    request: CompletionRequest
   ): Promise<CompletionResponse> {
     return invoke('cloud_llm_complete', { request });
   }
@@ -113,7 +114,7 @@ export async function generateText(
     systemPrompt?: string;
     temperature?: number;
     maxTokens?: number;
-  },
+  }
 ): Promise<string> {
   const response = await CloudLLMClient.complete({
     messages: [

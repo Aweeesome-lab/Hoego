@@ -28,3 +28,6 @@ src-tauri/binaries/llama-server-*
  
 # Local development assets (not for commit)
 image/
+
+*storybook.log
+storybook-static

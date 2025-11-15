@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import {
-  listHistory,
-  openHistoryFolder,
-  onHistoryUpdated,
-} from '@/lib/tauri';
 import type { HistoryOverview } from '@/types/tauri-commands';
+
+import { listHistory, openHistoryFolder, onHistoryUpdated } from '@/lib/tauri';
 
 export interface UseHistoryReturn {
   overview: HistoryOverview | null;

@@ -3,10 +3,16 @@
  * Manages unified model selection for both local and cloud LLMs
  */
 
-import type { SelectedModel, ModelOption } from '@/types/model-selection';
-import { SELECTED_MODEL_KEY, DEFAULT_MODEL, CLOUD_MODELS } from '@/types/model-selection';
-import { llmApi } from './llm';
 import { CloudLLMClient } from './cloud-llm';
+import { llmApi } from './llm';
+
+import type { SelectedModel, ModelOption } from '@/types/model-selection';
+
+import {
+  SELECTED_MODEL_KEY,
+  DEFAULT_MODEL,
+  CLOUD_MODELS,
+} from '@/types/model-selection';
 
 /**
  * Get currently selected model from localStorage

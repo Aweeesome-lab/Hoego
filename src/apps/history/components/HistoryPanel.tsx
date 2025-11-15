@@ -1,6 +1,7 @@
-import type { HistoryFileInfo } from '@/types/tauri-commands';
 import EmptyState from './EmptyState';
 import HistoryFileList from './HistoryFileList';
+
+import type { HistoryFileInfo } from '@/types/tauri-commands';
 
 interface HistoryPanelProps {
   files: HistoryFileInfo[];

@@ -1,8 +1,16 @@
-import { Cloud, Check, AlertCircle, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import {
+  Cloud,
+  Check,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  ExternalLink,
+} from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import { useCloudLLM } from '@/hooks';
 import type { CloudProvider } from '@/types/cloud-llm';
+
+import { useCloudLLM } from '@/hooks';
 
 interface CloudLLMSettingsProps {
   isDarkMode?: boolean;
@@ -42,11 +50,16 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
           const { CloudLLMClient } = await import('@/lib/cloud-llm');
           await CloudLLMClient.initializeProvider(activeProvider);
           if (import.meta.env.DEV) {
-            console.log(`[Cloud LLM] Auto-initialized ${activeProvider} provider`);
+            console.log(
+              `[Cloud LLM] Auto-initialized ${activeProvider} provider`
+            );
           }
         } catch (error) {
           if (import.meta.env.DEV) {
-            console.error(`[Cloud LLM] Failed to initialize ${activeProvider}:`, error);
+            console.error(
+              `[Cloud LLM] Failed to initialize ${activeProvider}:`,
+              error
+            );
           }
         }
       }
@@ -141,8 +154,8 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
             isDarkMode ? 'text-slate-500' : 'text-slate-500'
           }`}
         >
-          OpenAI, Claude, Gemini 등 클라우드 LLM 서비스를 연결하여 더 강력한 AI 기능을
-          사용할 수 있습니다.
+          OpenAI, Claude, Gemini 등 클라우드 LLM 서비스를 연결하여 더 강력한 AI
+          기능을 사용할 수 있습니다.
         </p>
       </div>
 
@@ -156,50 +169,52 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
           Provider 선택
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          {(['openai', 'claude', 'gemini'] as CloudProvider[]).map((provider) => (
-            <button
-              key={provider}
-              onClick={() => {
-                setActiveProvider(provider);
-                setApiKey('');
-                setTestResult(null);
-              }}
-              className={`relative p-4 rounded-xl border text-left transition ${
-                activeProvider === provider
-                  ? isDarkMode
-                    ? 'bg-blue-500/20 border-blue-500/50'
-                    : 'bg-blue-50 border-blue-200'
-                  : isDarkMode
-                    ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <div
-                className={`text-[13px] font-medium mb-1 ${
+          {(['openai', 'claude', 'gemini'] as CloudProvider[]).map(
+            (provider) => (
+              <button
+                key={provider}
+                onClick={() => {
+                  setActiveProvider(provider);
+                  setApiKey('');
+                  setTestResult(null);
+                }}
+                className={`relative p-4 rounded-xl border text-left transition ${
                   activeProvider === provider
                     ? isDarkMode
-                      ? 'text-blue-300'
-                      : 'text-blue-700'
+                      ? 'bg-blue-500/20 border-blue-500/50'
+                      : 'bg-blue-50 border-blue-200'
                     : isDarkMode
-                      ? 'text-slate-300'
-                      : 'text-slate-700'
+                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
               >
-                {providerInfo[provider].name}
-              </div>
-              <div
-                className={`text-[10px] ${
-                  isDarkMode ? 'text-slate-500' : 'text-slate-500'
-                }`}
-              >
-                {provider === 'claude' || provider === 'gemini' ? (
-                  <span className="text-orange-500">곧 출시</span>
-                ) : (
-                  '사용 가능'
-                )}
-              </div>
-            </button>
-          ))}
+                <div
+                  className={`text-[13px] font-medium mb-1 ${
+                    activeProvider === provider
+                      ? isDarkMode
+                        ? 'text-blue-300'
+                        : 'text-blue-700'
+                      : isDarkMode
+                        ? 'text-slate-300'
+                        : 'text-slate-700'
+                  }`}
+                >
+                  {providerInfo[provider].name}
+                </div>
+                <div
+                  className={`text-[10px] ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-500'
+                  }`}
+                >
+                  {provider === 'claude' || provider === 'gemini' ? (
+                    <span className="text-orange-500">곧 출시</span>
+                  ) : (
+                    '사용 가능'
+                  )}
+                </div>
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -329,7 +344,9 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
                       isDarkMode ? 'text-blue-400' : 'text-blue-600'
                     }`}
                   >
-                    <li>아래 버튼을 클릭하여 {currentProvider.name} 플랫폼 접속</li>
+                    <li>
+                      아래 버튼을 클릭하여 {currentProvider.name} 플랫폼 접속
+                    </li>
                     <li>API 키 생성 (무료 계정으로 시작 가능)</li>
                     <li>생성된 API 키를 복사하여 아래에 입력</li>
                   </ol>

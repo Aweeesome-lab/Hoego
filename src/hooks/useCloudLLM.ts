@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 
-import { CloudLLMClient, generateText } from '@/lib/cloud-llm';
 import type {
   CompletionRequest,
   CompletionResponse,
   CloudProvider,
 } from '@/types/cloud-llm';
+
+import { CloudLLMClient, generateText } from '@/lib/cloud-llm';
 
 export interface UseCloudLLMReturn {
   // State
@@ -18,10 +19,7 @@ export interface UseCloudLLMReturn {
   complete: (request: CompletionRequest) => Promise<CompletionResponse | null>;
   generate: (prompt: string, model?: string) => Promise<string | null>;
   testApiKey: (provider: CloudProvider, apiKey: string) => Promise<boolean>;
-  setApiKey: (
-    provider: CloudProvider,
-    apiKey: string,
-  ) => Promise<boolean>;
+  setApiKey: (provider: CloudProvider, apiKey: string) => Promise<boolean>;
   hasApiKey: (provider: CloudProvider) => Promise<boolean>;
   deleteApiKey: (provider: CloudProvider) => Promise<void>;
 
@@ -43,9 +41,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
    * 텍스트 완성 요청
    */
   const complete = useCallback(
-    async (
-      request: CompletionRequest,
-    ): Promise<CompletionResponse | null> => {
+    async (request: CompletionRequest): Promise<CompletionResponse | null> => {
       setLoading(true);
       setError(null);
       setResponse(null);
@@ -68,7 +64,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   /**
@@ -96,7 +92,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   /**
@@ -129,7 +125,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   /**
@@ -158,7 +154,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   /**
@@ -175,7 +171,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         return false;
       }
     },
-    [],
+    []
   );
 
   /**
@@ -202,7 +198,7 @@ export function useCloudLLM(): UseCloudLLMReturn {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   /**

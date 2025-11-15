@@ -66,7 +66,13 @@ export type OpenAIModel = (typeof OPENAI_MODELS)[number];
 
 // 에러 타입
 export interface CloudLLMError {
-  type: 'network' | 'auth' | 'rate_limit' | 'invalid_request' | 'provider' | 'config';
+  type:
+    | 'network'
+    | 'auth'
+    | 'rate_limit'
+    | 'invalid_request'
+    | 'provider'
+    | 'config';
   message: string;
 }
 

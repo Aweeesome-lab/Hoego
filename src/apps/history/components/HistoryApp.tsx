@@ -1,7 +1,8 @@
-import { useTheme } from '@/hooks';
-import { useHistory } from '@/hooks/useHistory';
 import HistoryHeader from './HistoryHeader';
 import HistoryPanel from './HistoryPanel';
+
+import { useTheme } from '@/hooks';
+import { useHistory } from '@/hooks/useHistory';
 
 export default function HistoryApp() {
   const { isDarkMode } = useTheme();

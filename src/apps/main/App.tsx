@@ -185,12 +185,17 @@ export default function App() {
         if (hasOpenAIKey) {
           await CloudLLMClient.initializeProvider('openai');
           if (import.meta.env.DEV) {
-            console.log('[Cloud LLM] Auto-initialized OpenAI provider on app start');
+            console.log(
+              '[Cloud LLM] Auto-initialized OpenAI provider on app start'
+            );
           }
         }
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.error('[Cloud LLM] Failed to auto-initialize provider:', error);
+          console.error(
+            '[Cloud LLM] Failed to auto-initialize provider:',
+            error
+          );
         }
       }
     };

@@ -10,15 +10,15 @@ import {
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
+import type { ModelInfo, LocalModel, DownloadProgress } from '@/lib/llm';
+import type { ModelOption, SelectedModel } from '@/types/model-selection';
+
 import { llmApi } from '@/lib/llm';
 import {
   getAllModelOptions,
   getSelectedModel,
   setSelectedModel,
 } from '@/lib/model-selection';
-
-import type { ModelInfo, LocalModel, DownloadProgress } from '@/lib/llm';
-import type { ModelOption, SelectedModel } from '@/types/model-selection';
 
 interface LLMSettingsProps {
   isDarkMode?: boolean;
@@ -235,7 +235,8 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
               {currentModelOption.type === 'local'
                 ? '로컬 모델'
                 : `클라우드 • ${currentModelOption.provider}`}
-              {currentModelOption.description && ` • ${currentModelOption.description}`}
+              {currentModelOption.description &&
+                ` • ${currentModelOption.description}`}
             </div>
           </div>
         ) : (
@@ -261,7 +262,9 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
               {allModelOptions.map((option) => (
                 <button
                   key={`${option.type}-${option.id}-${option.provider || ''}`}
-                  onClick={() => option.isAvailable && handleSelectModel(option)}
+                  onClick={() =>
+                    option.isAvailable && handleSelectModel(option)
+                  }
                   disabled={!option.isAvailable}
                   className={`w-full text-left p-3 rounded-md transition ${
                     option.id === selectedModel.modelId &&

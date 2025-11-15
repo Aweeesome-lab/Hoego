@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
+import { CloudLLMSettings } from './components/CloudLLMSettings';
 import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
-import { CloudLLMSettings } from './components/CloudLLMSettings';
 
 import '@/styles/index.css';
 import {
