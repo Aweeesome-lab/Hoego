@@ -127,6 +127,7 @@ impl Serialize for LLMError {
 }
 
 /// Provider 설정
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProviderConfig {
     /// Provider 이름
@@ -145,6 +146,7 @@ pub struct ProviderConfig {
 }
 
 /// LLM 백엔드 타입
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum LLMBackend {
