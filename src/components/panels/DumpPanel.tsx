@@ -1,11 +1,9 @@
-import { Sparkles, Loader2 } from 'lucide-react';
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 
 import type { Components } from 'react-markdown';
 
 import { MemoizedReactMarkdown } from '@/components/markdown';
-import { useDumpCategorization } from '@/hooks/useDumpCategorization';
 
 interface DumpPanelProps {
   isDarkMode: boolean;
@@ -30,24 +28,7 @@ export const DumpPanel = React.memo(function DumpPanel({
   appendTimestampToLine,
   markdownContent,
   markdownComponents,
-  onSaveMarkdown,
 }: DumpPanelProps) {
-  // Categorization hook
-  const { isCategorizingDump, categorizeDump } = useDumpCategorization();
-
-  // Handle categorization button click
-  const handleCategorizeDump = async () => {
-    const contentToUse = isEditing ? editingContent : markdownContent;
-    const categorizedContent = await categorizeDump(contentToUse);
-
-    // If categorization was successful (content changed), save it
-    if (categorizedContent !== contentToUse) {
-      await onSaveMarkdown(categorizedContent);
-      if (isEditing) {
-        setEditingContent(categorizedContent);
-      }
-    }
-  };
 
   return (
     <section
@@ -59,38 +40,17 @@ export const DumpPanel = React.memo(function DumpPanel({
     >
       <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
         <span>쏟아내기(dump)</span>
-        <div className="flex items-center gap-2">
-          {/* Categorization button */}
-          <button
-            onClick={handleCategorizeDump}
-            disabled={isCategorizingDump}
-            title="AI 카테고리화"
-            className={`rounded-full p-2 transition-colors border ${
+        {isEditing ? (
+          <span
+            className={`rounded-full px-3 py-1 text-[10px] ${
               isDarkMode
-                ? 'border-white/20 hover:bg-white/10 text-slate-300 hover:text-slate-100 hover:border-white/30 disabled:text-slate-600 disabled:border-white/10 disabled:cursor-not-allowed'
-                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed'
+                ? 'bg-white/10 text-slate-200'
+                : 'bg-slate-200 text-slate-700'
             }`}
           >
-            {isCategorizingDump ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-          </button>
-
-          {/* Edit badge */}
-          {isEditing ? (
-            <span
-              className={`rounded-full px-3 py-1 text-[10px] ${
-                isDarkMode
-                  ? 'bg-white/10 text-slate-200'
-                  : 'bg-slate-200 text-slate-700'
-              }`}
-            >
-              편집 중
-            </span>
-          ) : null}
-        </div>
+            편집 중
+          </span>
+        ) : null}
       </div>
       <div className="flex-1 overflow-hidden px-3.5 py-2.5">
         <div

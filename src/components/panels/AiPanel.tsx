@@ -1,9 +1,9 @@
-import * as Select from '@radix-ui/react-select';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 
 import type { AiSummaryEntry } from '@/lib/tauri';
+import type { PipelineStage } from '@/store';
 import type { Components } from 'react-markdown';
 
 import { Response } from '@/components/ai/response';
@@ -13,31 +13,42 @@ import { MemoizedReactMarkdown } from '@/components/markdown';
 interface AiPanelProps {
   isDarkMode: boolean;
   isAiPanelExpanded: boolean;
-  isGeneratingAiFeedback: boolean;
+  isPipelineRunning: boolean;
+  pipelineStage: PipelineStage;
   streamingAiText: string;
   summariesError: string | null;
   aiSummaries: AiSummaryEntry[];
-  aiSelectValue: string | undefined;
-  setSelectedSummaryIndex: (index: number) => void;
   selectedSummary: AiSummaryEntry | null;
-  getSummaryLabel: (summary: AiSummaryEntry) => string;
   markdownComponents: Components;
+  // Unified pipeline handler
+  handleRunPipeline: () => void;
 }
 
 export const AiPanel = React.memo(function AiPanel({
   isDarkMode,
   isAiPanelExpanded,
-  isGeneratingAiFeedback,
+  isPipelineRunning,
+  pipelineStage,
   streamingAiText,
   summariesError,
   aiSummaries,
-  aiSelectValue,
-  setSelectedSummaryIndex,
   selectedSummary,
-  getSummaryLabel,
   markdownComponents,
+  handleRunPipeline,
 }: AiPanelProps) {
   if (!isAiPanelExpanded) return null;
+
+  // Get button label based on pipeline stage
+  const getButtonLabel = () => {
+    switch (pipelineStage) {
+      case 'categorizing':
+        return '카테고리화 중...';
+      case 'generating_feedback':
+        return '피드백 생성 중...';
+      default:
+        return 'AI 분석 및 피드백';
+    }
+  };
 
   return (
     <section
@@ -51,71 +62,29 @@ export const AiPanel = React.memo(function AiPanel({
         <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
           정리하기(feedback)
         </span>
-        <div className="flex items-center gap-3">
-          {aiSummaries.length > 0 && aiSelectValue !== undefined && (
-            <Select.Root
-              value={aiSelectValue}
-              onValueChange={(v) => setSelectedSummaryIndex(Number(v))}
-            >
-              <Select.Trigger
-                className={`inline-flex h-8 items-center justify-between gap-2 rounded-md border px-2.5 text-xs ${
-                  isDarkMode
-                    ? 'border-white/10 bg-[#0a0d13] text-slate-100'
-                    : 'border-slate-200 bg-white text-slate-700'
-                }`}
-                aria-label="요약 선택"
-              >
-                <Select.Value placeholder="버전" />
-                <Select.Icon>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-                </Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content
-                  className={`z-50 overflow-hidden rounded-md border bg-white text-slate-800 shadow ${
-                    isDarkMode
-                      ? 'border-white/10 bg-[#0a0d13] text-slate-100'
-                      : 'border-slate-200 bg-white text-slate-800'
-                  }`}
-                  position="popper"
-                  sideOffset={6}
-                >
-                  <Select.ScrollUpButton className="flex items-center justify-center p-1">
-                    <ChevronUp className="h-3.5 w-3.5 opacity-60" />
-                  </Select.ScrollUpButton>
-                  <Select.Viewport className="p-1">
-                    {aiSummaries.map((summary, index) => (
-                      <Select.Item
-                        key={summary.path}
-                        value={String(index)}
-                        className={`relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-1.5 text-xs outline-none transition hover:bg-slate-100/70 data-[state=checked]:font-semibold ${
-                          isDarkMode
-                            ? 'hover:bg-white/10'
-                            : 'hover:bg-slate-100'
-                        }`}
-                      >
-                        <Select.ItemText>
-                          #{aiSummaries.length - index}{' '}
-                          {getSummaryLabel(summary)}
-                        </Select.ItemText>
-                        <Select.ItemIndicator className="ml-auto">
-                          <Check className="h-3.5 w-3.5" />
-                        </Select.ItemIndicator>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                  <Select.ScrollDownButton className="flex items-center justify-center p-1">
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                  </Select.ScrollDownButton>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
-          )}
+        <div className="flex items-center gap-2">
+          {/* Unified AI Pipeline Button */}
+          <button
+            onClick={handleRunPipeline}
+            disabled={isPipelineRunning}
+            title={getButtonLabel()}
+            className={`rounded-full p-2 transition-colors border ${
+              isDarkMode
+                ? 'border-white/20 hover:bg-white/10 text-slate-300 hover:text-slate-100 hover:border-white/30 disabled:text-slate-600 disabled:border-white/10 disabled:cursor-not-allowed'
+                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed'
+            }`}
+          >
+            {isPipelineRunning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-3.5 py-3">
         <div className="space-y-4">
-          {isGeneratingAiFeedback ? (
+          {isPipelineRunning ? (
             <Response isDarkMode={isDarkMode}>
               {streamingAiText ? (
                 <MemoizedReactMarkdown

@@ -100,6 +100,8 @@ interface MarkdownSlice {
   setIsSyncing: (isSyncing: boolean) => void;
 }
 
+export type PipelineStage = 'idle' | 'categorizing' | 'generating_feedback' | 'complete';
+
 /**
  * AI 요약 관련 상태 슬라이스
  */
@@ -123,6 +125,11 @@ interface AiSlice {
    * AI 피드백 생성 중 상태
    */
   isGeneratingAiFeedback: boolean;
+
+  /**
+   * AI 파이프라인 단계
+   */
+  pipelineStage: PipelineStage;
 
   /**
    * 스트리밍 중인 AI 텍스트
@@ -157,6 +164,12 @@ interface AiSlice {
    * @param isGenerating - 생성 중 여부
    */
   setIsGeneratingAiFeedback: (isGenerating: boolean) => void;
+
+  /**
+   * AI 파이프라인 단계 설정
+   * @param stage - 파이프라인 단계
+   */
+  setPipelineStage: (stage: PipelineStage) => void;
 
   /**
    * 스트리밍 AI 텍스트 설정
@@ -294,6 +307,7 @@ export const useAppStore = create<AppStore>()(
       selectedSummaryIndex: 0,
       summariesError: null,
       isGeneratingAiFeedback: false,
+      pipelineStage: 'idle',
       streamingAiText: '',
       isAiPanelExpanded: false,
       setAiSummaries: (summaries) => set({ aiSummaries: summaries }),
@@ -301,6 +315,7 @@ export const useAppStore = create<AppStore>()(
       setSummariesError: (error) => set({ summariesError: error }),
       setIsGeneratingAiFeedback: (isGenerating) =>
         set({ isGeneratingAiFeedback: isGenerating }),
+      setPipelineStage: (stage) => set({ pipelineStage: stage }),
       setStreamingAiText: (text) => set({ streamingAiText: text }),
       setIsAiPanelExpanded: (isExpanded) =>
         set((state) => ({

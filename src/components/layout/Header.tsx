@@ -6,8 +6,6 @@ import {
   Pencil,
   Check,
   RotateCcw,
-  Sparkles,
-  Loader2,
   Brain,
   NotebookPen,
 } from 'lucide-react';
@@ -109,16 +107,6 @@ interface HeaderProps {
   setIsSaving: (value: boolean) => void;
 
   /**
-   * AI 피드백 생성 핸들러
-   */
-  handleGenerateAiFeedback: () => void;
-
-  /**
-   * AI 피드백 생성 중 상태
-   */
-  isGeneratingAiFeedback: boolean;
-
-  /**
    * AI 패널 확장 상태
    */
   isAiPanelExpanded: boolean;
@@ -190,8 +178,6 @@ export function Header({
   loadMarkdown,
   isSaving: _isSaving,
   setIsSaving,
-  handleGenerateAiFeedback,
-  isGeneratingAiFeedback,
   isAiPanelExpanded,
   setIsAiPanelExpanded,
   isRetrospectPanelExpanded,
@@ -319,25 +305,6 @@ export function Header({
           <Pencil className="h-3.5 w-3.5" />
         </button>
       )}
-      <button
-        type="button"
-        onClick={handleGenerateAiFeedback}
-        onMouseDown={(e) => e.stopPropagation()}
-        disabled={isGeneratingAiFeedback}
-        className={`flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition ${
-          isDarkMode
-            ? 'border-white/10 text-slate-300 hover:bg-white/5 hover:text-white disabled:opacity-60'
-            : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-60'
-        }`}
-        title="AI 피드백 생성"
-      >
-        {isGeneratingAiFeedback ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Sparkles className="h-4 w-4" />
-        )}
-        <span>{isGeneratingAiFeedback ? '생성 중...' : 'AI 피드백'}</span>
-      </button>
       <button
         type="button"
         onClick={() => setIsAiPanelExpanded((prev) => !prev)}

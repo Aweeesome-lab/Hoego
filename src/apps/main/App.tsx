@@ -5,7 +5,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Header, Footer } from '@/components/layout';
 import { useMarkdownComponents } from '@/components/markdown';
 import { DumpPanel } from '@/components/panels';
-import { useTheme, useMarkdown, useAiSummaries, useRetrospect } from '@/hooks';
+import { useTheme, useMarkdown, useRetrospect } from '@/hooks';
+import { useAiPipeline } from '@/hooks/useAiPipeline';
 import {
   hideOverlayWindow,
   appendHistoryEntry,
@@ -83,15 +84,14 @@ export default function App() {
   const {
     aiSummaries,
     selectedSummaryIndex,
-    setSelectedSummaryIndex,
     summariesError,
-    isGeneratingAiFeedback,
+    isPipelineRunning,
+    pipelineStage,
     streamingAiText,
     streamingCleanupRef,
     loadAiSummaries,
-    handleGenerateAiFeedback,
-    getSummaryLabel,
-  } = useAiSummaries();
+    handleRunPipeline,
+  } = useAiPipeline();
 
   const {
     retrospectContent,
@@ -120,12 +120,6 @@ export default function App() {
     () => aiSummaries[selectedSummaryIndex] ?? null,
     [aiSummaries, selectedSummaryIndex]
   );
-
-  const aiSelectValue = React.useMemo(() => {
-    if (!aiSummaries.length) return undefined;
-    const boundedIndex = Math.min(selectedSummaryIndex, aiSummaries.length - 1);
-    return String(boundedIndex);
-  }, [aiSummaries.length, selectedSummaryIndex]);
 
   const activeRetrospectViewOption = React.useMemo(
     () =>
@@ -408,6 +402,29 @@ export default function App() {
     }
   }, [isSyncing, loadMarkdown, loadAiSummaries]);
 
+  const handlePipelineExecution = React.useCallback(async () => {
+    const contentToUse = isEditing ? editingContent : markdownContent;
+
+    // Handler to update content after categorization
+    const onContentUpdate = async (categorizedContent: string) => {
+      try {
+        setIsSaving(true);
+        await saveTodayMarkdown(categorizedContent);
+        lastSavedRef.current = categorizedContent;
+        setMarkdownContent(categorizedContent);
+        if (isEditing) {
+          setEditingContent(categorizedContent);
+        }
+        await loadMarkdown();
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    // Run the pipeline
+    await handleRunPipeline(contentToUse, onContentUpdate);
+  }, [isEditing, editingContent, markdownContent, handleRunPipeline, saveTodayMarkdown, lastSavedRef, setMarkdownContent, setEditingContent, loadMarkdown, setIsSaving]);
+
   return (
     <div
       className={`relative flex h-full w-full flex-col overflow-hidden ${
@@ -432,8 +449,6 @@ export default function App() {
         loadMarkdown={loadMarkdown}
         isSaving={isSaving}
         setIsSaving={setIsSaving}
-        handleGenerateAiFeedback={handleGenerateAiFeedback}
-        isGeneratingAiFeedback={isGeneratingAiFeedback}
         isAiPanelExpanded={isAiPanelExpanded}
         setIsAiPanelExpanded={setIsAiPanelExpanded}
         isRetrospectPanelExpanded={isRetrospectPanelExpanded}
@@ -476,15 +491,14 @@ export default function App() {
           <AiPanel
             isDarkMode={isDarkMode}
             isAiPanelExpanded={isAiPanelExpanded}
-            isGeneratingAiFeedback={isGeneratingAiFeedback}
+            isPipelineRunning={isPipelineRunning}
+            pipelineStage={pipelineStage}
             streamingAiText={streamingAiText}
             summariesError={summariesError}
             aiSummaries={aiSummaries}
-            aiSelectValue={aiSelectValue}
-            setSelectedSummaryIndex={setSelectedSummaryIndex}
             selectedSummary={selectedSummary}
-            getSummaryLabel={getSummaryLabel}
             markdownComponents={markdownComponents}
+            handleRunPipeline={handlePipelineExecution}
           />
         </React.Suspense>
 
