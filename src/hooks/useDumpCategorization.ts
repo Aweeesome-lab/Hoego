@@ -101,30 +101,138 @@ export function useDumpCategorization() {
 }
 
 /**
- * AI 카테고리화 프롬프트 생성 (Few-shot learning)
+ * 타임스탬프가 있는 항목 파싱
+ */
+interface ParsedEntry {
+  time: string;
+  timeInMinutes: number;
+  content: string;
+  durationMinutes?: number;
+  durationText?: string;
+}
+
+/**
+ * 타임스탬프 파싱
+ */
+function parseTimestamps(content: string): ParsedEntry[] {
+  const lines = content.split('\n');
+  const entries: ParsedEntry[] = [];
+
+  for (const line of lines) {
+    // (HH:MM:SS) 패턴 찾기
+    const match = line.match(/\((\d{2}):(\d{2}):(\d{2})\)/);
+    if (match && match[1] && match[2] && match[3]) {
+      const hh = match[1];
+      const mm = match[2];
+      const ss = match[3];
+      const timeInMinutes = parseInt(hh, 10) * 60 + parseInt(mm, 10);
+      const cleanContent = line
+        .replace(/\s*\(\d{2}:\d{2}:\d{2}\)\s*$/, '')
+        .replace(/^\s*[\*\-]\s*/, '')
+        .trim();
+
+      entries.push({
+        time: `${hh}:${mm}:${ss}`,
+        timeInMinutes,
+        content: cleanContent,
+      });
+    }
+  }
+
+  return entries;
+}
+
+/**
+ * 시간 간격 계산
+ */
+function calculateDurations(entries: ParsedEntry[]): ParsedEntry[] {
+  const result: ParsedEntry[] = [];
+
+  for (let i = 0; i < entries.length - 1; i++) {
+    const current = entries[i];
+    const next = entries[i + 1];
+    if (current && next) {
+      const duration = next.timeInMinutes - current.timeInMinutes;
+      result.push({
+        ...current,
+        durationMinutes: duration,
+        durationText: formatDuration(duration),
+      });
+    }
+  }
+
+  // 마지막 항목 (duration 없음)
+  const lastEntry = entries[entries.length - 1];
+  if (lastEntry) {
+    result.push({
+      ...lastEntry,
+      durationMinutes: 0,
+      durationText: '-',
+    });
+  }
+
+  return result;
+}
+
+/**
+ * 시간 포맷팅 (분 → "X시간 Y분")
+ */
+function formatDuration(minutes: number): string {
+  if (minutes <= 0) return '-';
+
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours > 0 && mins > 0) {
+    return `${hours}시간 ${mins}분`;
+  } else if (hours > 0) {
+    return `${hours}시간`;
+  } else {
+    return `${mins}분`;
+  }
+}
+
+/**
+ * AI 카테고리화 프롬프트 생성 (Few-shot learning + 시간 데이터)
  * @param content 원본 마크다운 내용
  * @returns 카테고리화 프롬프트
  */
 function buildCategorizationPrompt(content: string): string {
+  // 타임스탬프 파싱 및 시간 계산
+  const parsed = parseTimestamps(content);
+  const withDurations = calculateDurations(parsed);
+
+  // 총 활동 시간 계산
+  const totalMinutes = withDurations.reduce(
+    (sum, entry) => sum + (entry.durationMinutes || 0),
+    0
+  );
+  const totalTime = formatDuration(totalMinutes);
+
+  // 시간 정보가 포함된 활동 목록 생성
+  const activitiesWithTime = withDurations
+    .map((e, i) => `${i + 1}. [${e.time}] ${e.content} (소요: ${e.durationText})`)
+    .join('\n');
+
   return `당신은 하루 dump 내용을 분석하는 전문 시간 분석가입니다. 사용자의 dump를 분석하여 카테고리별 시간 사용 현황을 정리해주세요.
 
 **분석 원칙:**
-1. 타임스탬프 (HH:MM:SS)를 활용해 각 활동의 소요 시간 계산
+1. 아래에 제공된 정확한 시간 정보를 사용하세요 (이미 계산되어 있습니다)
 2. 비슷한 활동을 카테고리로 묶어서 시간 집계
 3. 마크다운 표 형식으로 카테고리별 시간과 비율 표시
 4. 각 카테고리별 세부 활동 목록 작성
 
 ---
 
-**예시 입력:**
+**예시 - 시간이 계산된 활동 목록:**
 
-- 오전 9시 기상 (09:00:00)
-- 아침 먹고 샤워 (09:30:00)
-- 러닝 3km, 발목 통증 (10:00:00)
-- 업무 시작 - MVP 개발 (10:45:00)
-- 점심 식사 (12:30:00)
-- 업무 재개 - API 작업 (13:30:00)
-- 유튜브 시청 (16:00:00)
+1. [09:00:00] 오전 9시 기상 (소요: 30분)
+2. [09:30:00] 아침 먹고 샤워 (소요: 30분)
+3. [10:00:00] 러닝 3km, 발목 통증 (소요: 45분)
+4. [10:45:00] 업무 시작 - MVP 개발 (소요: 1시간 45분)
+5. [12:30:00] 점심 식사 (소요: 1시간)
+6. [13:30:00] 업무 재개 - API 작업 (소요: 2시간 30분)
+7. [16:00:00] 유튜브 시청 (소요: -)
 
 **예시 출력:**
 
@@ -154,9 +262,14 @@ function buildCategorizationPrompt(content: string): string {
 
 ---
 
-**이제 다음 dump를 동일한 형식으로 분석해주세요:**
+**이제 다음 활동들을 동일한 형식으로 분석해주세요:**
 
-${content}
+**총 활동 개수:** ${withDurations.length}개
+**전체 시간 범위:** ${parsed[0]?.time || '없음'} ~ ${parsed[parsed.length - 1]?.time || '없음'}
+**총 활동 시간:** ${totalTime}
+
+**시간이 계산된 활동 목록:**
+${activitiesWithTime}
 
 **분석 결과:**`;
 }
