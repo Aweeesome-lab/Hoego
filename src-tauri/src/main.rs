@@ -5,6 +5,7 @@ mod model_selection;
 mod shortcuts;
 mod tray;
 mod utils;
+mod weekly_data;
 mod window_manager;
 
 use std::sync::Arc;
@@ -17,6 +18,7 @@ use history::{
 };
 use shortcuts::register_shortcuts;
 use tray::{build_tray, handle_tray_event};
+use weekly_data::get_week_data;
 use window_manager::{
     ensure_accessibility_permission, get_window_position, hide_main_window, open_llm_settings,
     set_window_corner_radius, set_window_position, toggle_overlay_window,
@@ -266,6 +268,8 @@ fn main() {
             set_window_position,
             get_window_position,
             open_llm_settings,
+            // Weekly dashboard commands
+            get_week_data,
             // LLM commands
             llm::summarize::summarize_note,
             llm::summarize::batch_summarize,

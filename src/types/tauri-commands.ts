@@ -156,6 +156,64 @@ export interface AiSummaryInfo {
 }
 
 // ============================================================================
+// Weekly Dashboard Types (src-tauri/src/weekly_data.rs)
+// ============================================================================
+
+export interface GetWeekDataPayload {
+  startDate: string; // ISO 8601 format: YYYY-MM-DD
+  weekStartDay: 'sunday' | 'monday';
+}
+
+export interface WeekData {
+  startDate: string;
+  endDate: string;
+  dailyEntries: DailyEntry[];
+  aggregatedStats: AggregatedStats;
+}
+
+export interface DailyEntry {
+  date: string;
+  dumpContent: string;
+  aiFeedback?: string | null;
+  retrospectContent?: string | null;
+  categorizedTime: Record<string, number>; // category -> seconds
+}
+
+export interface AggregatedStats {
+  totalCategories: Record<string, number>; // category -> total seconds
+  productivityVsWaste: ProductivityStats;
+  dailyTrend: DailyTrend[];
+}
+
+export interface ProductivityStats {
+  productiveSeconds: number;
+  wasteSeconds: number;
+  productivePercentage: number;
+  wastePercentage: number;
+}
+
+export interface DailyTrend {
+  date: string;
+  categories: Record<string, number>; // category -> seconds for this day
+}
+
+export interface WeeklyActionItem {
+  id: string;
+  text: string;
+  source: 'ai' | 'user';
+  priority: 'high' | 'medium' | 'low';
+  completed: boolean;
+  userEdited: boolean;
+}
+
+export interface WeeklyActionsData {
+  weekId: string;
+  startDate: string;
+  generatedAt: string;
+  actions: WeeklyActionItem[];
+}
+
+// ============================================================================
 // Tauri Command Function Types
 // ============================================================================
 
@@ -204,4 +262,10 @@ export type TauriCommands = {
   generate_ai_feedback: (payload: AiSummaryPayload) => Promise<string>;
   generate_ai_feedback_stream: (payload: AiSummaryPayload) => Promise<void>;
   list_ai_summaries: (limit?: number) => Promise<AiSummaryInfo[]>;
+
+  // Weekly dashboard commands
+  get_week_data: (payload: GetWeekDataPayload) => Promise<WeekData>;
+  generate_weekly_summary: (weekData: WeekData) => Promise<void>;
+  save_weekly_actions: (weekId: string, actions: WeeklyActionItem[]) => Promise<void>;
+  get_weekly_actions: (weekId: string) => Promise<WeeklyActionsData | null>;
 };

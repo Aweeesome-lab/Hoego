@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { CloudLLMSettings } from './components/CloudLLMSettings';
 import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
+import { WeeklyDashboard } from './components/WeeklyDashboard';
 
 import '@/styles/index.css';
 import {
@@ -17,6 +18,7 @@ import {
   FileText,
   NotebookPen,
   Cloud,
+  BarChart3,
 } from 'lucide-react';
 
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
@@ -104,6 +106,7 @@ function LLMSettingsApp() {
   }, []);
 
   const sidebarItems = [
+    { id: 'weekly', label: '주간 회고', icon: BarChart3 },
     { id: 'models', label: '모델', icon: Brain },
     { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
     { id: 'prompts', label: '프롬프트', icon: FileText },
@@ -254,6 +257,10 @@ function LLMSettingsApp() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-6 py-4">
+            {activeTab === 'weekly' && (
+              <WeeklyDashboard isDarkMode={isDarkMode} />
+            )}
+
             {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />}
 
             {activeTab === 'cloud' && (
