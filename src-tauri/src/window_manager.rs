@@ -210,9 +210,28 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
 /// 설정 윈도우를 엽니다
 pub fn open_settings_window(app: &AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_window("settings") {
+        // 이미 존재하는 창이 있으면 표시
         window.set_always_on_top(true).map_err(|e| e.to_string())?;
         window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
+    } else {
+        // 창이 없으면 새로 생성
+        tauri::WindowBuilder::new(
+            app,
+            "settings",
+            tauri::WindowUrl::App("index.html#settings".into()),
+        )
+        .title("설정")
+        .inner_size(900.0, 700.0)
+        .resizable(true)
+        .decorations(true)
+        .center()
+        .always_on_top(true)
+        .skip_taskbar(false)
+        .visible(true)
+        .focused(true)
+        .build()
+        .map_err(|e| e.to_string())?;
     }
     Ok(())
 }
