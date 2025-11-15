@@ -188,16 +188,28 @@ pub async fn generate_ai_feedback_stream(
         let provider_lock = cloud_llm_state.current_provider.read().await;
 
         if let Some(provider) = provider_lock.as_ref() {
-            match provider.complete(request).await {
-                Ok(response) => {
-                    model_used = response.model.clone();
-                    result = Ok(response.content.clone());
+            // 스트리밍 방식으로 호출
+            match provider.stream(request).await {
+                Ok(mut rx) => {
+                    model_used = cloud_model_id.clone();
+                    let mut full_text = String::new();
+                    let emit_handle = app.clone();
 
-                    // 텍스트를 한 번에 emit (스트리밍 아님)
-                    let _ = app.emit_all(
-                        "ai_feedback_stream_delta",
-                        &serde_json::json!({ "text": &response.content }),
-                    );
+                    // 스트림에서 델타 수신하며 emit
+                    while let Some(delta) = rx.recv().await {
+                        full_text.push_str(&delta);
+
+                        // 델타를 프론트엔드로 emit
+                        if let Err(e) = emit_handle.emit_all(
+                            "ai_feedback_stream_delta",
+                            &serde_json::json!({ "text": delta }),
+                        ) {
+                            eprintln!("[Cloud LLM Stream] emit delta failed: {}", e);
+                            break;
+                        }
+                    }
+
+                    result = Ok(full_text);
                 }
                 Err(e) => {
                     model_used = "Cloud LLM (failed)".to_string();

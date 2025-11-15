@@ -1,9 +1,11 @@
 // OpenAI Provider Implementation
 
 use async_trait::async_trait;
+use futures::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tokio::sync::mpsc;
 
 use crate::llm::traits::CloudLLMProvider;
 use crate::llm::types::*;
@@ -55,6 +57,24 @@ struct OpenAIUsage {
     prompt_tokens: u32,
     completion_tokens: u32,
     total_tokens: u32,
+}
+
+// OpenAI 스트리밍 응답 구조
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamResponse {
+    choices: Vec<OpenAIStreamChoice>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIStreamChoice {
+    delta: OpenAIDelta,
+    #[allow(dead_code)]
+    finish_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIDelta {
+    content: Option<String>,
 }
 
 #[async_trait]
@@ -182,6 +202,126 @@ impl CloudLLMProvider for OpenAIProvider {
             model: openai_response.model,
             provider: self.name().to_string(),
         })
+    }
+
+    async fn stream(
+        &self,
+        request: CompletionRequest,
+    ) -> Result<mpsc::Receiver<String>, LLMError> {
+        // CompletionRequest를 OpenAI 형식으로 변환
+        let mut messages: Vec<OpenAIMessage> = request
+            .messages
+            .iter()
+            .map(|m| OpenAIMessage {
+                role: match m.role {
+                    Role::System => "system".to_string(),
+                    Role::User => "user".to_string(),
+                    Role::Assistant => "assistant".to_string(),
+                },
+                content: m.content.clone(),
+            })
+            .collect();
+
+        // 시스템 프롬프트가 있으면 맨 앞에 추가
+        if let Some(system_prompt) = request.system_prompt {
+            messages.insert(
+                0,
+                OpenAIMessage {
+                    role: "system".to_string(),
+                    content: system_prompt,
+                },
+            );
+        }
+
+        let body = json!({
+            "model": request.model,
+            "messages": messages,
+            "temperature": request.temperature.unwrap_or(1.0),
+            "max_tokens": request.max_tokens,
+            "stream": true,  // 스트리밍 활성화
+        });
+
+        let response = self
+            .client
+            .post(format!("{}/chat/completions", self.base_url))
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| LLMError::Network(e.to_string()))?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+
+            return Err(match status.as_u16() {
+                401 => LLMError::Authentication("Invalid API key".to_string()),
+                429 => LLMError::RateLimitExceeded,
+                400 => LLMError::InvalidRequest(error_text),
+                _ => LLMError::ProviderError(error_text),
+            });
+        }
+
+        // mpsc 채널 생성
+        let (tx, rx) = mpsc::channel::<String>(100);
+
+        // 스트리밍 응답 처리를 별도 태스크로 실행
+        tokio::spawn(async move {
+            let mut stream = response.bytes_stream();
+
+            let mut buffer = String::new();
+            while let Some(chunk) = stream.next().await {
+                match chunk {
+                    Ok(bytes) => {
+                        let text = String::from_utf8_lossy(&bytes);
+                        buffer.push_str(&text);
+
+                        // SSE 형식 파싱: "data: {...}\n\n"
+                        while let Some(data_start) = buffer.find("data: ") {
+                            let data_start = data_start + 6; // "data: " 길이
+                            if let Some(data_end) = buffer[data_start..].find('\n') {
+                                // 먼저 data_line을 복사
+                                let data_line = buffer[data_start..data_start + data_end].to_string();
+                                // 그 다음 buffer를 수정
+                                buffer = buffer[data_start + data_end + 1..].to_string();
+
+                                // [DONE] 확인
+                                if data_line.trim() == "[DONE]" {
+                                    break;
+                                }
+
+                                // JSON 파싱
+                                if let Ok(stream_response) =
+                                    serde_json::from_str::<OpenAIStreamResponse>(&data_line)
+                                {
+                                    if let Some(choice) = stream_response.choices.first() {
+                                        if let Some(content) = &choice.delta.content {
+                                            if tx.send(content.clone()).await.is_err() {
+                                                eprintln!("[OpenAI Stream] Receiver dropped");
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                // 완전한 줄이 아직 도착하지 않음
+                                break;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("[OpenAI Stream] Error reading chunk: {}", e);
+                        break;
+                    }
+                }
+            }
+        });
+
+        Ok(rx)
     }
 }
 
