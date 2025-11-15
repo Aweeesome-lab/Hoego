@@ -30,11 +30,26 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
     message: string;
   } | null>(null);
 
-  // Load saved state
+  // Load saved state and initialize provider
   useEffect(() => {
     const checkSavedKey = async () => {
       const hasKey = await checkApiKey(activeProvider);
       setConfigured(hasKey);
+
+      // Auto-initialize provider if API key exists
+      if (hasKey) {
+        try {
+          const { CloudLLMClient } = await import('@/lib/cloud-llm');
+          await CloudLLMClient.initializeProvider(activeProvider);
+          if (import.meta.env.DEV) {
+            console.log(`[Cloud LLM] Auto-initialized ${activeProvider} provider`);
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error(`[Cloud LLM] Failed to initialize ${activeProvider}:`, error);
+          }
+        }
+      }
     };
     checkSavedKey();
   }, [activeProvider, checkApiKey]);

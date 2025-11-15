@@ -174,6 +174,30 @@ export default function App() {
     void loadAiSummaries();
   }, [loadAiSummaries]);
 
+  // Initialize Cloud LLM provider on mount
+  React.useEffect(() => {
+    const initCloudProvider = async () => {
+      try {
+        const { CloudLLMClient } = await import('@/lib/cloud-llm');
+
+        // Try to initialize OpenAI provider if key exists
+        const hasOpenAIKey = await CloudLLMClient.hasApiKey('openai');
+        if (hasOpenAIKey) {
+          await CloudLLMClient.initializeProvider('openai');
+          if (import.meta.env.DEV) {
+            console.log('[Cloud LLM] Auto-initialized OpenAI provider on app start');
+          }
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[Cloud LLM] Failed to auto-initialize provider:', error);
+        }
+      }
+    };
+
+    void initCloudProvider();
+  }, []);
+
   // History update listener
   React.useEffect(() => {
     let unsubscribe: (() => void) | null = null;
