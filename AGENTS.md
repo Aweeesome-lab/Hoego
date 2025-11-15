@@ -1,22 +1,44 @@
-# Repository Guidelines
+# Hoego - LLM Agent Guidelines
 
-## Project Structure & Module Organization
-OTRA splits the web overlay under `src/` and the Rust host under `src-tauri/`. A single HTML entry (`index.html`) loads `src/entry.ts`, which dynamically boots either the overlay (`src/main.tsx`) or the history view (`src/history.ts`). Paired styles live in `src/styles/`. Rust commands and tray setup sit in `src-tauri/src/main.rs`; packaging assets live beside `tauri.conf.json` and `icons/`. History markdown lands in `~/Documents/OTRA/history` for local inspection.
+> This file is for LLM agents (Claude, GPT, Codex CLI, etc.)
 
-## Build, Test & Development Commands
-- `npm run dev`: Launches the Tauri dev server with hot reload for both the web overlay and Rust side.
-- `npm run build`: Produces a distributable desktop bundle via `tauri build`, outputting artifacts under `src-tauri/target/release/`.
-- `cargo test --manifest-path src-tauri/Cargo.toml`: Runs backend unit tests; add scenarios here when expanding command logic.
-- `cargo fmt --manifest-path src-tauri/Cargo.toml`: Formats Rust sources before review; ensure no diff appears afterward.
+## 📋 Primary Instructions
 
-## Coding Style & Naming Conventions
-Frontend modules use ES modules, two-space indentation, camelCase helpers, and kebab-case DOM ids to match existing markup. Rust relies on `rustfmt` defaults: snake_case functions, UpperCamelCase types, `?` for error flow, and concise log prefixes such as `[otra]`.
+**All coding guidelines and rules are defined in:**
 
-## Testing Guidelines
-Automated frontend tests are not yet in place; favor targeted Rust unit tests and integration checks around new commands. Name tests after the behavior (`history_merge_handles_duplicates`) and document manual UI smoke steps or recordings in the pull request when changing overlay behavior.
+👉 **[.claude/CLAUDE.md](./.claude/CLAUDE.md)**
 
-## Commit & Pull Request Guidelines
-Write commit subjects in the imperative mood with an optional scope, e.g., `overlay: trim empty entries`. Squash incidental fixups locally so each commit remains reviewable and reversible. Pull requests should summarize user-facing impact, link issues, provide macOS notes for shortcut or permission changes, and attach screenshots or GIFs for UI adjustments.
+Please read and follow the instructions in that file.
 
-## Platform & Configuration Tips
-macOS builds request Accessibility permission for global shortcuts; if prompts fail, grant access via System Settings → Privacy & Security → Accessibility. When adjusting persistence, update both the JavaScript `STORAGE_KEYS` map and the Rust `history_directory_path()` helper to keep storage paths aligned.
+## 📚 Quick Links
+
+- **[.claude/CLAUDE.md](./.claude/CLAUDE.md)** - Main coding rules and guidelines
+- **[docs/README.md](./docs/README.md)** - Documentation index
+- **[docs/guides/development.md](./docs/guides/development.md)** - Development workflow
+
+## 🔄 Refactoring in Progress
+
+Check these files before starting work:
+
+- **[.claude/docs/refactoring-progress.md](./.claude/docs/refactoring-progress.md)** - Current progress (⭐ CHECK FIRST)
+- **[.claude/docs/refactoring-plan.md](./.claude/docs/refactoring-plan.md)** - Overall plan
+
+## 🎯 Project Overview
+
+**Hoego** is an AI-powered retrospective and reflection tool built with:
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS
+- **Backend**: Rust + Tauri
+- **LLM**: Local (llama.cpp) + Cloud (OpenAI/Claude/Gemini)
+
+## ⚡ Quick Commands
+
+```bash
+npm run dev          # Start development server
+npm test             # Run tests
+npm run check        # Run all checks (type, lint, format)
+npm run validate     # Full validation (checks + tests)
+```
+
+---
+
+**For detailed instructions, see [.claude/CLAUDE.md](./.claude/CLAUDE.md)**

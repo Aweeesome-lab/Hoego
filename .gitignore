@@ -28,5 +28,3 @@ src-tauri/binaries/llama-server-*
  
 # Local development assets (not for commit)
 image/
-# Ignore AGENTS.md edits locally; tracked file may need assume-unchanged
-AGENTS.md
