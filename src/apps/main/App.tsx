@@ -63,6 +63,7 @@ export default function App() {
   const {
     markdownRef,
     markdownContent,
+    setMarkdownContent,
     lastMinute,
     setLastMinute,
     isEditing,
@@ -458,6 +459,17 @@ export default function App() {
           appendTimestampToLine={appendTimestampToLine}
           markdownContent={markdownContent}
           markdownComponents={markdownComponents}
+          onSaveMarkdown={async (content: string) => {
+            setIsSaving(true);
+            try {
+              await saveTodayMarkdown(content);
+              lastSavedRef.current = content;
+              setMarkdownContent(content);
+              await loadMarkdown();
+            } finally {
+              setIsSaving(false);
+            }
+          }}
         />
 
         <React.Suspense fallback={<div className="flex flex-1" />}>
