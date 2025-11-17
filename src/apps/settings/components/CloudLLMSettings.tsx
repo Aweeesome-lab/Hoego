@@ -168,8 +168,9 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
         >
           Provider 선택
         </h4>
-        <div className="grid grid-cols-3 gap-3">
-          {(['openai', 'claude', 'gemini'] as CloudProvider[]).map(
+        {/* MVP Phase 0: OpenAI만 표시 */}
+        <div className="grid grid-cols-1 gap-3">
+          {(['openai'] as CloudProvider[]).map(
             (provider) => (
               <button
                 key={provider}

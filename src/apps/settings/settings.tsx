@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { CloudLLMSettings } from './components/CloudLLMSettings';
 import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
-import { WeeklyDashboard } from './components/WeeklyDashboard';
+// import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
 
 import '@/styles/index.css';
 import {
@@ -47,7 +47,7 @@ function LLMSettingsApp() {
     );
   });
 
-  const [activeTab, setActiveTab] = React.useState('models');
+  const [activeTab, setActiveTab] = React.useState('prompts'); // MVP Phase 0: 기본 탭을 프롬프트로 변경
 
   // Apply theme to document
   React.useEffect(() => {
@@ -106,13 +106,13 @@ function LLMSettingsApp() {
   }, []);
 
   const sidebarItems = [
-    { id: 'weekly', label: '주간 회고', icon: BarChart3 },
-    { id: 'models', label: '모델', icon: Brain },
-    { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
+    // { id: 'weekly', label: '주간 회고', icon: BarChart3 }, // MVP Phase 0: 숨김
+    // { id: 'models', label: '모델', icon: Brain }, // MVP Phase 0: 로컬 LLM 지원 제거
+    // { id: 'cloud', label: '클라우드 LLM', icon: Cloud }, // MVP Phase 0: API 키 설정 제거 (내장)
     { id: 'prompts', label: '프롬프트', icon: FileText },
     { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
-    { id: 'downloads', label: '다운로드', icon: Download },
-    { id: 'settings', label: '일반 설정', icon: Settings },
+    // { id: 'downloads', label: '다운로드', icon: Download }, // MVP Phase 0: 사용하지 않는 메뉴 제거
+    // { id: 'settings', label: '일반 설정', icon: Settings }, // MVP Phase 0: 로컬 모델 설정 불필요
     { id: 'about', label: '정보', icon: Info },
   ];
 
@@ -257,21 +257,25 @@ function LLMSettingsApp() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-6 py-4">
-            {activeTab === 'weekly' && (
+            {/* MVP Phase 0: Weekly Dashboard 숨김 */}
+            {/* {activeTab === 'weekly' && (
               <WeeklyDashboard isDarkMode={isDarkMode} />
-            )}
+            )} */}
 
-            {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />}
+            {/* MVP Phase 0: 로컬 LLM 지원 제거 */}
+            {/* {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />} */}
 
-            {activeTab === 'cloud' && (
+            {/* MVP Phase 0: 클라우드 LLM 설정 제거 (내장) */}
+            {/* {activeTab === 'cloud' && (
               <CloudLLMSettings isDarkMode={isDarkMode} />
-            )}
+            )} */}
 
             {activeTab === 'prompts' && (
               <PromptSettings isDarkMode={isDarkMode} />
             )}
 
-            {activeTab === 'downloads' && (
+            {/* MVP Phase 0: 다운로드 메뉴 제거 */}
+            {/* {activeTab === 'downloads' && (
               <div
                 className={`rounded-xl border p-8 text-center ${
                   isDarkMode
@@ -292,99 +296,14 @@ function LLMSettingsApp() {
                   다운로드 기록이 없습니다
                 </p>
               </div>
-            )}
+            )} */}
 
-            {activeTab === 'settings' && (
+            {/* MVP Phase 0: 일반 설정 제거 (로컬 모델 설정 불필요) */}
+            {/* {activeTab === 'settings' && (
               <div className="space-y-6">
-                {/* Model Path Setting */}
-                <div>
-                  <h3
-                    className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-                      isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                    }`}
-                  >
-                    모델 저장 경로
-                  </h3>
-                  <div
-                    className={`rounded-xl border p-4 ${
-                      isDarkMode
-                        ? 'bg-white/5 border-white/10'
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div
-                      className={`font-mono text-[12px] mb-3 ${
-                        isDarkMode ? 'text-slate-300' : 'text-slate-700'
-                      }`}
-                    >
-                      ~/Library/Application Support/hoego/models/
-                    </div>
-                    <button
-                      className={`text-[12px] px-3 py-1.5 rounded-md transition ${
-                        isDarkMode
-                          ? 'bg-white/10 text-slate-300 hover:bg-white/15'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      폴더 열기
-                    </button>
-                  </div>
-                </div>
-
-                {/* Performance Settings */}
-                <div>
-                  <h3
-                    className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-                      isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                    }`}
-                  >
-                    성능 설정
-                  </h3>
-                  <div
-                    className={`rounded-xl border p-4 space-y-3 ${
-                      isDarkMode
-                        ? 'bg-white/5 border-white/10'
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <label className="flex items-center justify-between">
-                      <span
-                        className={`text-[13px] ${
-                          isDarkMode ? 'text-slate-300' : 'text-slate-700'
-                        }`}
-                      >
-                        GPU 가속 사용
-                      </span>
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="rounded"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between">
-                      <span
-                        className={`text-[13px] ${
-                          isDarkMode ? 'text-slate-300' : 'text-slate-700'
-                        }`}
-                      >
-                        최대 스레드 수
-                      </span>
-                      <input
-                        type="number"
-                        defaultValue="4"
-                        min="1"
-                        max="16"
-                        className={`w-16 px-2 py-1 text-[12px] rounded-md border ${
-                          isDarkMode
-                            ? 'bg-white/5 border-white/10 text-slate-200'
-                            : 'bg-white border-slate-200 text-slate-700'
-                        }`}
-                      />
-                    </label>
-                  </div>
-                </div>
+                (로컬 모델 경로, GPU 설정 등 제거)
               </div>
-            )}
+            )} */}
 
             {activeTab === 'retros' && (
               <RetrospectiveTemplateSettings isDarkMode={isDarkMode} />

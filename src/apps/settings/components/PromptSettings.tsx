@@ -21,6 +21,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
   const [editingPrompt, setEditingPrompt] = useState('');
   const [promptName, setPromptName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false); // MVP Phase 0: 기본 숨김
 
   // System prompt is fixed
   const systemPrompt =
@@ -262,14 +263,26 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
       {/* Version History */}
       {prompts.length > 0 && (
         <div>
-          <h3
-            className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}
-          >
-            저장된 프롬프트 버전
-          </h3>
-          <div className="space-y-2">
+          <div className="flex items-center justify-between mb-3">
+            <h3
+              className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}
+            >
+              저장된 프롬프트 버전
+            </h3>
+            <button
+              onClick={() => setShowVersionHistory(!showVersionHistory)}
+              className={`text-[11px] px-2.5 py-1 rounded-md transition ${
+                isDarkMode
+                  ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+              }`}
+            >
+              {showVersionHistory ? '숨기기' : '보기'}
+            </button>
+          </div>
+          {showVersionHistory && <div className="space-y-2">
             {prompts.map((prompt) => (
               <div
                 key={prompt.id}
@@ -344,7 +357,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
       )}
     </div>
