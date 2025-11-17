@@ -129,14 +129,6 @@ export default function App() {
     [retrospectViewMode]
   );
 
-  // Cleanup streaming on unmount
-  React.useEffect(() => {
-    return () => {
-      if (streamingCleanupRef.current) {
-        streamingCleanupRef.current();
-      }
-    };
-  }, [streamingCleanupRef]);
 
   // Close template picker when retrospect panel collapses
   React.useEffect(() => {
@@ -403,27 +395,18 @@ export default function App() {
   }, [isSyncing, loadMarkdown, loadAiSummaries]);
 
   const handlePipelineExecution = React.useCallback(async () => {
-    const contentToUse = isEditing ? editingContent : markdownContent;
+    // Run the pipeline (streaming feedback)
+    await handleRunPipeline();
+  }, [handleRunPipeline]);
 
-    // Handler to update content after categorization
-    const onContentUpdate = async (categorizedContent: string) => {
-      try {
-        setIsSaving(true);
-        await saveTodayMarkdown(categorizedContent);
-        lastSavedRef.current = categorizedContent;
-        setMarkdownContent(categorizedContent);
-        if (isEditing) {
-          setEditingContent(categorizedContent);
-        }
-        await loadMarkdown();
-      } finally {
-        setIsSaving(false);
+  // Cleanup streaming on unmount
+  React.useEffect(() => {
+    return () => {
+      if (streamingCleanupRef.current) {
+        streamingCleanupRef.current();
       }
     };
-
-    // Run the pipeline
-    await handleRunPipeline(contentToUse, onContentUpdate);
-  }, [isEditing, editingContent, markdownContent, handleRunPipeline, saveTodayMarkdown, lastSavedRef, setMarkdownContent, setEditingContent, loadMarkdown, setIsSaving]);
+  }, [streamingCleanupRef]);
 
   return (
     <div

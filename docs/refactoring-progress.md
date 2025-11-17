@@ -9,10 +9,10 @@
 ## 📊 전체 진행 상황
 
 ### Phase 0: MVP 핵심 검증 준비 (3일)
-- **전체 진행률**: 33% (Day 1 완료)
-- **현재 작업**: Day 1 완료
-- **예상 소요 시간**: 2.5시간
-- **실제 소요 시간**: ~2시간 (효율성: 125%)
+- **전체 진행률**: 67% (Day 1, 2 완료 + Day 2 Fix 완료)
+- **현재 작업**: Day 2 Fix 완료
+- **예상 소요 시간**: 7시간 (Day 1: 2.5h + Day 2: 4h + Day 2 Fix: 0.5h)
+- **실제 소요 시간**: ~5.5시간 (효율성: 127%)
 
 ---
 
@@ -116,11 +116,58 @@
 
 ---
 
-## 📋 대기 중인 작업
+### Phase 0 - Day 2: AI 피드백 구조 재설계 ✅
 
-### Phase 0 - Day 2: AI 피드백 구조 재설계 (4시간)
-- [ ] AI 프롬프트 재설계 (3시간)
-- [ ] AiPanel UI 단순화 (1시간)
+#### 작업 1: AI 프롬프트 재설계 ✅
+- [x] aiPrompts.ts 신규 파일 생성 (STRUCTURED_FEEDBACK_PROMPT)
+- [x] StructuredFeedback 타입 정의 추가 (src/types/ai.ts)
+- [x] aiService.ts 수정 (generateStructuredFeedback 구현)
+- [x] 2단계 파이프라인 → 단일 단계로 변경 (categorizing → generating_feedback → analyzing → done)
+- [x] 검증: 빌드 성공
+- [x] 검증: 타입 체크 통과 (AI 관련 오류 없음)
+
+**파일**:
+- `src/constants/aiPrompts.ts` (신규)
+- `src/types/ai.ts` (신규)
+- `src/services/aiService.ts` (generateStructuredFeedback 함수 추가)
+- `src/store/appStore.ts` (PipelineStage 타입 변경)
+
+**변경사항**:
+- 기존: Categorizing Stage → Feedback Generation Stage (2단계)
+- 변경: Single Structured Feedback Generation (단일 단계)
+- 프롬프트: 5가지 섹션 구조 (To-do, 인사이트, 반복 패턴, 개선 방향, 제안)
+
+---
+
+#### 작업 2: useAiPipeline.ts 재구조화 ✅
+- [x] categorizeDump 함수 제거
+- [x] generateFeedback 함수 재작성 (단일 structured feedback 호출)
+- [x] handleRunPipeline 함수 단순화
+- [x] 헬퍼 함수 제거 (buildCategorizationPrompt 등)
+- [x] streamingBufferRef, streamingTimerRef, streamingCleanupRef 제거
+- [x] 검증: useAiPipeline hook 정상 동작
+
+**파일**: `src/hooks/useAiPipeline.ts`
+**변경사항**: 2단계 파이프라인 → 단일 단계로 단순화, 스트리밍 관련 refs 제거
+
+---
+
+#### 작업 3: AiPanel.tsx & App.tsx 업데이트 ✅
+- [x] AiPanel button label 로직 수정 (새로운 PipelineStage 반영)
+- [x] App.tsx handlePipelineExecution 수정
+- [x] onContentUpdate callback 제거 (더 이상 파일 수정 없음)
+- [x] streamingCleanupRef 사용 제거
+- [x] 검증: UI 정상 동작
+
+**파일**:
+- `src/components/panels/AiPanel.tsx` (button label 수정)
+- `src/apps/main/App.tsx` (handleRunPipeline 호출 단순화)
+
+**변경사항**: categorization 결과를 파일에 저장하지 않음, 피드백만 UI에 표시
+
+---
+
+## 📋 대기 중인 작업
 
 ### Phase 0 - Day 3: Quick Dump 모드 + 온보딩 (4시간)
 - [ ] Quick Dump 모드 구현 (2시간)
@@ -173,6 +220,145 @@ _현재 없음_
 
 ---
 
+### Session 2 (2025-11-17) - Phase 0 Day 2 완료 ✅
+- **작업 시작**: Phase 0 Day 2
+- **작업 내용**:
+  - AI 프롬프트 재설계 (5가지 섹션 구조)
+  - aiPrompts.ts 신규 파일 생성 (STRUCTURED_FEEDBACK_PROMPT)
+  - StructuredFeedback 타입 정의 추가 (src/types/ai.ts)
+  - aiService.ts 수정 (generateStructuredFeedback 구현)
+  - useAiPipeline.ts 재구조화 (2단계 → 단일 단계)
+  - AiPanel.tsx & App.tsx 업데이트
+  - 빌드 및 타입 체크 성공
+
+- **발견 사항**:
+  - 기존 2단계 파이프라인(categorizing → generating_feedback)을 단일 단계(analyzing → done)로 단순화
+  - categorization 결과를 파일에 저장하지 않음, 피드백만 UI에 표시
+  - 스트리밍 관련 refs 제거 (streamingBufferRef, streamingTimerRef, streamingCleanupRef)
+  - PipelineStage 타입 변경: 'idle' | 'categorizing' | 'generating_feedback' | 'complete' → 'idle' | 'analyzing' | 'done' | 'error'
+
+- **변경 파일**:
+  1. `src/constants/aiPrompts.ts` (신규 파일)
+  2. `src/types/ai.ts` (신규 파일)
+  3. `src/services/aiService.ts` (generateStructuredFeedback 함수 추가)
+  4. `src/store/appStore.ts` (PipelineStage 타입 변경)
+  5. `src/hooks/useAiPipeline.ts` (2단계 → 단일 단계로 재구조화)
+  6. `src/components/panels/AiPanel.tsx` (button label 수정)
+  7. `src/apps/main/App.tsx` (handleRunPipeline 호출 단순화)
+
+- **Commit**:
+  - ✅ [3c9ad59] refactor: phase-0-day-2 - AI 피드백 구조 재설계 완료
+
+---
+
+### Phase 0 - Day 2 Fix: AI 피드백 퀄리티 개선 ✅
+
+#### 작업 1: 본질적 분석 프롬프트 재설계 ✅
+- [x] aiPrompts.ts 프롬프트를 본질적 분석 중심으로 완전 재작성
+- [x] 감정 분석 프레임워크 추가 (표면 감정 → 근본 감정 → 트리거)
+- [x] 행동 패턴 분석 프레임워크 추가 (상황 → 반응 → 결과)
+- [x] 맥락 분석 프레임워크 추가 (시간/관계/환경)
+- [x] 구체적 금지 사항 명시 (일반적 조언, 추측, 피상적 격려 금지)
+- [x] 필수 사항 명시 (데이터 기반, 근본 원인 식별, 실행 가능한 제안)
+
+**파일**: `src/constants/aiPrompts.ts`
+**변경사항**:
+- STRUCTURED_FEEDBACK_PROMPT: 본질적 분석 프레임워크 추가
+- STRUCTURED_FEEDBACK_SYSTEM_PROMPT: 전문 분석가 역할 정의
+
+**개선 사항**:
+- ❌ 이전: "친구처럼 편안하게", "간결하고 명확하게" (애매한 지시)
+- ✅ 개선: 감정/행동/맥락 분석 프레임워크, 구체적 금지/필수 사항
+
+---
+
+#### 작업 2: aiService.ts 프롬프트 구조 개선 ✅
+- [x] generateStructuredFeedback 함수 프롬프트 구조 재설계
+- [x] 최근 히스토리 활용 지침 추가 (패턴 분석, 빈도 파악, 트리거 발견)
+- [x] 출력 요구사항 명확화 (5가지 섹션 + 톤)
+- [x] 모델 업그레이드 (gpt-4o-mini → gpt-4o, 더 깊이 있는 분석)
+- [x] Temperature 조정 (0.7 → 0.6, 더 집중된 분석)
+- [x] Max tokens 증가 (2000 → 2500, 더 상세한 분석)
+
+**파일**: `src/services/aiService.ts`
+**변경사항**: Line 187-229 프롬프트 구조 재설계
+
+**개선 사항**:
+- ❌ 이전: 단순히 최근 히스토리 붙여넣기
+- ✅ 개선: 분석 지침 포함, 구체적 패턴 발견 방법 제시
+
+---
+
+#### 작업 3: Rust prompts.rs 업데이트 ✅
+- [x] for_business_journal_coach 함수 완전 재작성
+- [x] System prompt: 전문 분석가 역할 정의 (심리학/행동 과학 기반)
+- [x] User prompt: 본질적 분석 프레임워크 전체 포함
+- [x] 감정/행동/맥락 분석 원칙 추가
+- [x] 5가지 섹션별 상세 지침 추가
+- [x] 금지 사항 및 필수 사항 명확화
+
+**파일**: `src-tauri/src/llm/prompts.rs`
+**변경사항**: Line 63-165 for_business_journal_coach 함수 완전 재작성
+
+**개선 사항**:
+- ❌ 이전: 표면적 조언 중심 (피상적 피드백)
+- ✅ 개선: 근본 원인 분석, 데이터 기반 통찰, 실질적 제안
+
+---
+
+#### 작업 4: 빌드 및 검증 ✅
+- [x] 빌드 성공 (npm run build)
+- [x] TypeScript 컴파일 성공
+- [x] Rust 컴파일 성공
+- [x] 번들 생성 성공
+
+**검증 결과**:
+- ✅ Frontend 빌드: 성공 (1.41s)
+- ✅ Backend 빌드: 성공 (11.15s)
+- ✅ macOS 앱 번들: 성공
+- ✅ DMG 생성: 성공
+
+---
+
+### Session 3 (2025-11-17) - Phase 0 Day 2 Fix 완료 ✅
+- **작업 시작**: Phase 0 Day 2 Fix (AI 피드백 퀄리티 개선)
+- **작업 내용**:
+  - **문제 인식**: AI 피드백 퀄리티가 너무 낮음 (피상적 조언, 일반적 제안)
+  - 본질적 분석 프롬프트 재설계 (aiPrompts.ts)
+  - 감정/행동/맥락 분석 프레임워크 추가
+  - aiService.ts 프롬프트 구조 개선 + 모델 업그레이드 (gpt-4o)
+  - Rust prompts.rs 완전 재작성
+  - 빌드 및 검증 성공
+
+- **발견 사항**:
+  - **기존 문제점**:
+    1. 표면적 분석: "구체적인 질문을 준비하세요" 같은 일반적 조언
+    2. 데이터 활용 부족: recent history를 받지만 실제 패턴 분석 없음
+    3. 깊이 없는 인사이트: 감정의 근본 원인이나 행동 트리거 분석 부재
+    4. 실질적 제안 부족: "가벼운 운동을 해보세요" 같은 피상적 제안
+
+  - **개선 방향**:
+    1. **본질적 분석 프레임워크**: 표면 감정 → 근본 감정 → 트리거 식별
+    2. **행동 패턴 분석**: 상황 → 반응 → 결과 → 패턴 인식
+    3. **구체적 데이터 기반 통찰**: 최근 히스토리와 비교하여 실제 변화 추적
+    4. **실질적 제안**: "왜"와 "어떻게"를 함께 제시
+
+- **변경 파일**:
+  1. `src/constants/aiPrompts.ts` (본질적 분석 프롬프트 완전 재작성)
+  2. `src/services/aiService.ts` (프롬프트 구조 개선, 모델 업그레이드)
+  3. `src-tauri/src/llm/prompts.rs` (Rust 프롬프트 완전 재작성)
+
+- **주요 개선 사항**:
+  - **프롬프트 퀄리티**: 피상적 → 본질적 (감정/행동/맥락 분석 프레임워크)
+  - **모델 성능**: gpt-4o-mini → gpt-4o (더 깊이 있는 분석)
+  - **분석 깊이**: 표면적 조언 → 근본 원인 분석 + 데이터 기반 통찰
+  - **제안 실용성**: 일반적 조언 → 구체적 "왜 + 무엇을 + 어떻게 + 측정"
+
+- **Commit**:
+  - ✅ [e0e21a1] refactor: phase-0-day-2-fix - AI 피드백 퀄리티 본질 개선
+
+---
+
 ## 🔗 관련 문서
 
 - [MVP Roadmap](./mvp-roadmap.md) - 전체 로드맵
@@ -208,5 +394,5 @@ _현재 없음_
 
 ---
 
-**마지막 업데이트**: 2025-11-17
-**다음 업데이트 예정**: Phase 0 Day 1 완료 시
+**마지막 업데이트**: 2025-11-17 (Session 3 - AI 피드백 퀄리티 본질 개선)
+**다음 업데이트 예정**: Phase 0 Day 3 작업 시

@@ -41,12 +41,14 @@ export const AiPanel = React.memo(function AiPanel({
   // Get button label based on pipeline stage
   const getButtonLabel = () => {
     switch (pipelineStage) {
-      case 'categorizing':
-        return '카테고리화 중...';
-      case 'generating_feedback':
-        return '피드백 생성 중...';
+      case 'analyzing':
+        return '분석 중...';
+      case 'done':
+        return 'AI 피드백';
+      case 'error':
+        return 'AI 피드백 (재시도)';
       default:
-        return 'AI 분석 및 피드백';
+        return 'AI 피드백';
     }
   };
 

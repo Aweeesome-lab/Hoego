@@ -104,7 +104,7 @@ interface MarkdownSlice {
   setIsSyncing: (isSyncing: boolean) => void;
 }
 
-export type PipelineStage = 'idle' | 'categorizing' | 'generating_feedback' | 'complete';
+export type PipelineStage = 'idle' | 'analyzing' | 'done' | 'error';
 
 /**
  * AI 요약 관련 상태 슬라이스
