@@ -40,6 +40,12 @@ struct ActiveDownload {
     progress: Arc<Mutex<DownloadProgress>>,
 }
 
+impl Default for ModelDownloader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModelDownloader {
     pub fn new() -> Self {
         Self {

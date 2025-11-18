@@ -170,52 +170,50 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
         </h4>
         {/* MVP Phase 0: OpenAI만 표시 */}
         <div className="grid grid-cols-1 gap-3">
-          {(['openai'] as CloudProvider[]).map(
-            (provider) => (
-              <button
-                key={provider}
-                onClick={() => {
-                  setActiveProvider(provider);
-                  setApiKey('');
-                  setTestResult(null);
-                }}
-                className={`relative p-4 rounded-xl border text-left transition ${
+          {(['openai'] as CloudProvider[]).map((provider) => (
+            <button
+              key={provider}
+              onClick={() => {
+                setActiveProvider(provider);
+                setApiKey('');
+                setTestResult(null);
+              }}
+              className={`relative p-4 rounded-xl border text-left transition ${
+                activeProvider === provider
+                  ? isDarkMode
+                    ? 'bg-blue-500/20 border-blue-500/50'
+                    : 'bg-blue-50 border-blue-200'
+                  : isDarkMode
+                    ? 'bg-white/5 border-white/10 hover:bg-white/10'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <div
+                className={`text-[13px] font-medium mb-1 ${
                   activeProvider === provider
                     ? isDarkMode
-                      ? 'bg-blue-500/20 border-blue-500/50'
-                      : 'bg-blue-50 border-blue-200'
+                      ? 'text-blue-300'
+                      : 'text-blue-700'
                     : isDarkMode
-                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'text-slate-300'
+                      : 'text-slate-700'
                 }`}
               >
-                <div
-                  className={`text-[13px] font-medium mb-1 ${
-                    activeProvider === provider
-                      ? isDarkMode
-                        ? 'text-blue-300'
-                        : 'text-blue-700'
-                      : isDarkMode
-                        ? 'text-slate-300'
-                        : 'text-slate-700'
-                  }`}
-                >
-                  {providerInfo[provider].name}
-                </div>
-                <div
-                  className={`text-[10px] ${
-                    isDarkMode ? 'text-slate-500' : 'text-slate-500'
-                  }`}
-                >
-                  {provider === 'claude' || provider === 'gemini' ? (
-                    <span className="text-orange-500">곧 출시</span>
-                  ) : (
-                    '사용 가능'
-                  )}
-                </div>
-              </button>
-            )
-          )}
+                {providerInfo[provider].name}
+              </div>
+              <div
+                className={`text-[10px] ${
+                  isDarkMode ? 'text-slate-500' : 'text-slate-500'
+                }`}
+              >
+                {provider === 'claude' || provider === 'gemini' ? (
+                  <span className="text-orange-500">곧 출시</span>
+                ) : (
+                  '사용 가능'
+                )}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 

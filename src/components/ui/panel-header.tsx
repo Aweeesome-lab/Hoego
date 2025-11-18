@@ -67,11 +67,7 @@ export const PanelHeader = React.forwardRef<HTMLDivElement, PanelHeaderProps>(
           border-b
           px-3.5
           ${sizeClasses[size]}
-          ${
-            isDarkMode
-              ? 'border-slate-200/20'
-              : 'border-slate-200'
-          }
+          ${isDarkMode ? 'border-slate-200/20' : 'border-slate-200'}
           ${className}
         `}
         {...props}
@@ -79,11 +75,7 @@ export const PanelHeader = React.forwardRef<HTMLDivElement, PanelHeaderProps>(
         <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
           {title}
         </span>
-        {actions && (
-          <div className="flex items-center gap-2">
-            {actions}
-          </div>
-        )}
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
     );
   }

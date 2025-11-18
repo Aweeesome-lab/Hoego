@@ -1,5 +1,11 @@
 import React from 'react';
-import { Calendar, TrendingUp, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Calendar,
+  TrendingUp,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { invoke } from '@tauri-apps/api/tauri';
 import type { GetWeekDataPayload, WeekData } from '@/types/tauri-commands';
@@ -87,7 +93,8 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
 
   // Format date range
   const getDateRange = () => {
-    if (!weekData || !weekData.startDate || !weekData.endDate) return '날짜 선택';
+    if (!weekData || !weekData.startDate || !weekData.endDate)
+      return '날짜 선택';
     return `${weekData.startDate} ~ ${weekData.endDate}`;
   };
 
@@ -302,7 +309,11 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
                     isDarkMode ? 'text-slate-200' : 'text-slate-900'
                   }`}
                 >
-                  {weekData.dailyEntries.filter((d) => d.dumpContent.trim()).length} / 7
+                  {
+                    weekData.dailyEntries.filter((d) => d.dumpContent.trim())
+                      .length
+                  }{' '}
+                  / 7
                 </div>
               </div>
 
@@ -344,7 +355,11 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
                     isDarkMode ? 'text-slate-200' : 'text-slate-900'
                   }`}
                 >
-                  {weekData.dailyEntries.filter((d) => d.retrospectContent).length}개
+                  {
+                    weekData.dailyEntries.filter((d) => d.retrospectContent)
+                      .length
+                  }
+                  개
                 </div>
               </div>
             </div>
@@ -361,9 +376,7 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
             <button
               onClick={() => setShowDebugInfo(!showDebugInfo)}
               className={`w-full flex items-center justify-between p-4 text-left ${
-                isDarkMode
-                  ? 'hover:bg-white/5'
-                  : 'hover:bg-slate-50'
+                isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'
               } rounded-xl transition`}
             >
               <span

@@ -17,16 +17,24 @@ const DEFAULT_AI_SUMMARY_LIMIT = 10;
 export function useAiPipeline() {
   // Zustand store selectors
   const aiSummaries = useAppStore((state) => state.aiSummaries);
-  const selectedSummaryIndex = useAppStore((state) => state.selectedSummaryIndex);
+  const selectedSummaryIndex = useAppStore(
+    (state) => state.selectedSummaryIndex
+  );
   const summariesError = useAppStore((state) => state.summariesError);
-  const isPipelineRunning = useAppStore((state) => state.isGeneratingAiFeedback);
+  const isPipelineRunning = useAppStore(
+    (state) => state.isGeneratingAiFeedback
+  );
   const pipelineStage = useAppStore((state) => state.pipelineStage);
   const streamingAiText = useAppStore((state) => state.streamingAiText);
 
   const setAiSummaries = useAppStore((state) => state.setAiSummaries);
-  const setSelectedSummaryIndex = useAppStore((state) => state.setSelectedSummaryIndex);
+  const setSelectedSummaryIndex = useAppStore(
+    (state) => state.setSelectedSummaryIndex
+  );
   const setSummariesError = useAppStore((state) => state.setSummariesError);
-  const setIsPipelineRunning = useAppStore((state) => state.setIsGeneratingAiFeedback);
+  const setIsPipelineRunning = useAppStore(
+    (state) => state.setIsGeneratingAiFeedback
+  );
   const setPipelineStage = useAppStore((state) => state.setPipelineStage);
   const setStreamingAiText = useAppStore((state) => state.setStreamingAiText);
 
@@ -146,8 +154,13 @@ export function useAiPipeline() {
       setIsPipelineRunning(false);
       throw error;
     }
-  }, [loadAiSummaries, setSelectedSummaryIndex, setPipelineStage, setIsPipelineRunning, setStreamingAiText]);
-
+  }, [
+    loadAiSummaries,
+    setSelectedSummaryIndex,
+    setPipelineStage,
+    setIsPipelineRunning,
+    setStreamingAiText,
+  ]);
 
   /**
    * Main pipeline handler
@@ -169,30 +182,38 @@ export function useAiPipeline() {
       setPipelineStage('idle');
       setIsPipelineRunning(false);
     }
-  }, [isPipelineRunning, generateFeedback, setIsPipelineRunning, setPipelineStage]);
+  }, [
+    isPipelineRunning,
+    generateFeedback,
+    setIsPipelineRunning,
+    setPipelineStage,
+  ]);
 
   /**
    * Get label for AI summary entry
    */
-  const getSummaryLabel = useCallback((summary: { filename: string; createdAt?: string }) => {
-    if (!summary?.createdAt) {
-      return summary.filename;
-    }
-    const date = new Date(summary.createdAt);
-    if (Number.isNaN(date.getTime())) {
-      return summary.filename;
-    }
-    const datePart = date.toLocaleDateString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-      weekday: 'short',
-    });
-    const timePart = date.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    return `${datePart} ${timePart}`;
-  }, []);
+  const getSummaryLabel = useCallback(
+    (summary: { filename: string; createdAt?: string }) => {
+      if (!summary?.createdAt) {
+        return summary.filename;
+      }
+      const date = new Date(summary.createdAt);
+      if (Number.isNaN(date.getTime())) {
+        return summary.filename;
+      }
+      const datePart = date.toLocaleDateString('ko-KR', {
+        month: 'short',
+        day: 'numeric',
+        weekday: 'short',
+      });
+      const timePart = date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return `${datePart} ${timePart}`;
+    },
+    []
+  );
 
   return {
     // State
@@ -211,4 +232,3 @@ export function useAiPipeline() {
     getSummaryLabel,
   };
 }
-

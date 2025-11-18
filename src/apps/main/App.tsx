@@ -129,7 +129,6 @@ export default function App() {
     [retrospectViewMode]
   );
 
-
   // Close template picker when retrospect panel collapses
   React.useEffect(() => {
     if (!isRetrospectPanelExpanded) {

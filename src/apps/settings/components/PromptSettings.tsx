@@ -282,82 +282,84 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
               {showVersionHistory ? '숨기기' : '보기'}
             </button>
           </div>
-          {showVersionHistory && <div className="space-y-2">
-            {prompts.map((prompt) => (
-              <div
-                key={prompt.id}
-                className={`rounded-lg border p-3 ${
-                  isDarkMode
-                    ? 'bg-white/5 border-white/10'
-                    : 'bg-white border-slate-200'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <FileText className="h-3.5 w-3.5" />
-                      <h4
-                        className={`text-[12px] font-medium ${
-                          isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                        }`}
-                      >
-                        {prompt.name}
-                      </h4>
-                      {prompt.is_active && (
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                            isDarkMode
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-green-50 text-green-600'
+          {showVersionHistory && (
+            <div className="space-y-2">
+              {prompts.map((prompt) => (
+                <div
+                  key={prompt.id}
+                  className={`rounded-lg border p-3 ${
+                    isDarkMode
+                      ? 'bg-white/5 border-white/10'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <FileText className="h-3.5 w-3.5" />
+                        <h4
+                          className={`text-[12px] font-medium ${
+                            isDarkMode ? 'text-slate-200' : 'text-slate-900'
                           }`}
                         >
-                          활성
-                        </span>
+                          {prompt.name}
+                        </h4>
+                        {prompt.is_active && (
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                              isDarkMode
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-green-50 text-green-600'
+                            }`}
+                          >
+                            활성
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className={`flex items-center gap-1 text-[10px] ${
+                          isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                        }`}
+                      >
+                        <Clock className="h-3 w-3" />
+                        {new Date(prompt.created_at).toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {!prompt.is_active && (
+                        <button
+                          onClick={() => activatePrompt(prompt.id)}
+                          className={`px-2 py-1 text-[10px] rounded transition ${
+                            isDarkMode
+                              ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
+                              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                          }`}
+                        >
+                          활성화
+                        </button>
                       )}
-                    </div>
-                    <div
-                      className={`flex items-center gap-1 text-[10px] ${
-                        isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                      }`}
-                    >
-                      <Clock className="h-3 w-3" />
-                      {new Date(prompt.created_at).toLocaleString('ko-KR', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    {!prompt.is_active && (
                       <button
-                        onClick={() => activatePrompt(prompt.id)}
+                        onClick={() => loadPromptVersion(prompt)}
                         className={`px-2 py-1 text-[10px] rounded transition ${
                           isDarkMode
                             ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
                             : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
                         }`}
                       >
-                        활성화
+                        불러오기
                       </button>
-                    )}
-                    <button
-                      onClick={() => loadPromptVersion(prompt)}
-                      className={`px-2 py-1 text-[10px] rounded transition ${
-                        isDarkMode
-                          ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
-                          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-                      }`}
-                    >
-                      불러오기
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>}
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -122,9 +122,7 @@ export function DailyTrendChart({ data, isDarkMode }: DailyTrendChartProps) {
   return (
     <div
       className={`rounded-xl border p-6 ${
-        isDarkMode
-          ? 'bg-white/5 border-white/10'
-          : 'bg-white border-slate-200'
+        isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
       }`}
     >
       <h3

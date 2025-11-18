@@ -307,52 +307,50 @@ impl ModelManager {
 
         // Also scan for GGUF files that might not be in the index
         if let Ok(entries) = std::fs::read_dir(&self.models_dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-                    if path.extension().and_then(|s| s.to_str()) == Some("gguf") {
-                        // Check if this model is already loaded
-                        let file_name = path
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .unwrap_or("")
-                            .to_string();
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|s| s.to_str()) == Some("gguf") {
+                    // Check if this model is already loaded
+                    let file_name = path
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("")
+                        .to_string();
 
-                        let local_models = self.local_models.blocking_read();
-                        if !local_models.contains_key(&file_name) {
-                            drop(local_models);
+                    let local_models = self.local_models.blocking_read();
+                    if !local_models.contains_key(&file_name) {
+                        drop(local_models);
 
-                            // Try to find matching model info by id; otherwise register as generic local model
-                            let available_models = self.available_models.blocking_read();
-                            let matched = available_models.iter().find(|m| m.id == file_name).cloned();
-                            drop(available_models);
+                        // Try to find matching model info by id; otherwise register as generic local model
+                        let available_models = self.available_models.blocking_read();
+                        let matched = available_models.iter().find(|m| m.id == file_name).cloned();
+                        drop(available_models);
 
-                            let size_on_disk = std::fs::metadata(&path)?.len();
+                        let size_on_disk = std::fs::metadata(&path)?.len();
 
-                            let info = matched.unwrap_or(ModelInfo {
-                                id: file_name.clone(),
-                                name: file_name.clone(),
-                                size: size_on_disk,
-                                url: String::new(),
-                                quantization: "unknown".to_string(),
-                                description: "Detected local GGUF model".to_string(),
-                                requirements: ModelRequirements {
-                                    min_ram: 512,
-                                    recommended_ram: 1024,
-                                    supports_gpu: true,
-                                },
-                            });
+                        let info = matched.unwrap_or(ModelInfo {
+                            id: file_name.clone(),
+                            name: file_name.clone(),
+                            size: size_on_disk,
+                            url: String::new(),
+                            quantization: "unknown".to_string(),
+                            description: "Detected local GGUF model".to_string(),
+                            requirements: ModelRequirements {
+                                min_ram: 512,
+                                recommended_ram: 1024,
+                                supports_gpu: true,
+                            },
+                        });
 
-                            let local_model = LocalModel {
-                                info: info.clone(),
-                                path: path.clone(),
-                                downloaded_at: chrono::Local::now().to_rfc3339(),
-                                size_on_disk,
-                            };
+                        let local_model = LocalModel {
+                            info: info.clone(),
+                            path: path.clone(),
+                            downloaded_at: chrono::Local::now().to_rfc3339(),
+                            size_on_disk,
+                        };
 
-                            let mut local_models = self.local_models.blocking_write();
-                            local_models.insert(info.id.clone(), local_model);
-                        }
+                        let mut local_models = self.local_models.blocking_write();
+                        local_models.insert(info.id.clone(), local_model);
                     }
                 }
             }
@@ -373,11 +371,9 @@ impl ModelManager {
         let mut total = 0u64;
 
         if let Ok(entries) = std::fs::read_dir(&self.models_dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    if let Ok(metadata) = entry.metadata() {
-                        total += metadata.len();
-                    }
+            for entry in entries.flatten() {
+                if let Ok(metadata) = entry.metadata() {
+                    total += metadata.len();
                 }
             }
         }

@@ -11,7 +11,11 @@ interface TypographyProps extends HTMLAttributes<HTMLElement> {
  * @example
  * <DisplayLarge>Welcome to Hoego</DisplayLarge>
  */
-export const DisplayLarge = ({ children, className, ...props }: TypographyProps) => (
+export const DisplayLarge = ({
+  children,
+  className,
+  ...props
+}: TypographyProps) => (
   <h1 className={cn('text-display-lg text-foreground', className)} {...props}>
     {children}
   </h1>
@@ -77,7 +81,11 @@ export const H4 = ({ children, className, ...props }: TypographyProps) => (
  * @example
  * <BodyLarge>This is a large body text.</BodyLarge>
  */
-export const BodyLarge = ({ children, className, ...props }: TypographyProps) => (
+export const BodyLarge = ({
+  children,
+  className,
+  ...props
+}: TypographyProps) => (
   <p className={cn('text-body-lg text-foreground', className)} {...props}>
     {children}
   </p>
@@ -99,7 +107,11 @@ export const Body = ({ children, className, ...props }: TypographyProps) => (
  * @example
  * <BodySmall>This is a small body text.</BodySmall>
  */
-export const BodySmall = ({ children, className, ...props }: TypographyProps) => (
+export const BodySmall = ({
+  children,
+  className,
+  ...props
+}: TypographyProps) => (
   <p className={cn('text-body-sm text-foreground', className)} {...props}>
     {children}
   </p>
@@ -111,7 +123,10 @@ export const BodySmall = ({ children, className, ...props }: TypographyProps) =>
  * <Caption>Last updated 2 hours ago</Caption>
  */
 export const Caption = ({ children, className, ...props }: TypographyProps) => (
-  <span className={cn('text-caption text-muted-foreground', className)} {...props}>
+  <span
+    className={cn('text-caption text-muted-foreground', className)}
+    {...props}
+  >
     {children}
   </span>
 );
@@ -121,8 +136,15 @@ export const Caption = ({ children, className, ...props }: TypographyProps) => (
  * @example
  * <CaptionSmall>© 2024</CaptionSmall>
  */
-export const CaptionSmall = ({ children, className, ...props }: TypographyProps) => (
-  <span className={cn('text-caption-sm text-muted-foreground', className)} {...props}>
+export const CaptionSmall = ({
+  children,
+  className,
+  ...props
+}: TypographyProps) => (
+  <span
+    className={cn('text-caption-sm text-muted-foreground', className)}
+    {...props}
+  >
     {children}
   </span>
 );
@@ -171,9 +193,16 @@ export const Muted = ({ children, className, ...props }: TypographyProps) => (
  * @example
  * <Blockquote>This is a quote.</Blockquote>
  */
-export const Blockquote = ({ children, className, ...props }: TypographyProps) => (
+export const Blockquote = ({
+  children,
+  className,
+  ...props
+}: TypographyProps) => (
   <blockquote
-    className={cn('border-l-4 border-primary pl-4 italic text-foreground', className)}
+    className={cn(
+      'border-l-4 border-primary pl-4 italic text-foreground',
+      className
+    )}
     {...props}
   >
     {children}

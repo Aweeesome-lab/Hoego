@@ -181,7 +181,9 @@ export async function generateStructuredFeedback(
   // Check if API key exists
   const hasKey = await CloudLLMClient.hasApiKey('openai');
   if (!hasKey) {
-    throw new Error('OpenAI API 키가 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.');
+    throw new Error(
+      'OpenAI API 키가 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.'
+    );
   }
 
   // Build user prompt with structured context
@@ -246,10 +248,15 @@ export async function generateStructuredFeedback(
     // User-friendly error messages
     if (errorMessage.includes('API key')) {
       throw new Error('API 키 오류입니다. 설정을 확인해주세요.');
-    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+    } else if (
+      errorMessage.includes('network') ||
+      errorMessage.includes('fetch')
+    ) {
       throw new Error('네트워크 오류입니다. 인터넷 연결을 확인해주세요.');
     } else if (errorMessage.includes('rate limit')) {
-      throw new Error('API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.');
+      throw new Error(
+        'API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.'
+      );
     } else {
       throw new Error(`피드백 생성에 실패했습니다: ${errorMessage}`);
     }

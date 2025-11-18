@@ -360,10 +360,10 @@ fn parse_categorized_time(dump_content: &str) -> HashMap<String, i64> {
 /// Classify categories into productive vs waste
 fn classify_productivity(categories: &HashMap<String, i64>) -> ProductivityStats {
     // Productive categories
-    let productive_categories = vec!["개발", "회의", "기획", "학습", "운동"];
+    let productive_categories = ["개발", "회의", "기획", "학습", "운동"];
 
     // Non-productive/waste categories
-    let waste_categories = vec!["오락", "휴식"];
+    let waste_categories = ["오락", "휴식"];
 
     // Neutral categories (not counted in either): 식사, 개인관리, 이동, 약속, 사고, 기타
 

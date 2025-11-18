@@ -108,7 +108,10 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         const maxHeight = lineHeight * maxRows + paddingTop + paddingBottom;
 
         const scrollHeight = textarea.scrollHeight;
-        const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+        const newHeight = Math.min(
+          Math.max(scrollHeight, minHeight),
+          maxHeight
+        );
 
         textarea.style.height = `${newHeight}px`;
       }

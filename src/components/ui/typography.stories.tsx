@@ -73,43 +73,53 @@ export const Overview: Story = {
       <div>
         <Caption className="mb-2">Body Large (1.125rem / 18px)</Caption>
         <BodyLarge>
-          The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
+          The quick brown fox jumps over the lazy dog. Pack my box with five
+          dozen liquor jugs.
         </BodyLarge>
         <BodyLarge className="mt-2">
-          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.
+          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리
+          만나야 하고 특별한 기술은 필요치 않다.
         </BodyLarge>
       </div>
 
       <div>
         <Caption className="mb-2">Body (1rem / 16px)</Caption>
         <Body>
-          The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
+          The quick brown fox jumps over the lazy dog. Pack my box with five
+          dozen liquor jugs.
         </Body>
         <Body className="mt-2">
-          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.
+          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리
+          만나야 하고 특별한 기술은 필요치 않다.
         </Body>
       </div>
 
       <div>
         <Caption className="mb-2">Body Small (0.875rem / 14px)</Caption>
         <BodySmall>
-          The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
+          The quick brown fox jumps over the lazy dog. Pack my box with five
+          dozen liquor jugs.
         </BodySmall>
         <BodySmall className="mt-2">
-          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.
+          빠른 갈색 여우가 게으른 개를 뛰어넘습니다. 키스의 고유조건은 입술끼리
+          만나야 하고 특별한 기술은 필요치 않다.
         </BodySmall>
       </div>
 
       <div>
         <Caption className="mb-2">Caption (0.75rem / 12px)</Caption>
         <Caption>The quick brown fox jumps over the lazy dog</Caption>
-        <Caption className="block mt-1">빠른 갈색 여우가 게으른 개를 뛰어넘습니다</Caption>
+        <Caption className="block mt-1">
+          빠른 갈색 여우가 게으른 개를 뛰어넘습니다
+        </Caption>
       </div>
 
       <div>
         <Caption className="mb-2">Caption Small (0.6875rem / 11px)</Caption>
         <CaptionSmall>The quick brown fox jumps over the lazy dog</CaptionSmall>
-        <CaptionSmall className="block mt-1">빠른 갈색 여우가 게으른 개를 뛰어넘습니다</CaptionSmall>
+        <CaptionSmall className="block mt-1">
+          빠른 갈색 여우가 게으른 개를 뛰어넘습니다
+        </CaptionSmall>
       </div>
 
       <div>
@@ -119,7 +129,9 @@ export const Overview: Story = {
             <Code>const greeting = 'Hello, World!';</Code>
           </div>
           <div>
-            <Code>function add(a: number, b: number) {'{ return a + b; }'}</Code>
+            <Code>
+              function add(a: number, b: number) {'{ return a + b; }'}
+            </Code>
           </div>
         </div>
       </div>
@@ -152,24 +164,27 @@ export const BodyText: Story = {
       <div>
         <H3 className="mb-2">Body Large</H3>
         <BodyLarge>
-          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록 돕는 도구입니다.
-          직관적인 인터페이스와 강력한 기능을 통해 생산성을 극대화할 수 있습니다.
+          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록
+          돕는 도구입니다. 직관적인 인터페이스와 강력한 기능을 통해 생산성을
+          극대화할 수 있습니다.
         </BodyLarge>
       </div>
 
       <div>
         <H3 className="mb-2">Body</H3>
         <Body>
-          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록 돕는 도구입니다.
-          직관적인 인터페이스와 강력한 기능을 통해 생산성을 극대화할 수 있습니다.
+          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록
+          돕는 도구입니다. 직관적인 인터페이스와 강력한 기능을 통해 생산성을
+          극대화할 수 있습니다.
         </Body>
       </div>
 
       <div>
         <H3 className="mb-2">Body Small</H3>
         <BodySmall>
-          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록 돕는 도구입니다.
-          직관적인 인터페이스와 강력한 기능을 통해 생산성을 극대화할 수 있습니다.
+          타임 트래킹 앱 Hoego는 사용자의 시간을 효율적으로 관리할 수 있도록
+          돕는 도구입니다. 직관적인 인터페이스와 강력한 기능을 통해 생산성을
+          극대화할 수 있습니다.
         </BodySmall>
       </div>
     </div>
@@ -185,15 +200,16 @@ export const SpecialStyles: Story = {
       <div>
         <H3 className="mb-2">Lead Text</H3>
         <Lead>
-          This is a lead paragraph that introduces the content. It's slightly larger and muted to
-          stand out from regular body text.
+          This is a lead paragraph that introduces the content. It's slightly
+          larger and muted to stand out from regular body text.
         </Lead>
       </div>
 
       <div>
         <H3 className="mb-2">Muted Text</H3>
         <Muted>
-          This is muted text, used for less important information or secondary content.
+          This is muted text, used for less important information or secondary
+          content.
         </Muted>
       </div>
 
@@ -235,8 +251,8 @@ export const RealWorldExample: Story = {
           <div>
             <H3 className="mb-1">프로젝트 작업</H3>
             <Body className="mb-2">
-              Storybook UI 컴포넌트 시스템 구축 작업을 진행했습니다. Typography 컴포넌트와
-              스토리를 완성했습니다.
+              Storybook UI 컴포넌트 시스템 구축 작업을 진행했습니다. Typography
+              컴포넌트와 스토리를 완성했습니다.
             </Body>
             <Caption>3시간 25분</Caption>
           </div>
@@ -258,9 +274,7 @@ export const RealWorldExample: Story = {
 
       <div className="border rounded-lg p-6 bg-card">
         <H2 className="mb-2">설정</H2>
-        <Body className="mb-4">
-          앱의 동작을 커스터마이징할 수 있습니다.
-        </Body>
+        <Body className="mb-4">앱의 동작을 커스터마이징할 수 있습니다.</Body>
 
         <div className="space-y-3">
           <div>
@@ -292,7 +306,9 @@ export const FontWeights: Story = {
         <Body className="font-light">Light (300) - The quick brown fox</Body>
         <Body className="font-normal">Regular (400) - The quick brown fox</Body>
         <Body className="font-medium">Medium (500) - The quick brown fox</Body>
-        <Body className="font-semibold">Semibold (600) - The quick brown fox</Body>
+        <Body className="font-semibold">
+          Semibold (600) - The quick brown fox
+        </Body>
         <Body className="font-bold">Bold (700) - The quick brown fox</Body>
       </div>
 

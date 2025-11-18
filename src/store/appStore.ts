@@ -3,10 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { RetrospectiveTemplate } from '@/constants/retrospectiveTemplates';
 import type { AiSummaryEntry } from '@/lib/tauri';
-import type {
-  WeekData,
-  WeeklyActionItem,
-} from '@/types/tauri-commands';
+import type { WeekData, WeeklyActionItem } from '@/types/tauri-commands';
 
 /**
  * Theme 관련 상태 슬라이스
@@ -476,7 +473,7 @@ export const useAppStore = create<AppStore>()(
       currentWeekStart: (() => {
         const today = new Date();
         const dayOfWeek = today.getDay();
-        const mondayOffset = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         const monday = new Date(today);
         monday.setDate(today.getDate() + mondayOffset);
         const isoParts = monday.toISOString().split('T');

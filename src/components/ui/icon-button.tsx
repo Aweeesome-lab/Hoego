@@ -56,7 +56,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
     return (
       <button
-        className={cn(iconButtonVariants({ variant: computedVariant, size, className }))}
+        className={cn(
+          iconButtonVariants({ variant: computedVariant, size, className })
+        )}
         ref={ref}
         {...props}
       />

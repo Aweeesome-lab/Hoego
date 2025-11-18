@@ -14,6 +14,12 @@ pub struct CloudLLMState {
     pub current_provider: Arc<RwLock<Option<Box<dyn CloudLLMProvider>>>>,
 }
 
+impl Default for CloudLLMState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CloudLLMState {
     pub fn new() -> Self {
         Self {

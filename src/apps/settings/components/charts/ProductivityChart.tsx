@@ -91,9 +91,7 @@ export function ProductivityChart({
   return (
     <div
       className={`rounded-xl border p-6 ${
-        isDarkMode
-          ? 'bg-white/5 border-white/10'
-          : 'bg-white border-slate-200'
+        isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
       }`}
     >
       <div className="flex items-center justify-between mb-4">

@@ -1,5 +1,12 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from 'recharts';
 
 interface CategoryPieChartProps {
   data: Record<string, number>; // category -> seconds
@@ -87,9 +94,7 @@ export function CategoryPieChart({ data, isDarkMode }: CategoryPieChartProps) {
   return (
     <div
       className={`rounded-xl border p-6 ${
-        isDarkMode
-          ? 'bg-white/5 border-white/10'
-          : 'bg-white border-slate-200'
+        isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
       }`}
     >
       <h3

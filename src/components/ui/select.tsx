@@ -161,10 +161,7 @@ export interface CustomSelectProps extends Omit<SelectProps, 'options'> {
   renderOption?: (option: SelectOption) => React.ReactNode;
 }
 
-export const CustomSelect = React.forwardRef<
-  HTMLDivElement,
-  CustomSelectProps
->(
+export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
   (
     {
       className = '',
@@ -198,7 +195,8 @@ export const CustomSelect = React.forwardRef<
       };
 
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleSelect = (optionValue: string) => {

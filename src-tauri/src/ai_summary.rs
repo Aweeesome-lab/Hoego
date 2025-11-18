@@ -213,7 +213,7 @@ pub async fn generate_ai_feedback_stream(
                 }
                 Err(e) => {
                     model_used = "Cloud LLM (failed)".to_string();
-                    result = Err(format!("Cloud LLM 오류: {}", e.to_string()));
+                    result = Err(format!("Cloud LLM 오류: {}", e));
                 }
             }
         } else {

@@ -18,6 +18,12 @@ pub struct PromptConfigStore {
     pub configs: Vec<PromptConfig>,
 }
 
+impl Default for PromptConfigStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PromptConfigStore {
     pub fn new() -> Self {
         Self {
@@ -95,10 +101,6 @@ impl PromptConfigStore {
         }
     }
 
-    pub fn get_active_config(&self) -> Option<&PromptConfig> {
-        self.configs.iter().find(|c| c.is_active)
-    }
-
     pub fn get_all_configs(&self) -> Vec<PromptConfig> {
         self.configs.clone()
     }
@@ -118,36 +120,5 @@ impl PromptConfigStore {
         self.configs.retain(|c| c.id != config_id);
         self.save()?;
         Ok(())
-    }
-}
-
-pub struct PromptManager;
-
-impl PromptManager {
-    pub fn get_active_user_prompt() -> Result<String, Box<dyn std::error::Error>> {
-        let store = PromptConfigStore::load()?;
-
-        if let Some(active_config) = store.get_active_config() {
-            Ok(active_config.user_prompt.clone())
-        } else {
-            // Return default prompt if no active config
-            Ok(Self::default_user_prompt())
-        }
-    }
-
-    pub fn default_user_prompt() -> String {
-        r#"오늘 사용자가 작성한 일지입니다. 일지를 분석하고 사고 패턴에 대한 피드백을 제공하세요.
-
-{content}
-
-위 일지를 분석하여 다음 관점에서 피드백을 제공하세요:
-
-1. **사고 패턴 분석**: 일지에서 발견되는 사고의 패턴, 논리 구조, 반복되는 주제
-2. **논리적 평가**: 감정적 판단과 객관적 판단의 구분, 근거의 충실도
-3. **모순과 왜곡**: 일관성 없는 부분이나 인지적 왜곡이 있다면 지적
-4. **성장 포인트**: 구체적인 사고 개선 방법 2-3가지 제시
-5. **핵심 질문**: 스스로 사고를 발전시킬 수 있는 질문 1-2개
-
-간결하고 실용적인 피드백을 제공하되, 비판보다는 성장 중심으로 작성하세요."#.to_string()
     }
 }

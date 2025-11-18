@@ -266,6 +266,9 @@ export type TauriCommands = {
   // Weekly dashboard commands
   get_week_data: (payload: GetWeekDataPayload) => Promise<WeekData>;
   generate_weekly_summary: (weekData: WeekData) => Promise<void>;
-  save_weekly_actions: (weekId: string, actions: WeeklyActionItem[]) => Promise<void>;
+  save_weekly_actions: (
+    weekId: string,
+    actions: WeeklyActionItem[]
+  ) => Promise<void>;
   get_weekly_actions: (weekId: string) => Promise<WeeklyActionsData | null>;
 };

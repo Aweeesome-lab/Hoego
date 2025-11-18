@@ -38,7 +38,7 @@ impl LlamaCppEngine {
         };
         // Auto-detect reasonable CPU threads
         let threads = num_cpus::get_physical().max(1);
-        s.config.cpu_threads = threads as usize;
+        s.config.cpu_threads = threads;
         Ok(s)
     }
 

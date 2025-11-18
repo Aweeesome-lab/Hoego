@@ -29,7 +29,6 @@ export const DumpPanel = React.memo(function DumpPanel({
   markdownContent,
   markdownComponents,
 }: DumpPanelProps) {
-
   return (
     <section
       className={`flex flex-1 flex-col overflow-hidden border-r ${
