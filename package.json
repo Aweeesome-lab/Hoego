@@ -28,6 +28,8 @@
     "rust:fmt": "cd src-tauri && cargo fmt",
     "rust:fmt:check": "cd src-tauri && cargo fmt -- --check",
     "rust:test": "cd src-tauri && cargo test",
+    "hoego:cli": "cd src-tauri && cargo run --bin hoego-cli -- cli",
+    "hoego:cli:session": "cd src-tauri && cargo run --bin hoego-cli -- cli --session",
     "validate": "npm run check && npm run test:run && npm run rust:check && npm run rust:clippy",
     "prepare": "npm run check:fix",
     "storybook": "storybook dev -p 6006",

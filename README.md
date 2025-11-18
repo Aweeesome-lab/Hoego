@@ -12,6 +12,7 @@ Hoego는 일상의 경험을 기록하고, AI의 도움으로 의미 있는 인�
 - 📊 **History** - 과거 회고 기록 관리 및 검색
 - 🔒 **Privacy-First** - 로컬 우선, 선택적 클라우드 연동
 - ⚡ **Fast & Lightweight** - Tauri 기반 네이티브 앱
+- 💻 **CLI Mode** - 터미널에서 초저마찰 로그 입력
 
 ## 🚀 Quick Start
 
@@ -34,6 +35,30 @@ npm install
 # Run development server
 npm run dev
 ```
+
+### CLI Mode (Daily Log)
+
+터미널 pane 하나에 `hoego` CLI를 띄워두고 코딩하면서 바로 기록하세요.
+
+```bash
+# 1. 설치 (한 번만 실행)
+./install.sh
+
+# 2. 이제 어디서든 바로 사용
+hoego
+```
+
+**사용법**:
+- 평문 입력 → Enter: 로그에 자동 기록 (`- 내용 (HH:MM:SS)` 형식)
+- `:q` 또는 `:quit`: 종료
+- `:h` 또는 `:help`: 도움말
+
+**세션과 함께 시작**:
+```bash
+hoego --session "Phase 1 구현"
+```
+
+자세한 내용은 [CLI 설치 가이드](docs/hoego-cli-setup.md)를 참고하세요.
 
 ### Build
 
