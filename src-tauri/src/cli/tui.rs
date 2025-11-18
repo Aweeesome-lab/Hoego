@@ -5,10 +5,10 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    text::{Line, Span, Text},
+    widgets::{Block, Borders, Paragraph},
     Terminal,
 };
 use std::io;
@@ -311,16 +311,17 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
         .split(f.area());
 
     // 상단: 로그 영역
-    let log_items: Vec<ListItem> = app
+    let log_lines: Vec<Line> = app
         .logs
         .iter()
-        .map(|line| {
-            let styled_line = format_log_line(line);
-            ListItem::new(styled_line)
-        })
+        .map(|line| format_log_line(line))
         .collect();
 
-    let logs_list = List::new(log_items)
+    let logs_text = Text::from(log_lines);
+
+    let logs_paragraph = Paragraph::new(logs_text)
+        .wrap(ratatui::widgets::Wrap { trim: false })
+        .alignment(Alignment::Left)
         .block(
             Block::default()
                 .borders(Borders::NONE)
@@ -336,7 +337,7 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
                 )),
         );
 
-    f.render_widget(logs_list, chunks[0]);
+    f.render_widget(logs_paragraph, chunks[0]);
 
     // 하단: 입력 영역을 프롬프트와 입력으로 분할
     let input_chunks = Layout::default()
