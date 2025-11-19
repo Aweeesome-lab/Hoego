@@ -37,8 +37,15 @@ export const AiPanel = React.memo(function AiPanel({
   markdownComponents,
   handleRunPipeline,
 }: AiPanelProps) {
-  // Get PII masking stats from store
+  // Get PII masking stats from store (실시간 생성 중)
   const piiMaskingStats = useAppStore((state) => state.piiMaskingStats);
+
+  // 선택된 피드백의 개인정보 보호 여부 (저장된 파일)
+  const selectedSummaryPiiMasked = selectedSummary?.piiMasked;
+
+  // 표시할 개인정보 보호 정보: 실시간 생성 중이면 stats, 아니면 선택된 파일의 메타데이터
+  const showPiiInfo = isPipelineRunning ? piiMaskingStats :
+    (selectedSummaryPiiMasked !== undefined ? { piiDetected: selectedSummaryPiiMasked } : null);
 
   if (!isAiPanelExpanded) return null;
 
@@ -70,10 +77,10 @@ export const AiPanel = React.memo(function AiPanel({
             정리하기(feedback)
           </span>
           {/* 개인정보 보호 배지 (개발 모드 전용) */}
-          {import.meta.env.DEV && piiMaskingStats && (
+          {import.meta.env.DEV && showPiiInfo && (
             <div
               className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium ${
-                piiMaskingStats.piiDetected
+                showPiiInfo.piiDetected
                   ? isDarkMode
                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                     : 'bg-amber-100 text-amber-700 border border-amber-300'
@@ -81,11 +88,15 @@ export const AiPanel = React.memo(function AiPanel({
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                     : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
               }`}
-              title={`개인정보 ${piiMaskingStats.piiDetected ? '감지 및 보호됨' : '없음'} | 원본: ${piiMaskingStats.originalLength}자 → 보호 처리: ${piiMaskingStats.maskedLength}자`}
+              title={
+                'originalLength' in showPiiInfo
+                  ? `개인정보 ${showPiiInfo.piiDetected ? '감지 및 보호됨' : '없음'} | 원본: ${showPiiInfo.originalLength}자 → 보호 처리: ${showPiiInfo.maskedLength}자`
+                  : `이 피드백은 개인정보 ${showPiiInfo.piiDetected ? '보호 처리됨' : '보호 없이 생성됨'}`
+              }
             >
               <Shield className="h-2.5 w-2.5" />
               <span>
-                {piiMaskingStats.piiDetected ? '개인정보 보호됨' : '개인정보 없음'}
+                {showPiiInfo.piiDetected ? '개인정보 보호됨' : '개인정보 없음'}
               </span>
             </div>
           )}

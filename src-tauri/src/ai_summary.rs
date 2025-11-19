@@ -19,6 +19,7 @@ pub struct AiSummaryFile {
     pub path: String,
     pub created_at: Option<String>,
     pub content: String,
+    pub pii_masked: bool, // 개인정보 보호 여부
 }
 
 /// AI 요약 디렉토리를 생성합니다
@@ -28,7 +29,7 @@ pub fn ensure_summaries_dir(path: &PathBuf) -> Result<(), String> {
 }
 
 /// AI 요약 파일을 작성합니다
-fn write_ai_summary_file(date: &OffsetDateTime, content: &str) -> Result<AiSummaryFile, String> {
+fn write_ai_summary_file(date: &OffsetDateTime, content: &str, pii_masked: bool) -> Result<AiSummaryFile, String> {
     let dir = summaries_directory_path()?;
     ensure_summaries_dir(&dir)?;
 
@@ -57,6 +58,7 @@ fn write_ai_summary_file(date: &OffsetDateTime, content: &str) -> Result<AiSumma
         path: path.to_string_lossy().into_owned(),
         created_at,
         content: content.to_string(),
+        pii_masked,
     })
 }
 
@@ -75,12 +77,21 @@ pub async fn generate_ai_feedback(
         return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
     }
 
-    eprintln!("[AI Feedback] Today's content length: {} chars", today_content.len());
-    eprintln!("[AI Feedback] First 200 chars: {}", &today_content.chars().take(200).collect::<String>());
+    // 🔒 개인정보 마스킹 처리 (AI 전송 전)
+    let masked_content = pii_masker::mask_pii(&today_content, false);
+    let pii_detected = today_content != masked_content;
+
+    eprintln!("[AI Feedback] Original length: {} chars", today_content.len());
+    eprintln!("[AI Feedback] Masked length: {} chars", masked_content.len());
+    if pii_detected {
+        eprintln!("[PII Masking] ⚠️ PII detected and masked");
+    } else {
+        eprintln!("[PII Masking] ✅ No PII detected");
+    }
 
     // 길이 조정: 코치형 피드백(Paragraph)로 500단어 내외 요청 → 충분한 밀도의 결과
     let request = llm::summarize::SummaryRequest {
-        content: today_content,
+        content: masked_content,
         style: None, // business_journal_coach 사용
         max_length: Some(500),
         model_id: None,
@@ -97,8 +108,16 @@ pub async fn generate_ai_feedback(
     };
 
     let summary_body = summary.summary.trim();
+
+    // 개인정보 보호 메타데이터 생성
+    let privacy_info = if pii_detected {
+        " · 개인정보 보호: 적용됨"
+    } else {
+        ""
+    };
+
     let markdown = format!(
-        "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms*",
+        "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms{}*",
         format_date_label(&now),
         if summary_body.is_empty() {
             "(생성된 요약이 비어 있습니다)".to_string()
@@ -106,10 +125,11 @@ pub async fn generate_ai_feedback(
             summary_body.to_string()
         },
         summary.model_used,
-        summary.processing_time_ms
+        summary.processing_time_ms,
+        privacy_info
     );
 
-    write_ai_summary_file(&now, &markdown)
+    write_ai_summary_file(&now, &markdown, pii_detected)
 }
 
 #[tauri::command]
@@ -304,8 +324,16 @@ pub async fn generate_ai_feedback_stream(
     match result {
         Ok(full_text) => {
             let processing_time_ms = start_time.elapsed().as_millis() as u64;
+
+            // 개인정보 보호 메타데이터 생성
+            let privacy_info = if pii_detected {
+                " · 개인정보 보호: 적용됨"
+            } else {
+                ""
+            };
+
             let markdown = format!(
-                "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms*",
+                "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms{}*",
                 format_date_label(&target_time),
                 if full_text.trim().is_empty() {
                     "(생성된 요약이 비어 있습니다)".to_string()
@@ -313,10 +341,11 @@ pub async fn generate_ai_feedback_stream(
                     full_text.trim().to_string()
                 },
                 model_used,
-                processing_time_ms
+                processing_time_ms,
+                privacy_info
             );
 
-            match write_ai_summary_file(&target_time, &markdown) {
+            match write_ai_summary_file(&target_time, &markdown, pii_detected) {
                 Ok(saved) => {
                     let _ = app.emit_all(
                         "ai_feedback_stream_complete",
@@ -387,6 +416,10 @@ pub fn list_ai_summaries(limit: Option<usize>, target_date: Option<String>) -> R
                 }
 
                 let content = fs::read_to_string(&path).unwrap_or_default();
+
+                // 개인정보 보호 메타데이터 파싱
+                let pii_masked = content.contains("개인정보 보호: 적용됨");
+
                 let metadata = entry.metadata().ok();
                 let (sort_key, created_at) = metadata
                     .and_then(|meta| meta.modified().ok())
@@ -404,6 +437,7 @@ pub fn list_ai_summaries(limit: Option<usize>, target_date: Option<String>) -> R
                         path: path.to_string_lossy().into_owned(),
                         created_at,
                         content,
+                        pii_masked,
                     },
                 ))
             }

@@ -154,6 +154,7 @@ export interface AiSummaryInfo {
   path?: string;
   content?: string;
   createdAt?: string;
+  piiMasked?: boolean; // 개인정보 보호 여부
 }
 
 // ============================================================================
