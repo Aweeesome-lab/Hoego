@@ -224,7 +224,9 @@ export function ModelsContent() {
                 onClick={async () => {
                   try {
                     await aiLlamaStopServer();
-                  } catch (e) {}
+                  } catch (_e) {
+                    // Ignore stop errors
+                  }
                   await handleCheck();
                 }}
                 className="w-full rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300 hover:bg-red-500/20 transition-all"
@@ -262,7 +264,9 @@ export function ModelsContent() {
             onClick={async () => {
               try {
                 await openEngineFolder();
-              } catch (e) {}
+              } catch (_e) {
+                // Ignore folder open errors
+              }
             }}
             className="w-full rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300 hover:bg-white/10 transition-all"
           >
@@ -618,7 +622,9 @@ export function ModelsContent() {
               onClick={async () => {
                 try {
                   await openModelsFolder();
-                } catch (e) {}
+                } catch (_e) {
+                  // Ignore folder open errors
+                }
               }}
             >
               📁 폴더 열기

@@ -101,7 +101,9 @@ export function useAiPipeline(targetDate?: string | null) {
       unsubs.forEach((u) => {
         try {
           u();
-        } catch {}
+        } catch (_e) {
+          // Ignore unsubscribe errors
+        }
       });
       if (streamingTimerRef.current) {
         clearInterval(streamingTimerRef.current);
