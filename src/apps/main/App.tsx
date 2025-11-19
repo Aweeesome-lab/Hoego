@@ -2,16 +2,18 @@ import { Pencil, Eye, Columns } from 'lucide-react';
 import React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
-import { Header, Footer } from '@/components/layout';
+import { Header, Footer, Sidebar } from '@/components/layout';
 import { useMarkdownComponents } from '@/components/markdown';
 import { DumpPanel } from '@/components/panels';
-import { useTheme, useMarkdown, useRetrospect } from '@/hooks';
+import { useTheme, useMarkdown, useRetrospect, useSidebar } from '@/hooks';
 import { useAiPipeline } from '@/hooks/useAiPipeline';
 import {
   hideOverlayWindow,
   appendHistoryEntry,
   onHistoryUpdated,
+  getHistoryMarkdown,
 } from '@/lib/tauri';
+import { openSettingsWindow } from '@/services/settingsService';
 
 // Code splitting: lazy load panels that are conditionally rendered
 const AiPanel = React.lazy(() =>
@@ -58,6 +60,10 @@ export default function App() {
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
     React.useState(true);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
+
+  // 현재 보고 있는 히스토리 정보
+  const [currentHistoryDate, setCurrentHistoryDate] = React.useState<string | null>(null);
+  const [isLoadingHistoryContent, setIsLoadingHistoryContent] = React.useState(false);
 
   // Use custom hooks
   const { themeMode, isDarkMode, toggleTheme } = useTheme();
@@ -110,6 +116,14 @@ export default function App() {
     handleApplyRetrospectiveTemplate,
   } = useRetrospect();
 
+  const {
+    isSidebarOpen,
+    historyFiles,
+    isLoadingHistory,
+    loadHistoryFiles,
+    toggleSidebar,
+  } = useSidebar();
+
   const markdownComponents = useMarkdownComponents({
     isDarkMode,
     isSaving,
@@ -159,6 +173,13 @@ export default function App() {
   React.useEffect(() => {
     void loadAiSummaries();
   }, [loadAiSummaries]);
+
+  // Load history files on mount and when sidebar opens
+  React.useEffect(() => {
+    if (isSidebarOpen) {
+      void loadHistoryFiles();
+    }
+  }, [isSidebarOpen, loadHistoryFiles]);
 
   // Initialize Cloud LLM provider on mount
   React.useEffect(() => {
@@ -276,6 +297,14 @@ export default function App() {
   // Keyboard shortcuts
   React.useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
+      // 사이드바 토글: Cmd/Ctrl + 1
+      if ((event.metaKey || event.ctrlKey) && event.key === '1') {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleSidebar();
+        return;
+      }
+
       // 패널 토글: Cmd/Ctrl + 2 for AI panel
       if ((event.metaKey || event.ctrlKey) && event.key === '2') {
         event.preventDefault();
@@ -366,6 +395,7 @@ export default function App() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [
+    toggleSidebar,
     isEditing,
     editingContent,
     markdownContent,
@@ -398,6 +428,49 @@ export default function App() {
     await handleRunPipeline();
   }, [handleRunPipeline]);
 
+  // Sidebar handlers
+  const handleHomeClick = React.useCallback(() => {
+    // 오늘 날짜로 돌아가기
+    setCurrentHistoryDate(null);
+    void loadMarkdown();
+  }, [loadMarkdown]);
+
+  const handleSettingsClick = React.useCallback(async () => {
+    try {
+      await openSettingsWindow();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('[hoego] Failed to open settings window:', error);
+      }
+      toast.error('설정 창을 여는데 실패했습니다.');
+    }
+  }, []);
+
+  const handleHistoryFileClick = React.useCallback(
+    async (file: typeof historyFiles[0]) => {
+      try {
+        setIsLoadingHistoryContent(true);
+        setCurrentHistoryDate(file.date);
+
+        // 선택된 날짜의 마크다운 로드
+        const content = await getHistoryMarkdown(file.path);
+        setMarkdownContent(content);
+
+        if (import.meta.env.DEV) {
+          console.log('[hoego] Loaded history:', file.date);
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[hoego] Failed to load history:', error);
+        }
+        toast.error('히스토리를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoadingHistoryContent(false);
+      }
+    },
+    []
+  );
+
   // Cleanup streaming on unmount
   React.useEffect(() => {
     return () => {
@@ -409,11 +482,29 @@ export default function App() {
 
   return (
     <div
-      className={`relative flex h-full w-full flex-col overflow-hidden ${
+      className={`relative flex h-full w-full flex-row overflow-hidden ${
         isDarkMode ? 'bg-[#0d1016]' : 'bg-white'
       }`}
     >
-      <Header
+      {/* Sidebar */}
+      <Sidebar
+        isDarkMode={isDarkMode}
+        isOpen={isSidebarOpen}
+        historyFiles={historyFiles}
+        isLoadingHistory={isLoadingHistory}
+        onToggle={toggleSidebar}
+        onHomeClick={handleHomeClick}
+        onSettingsClick={handleSettingsClick}
+        onHistoryFileClick={handleHistoryFileClick}
+      />
+
+      {/* Main content */}
+      <div
+        className={`flex-1 flex flex-col overflow-hidden ${
+          isSidebarOpen ? 'ml-64' : 'ml-12'
+        } transition-all duration-200`}
+      >
+        <Header
         currentTime={currentTime}
         inputRef={inputRef}
         inputValue={inputValue}
@@ -454,8 +545,13 @@ export default function App() {
           editingContent={editingContent}
           setEditingContent={setEditingContent}
           appendTimestampToLine={appendTimestampToLine}
-          markdownContent={markdownContent}
+          markdownContent={
+            isLoadingHistoryContent
+              ? '로딩 중...'
+              : markdownContent
+          }
           markdownComponents={markdownComponents}
+          currentDateLabel={currentHistoryDate ?? undefined}
           onSaveMarkdown={async (content: string) => {
             setIsSaving(true);
             try {
@@ -508,30 +604,31 @@ export default function App() {
         </React.Suspense>
       </div>
 
-      {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
-      {/* 상단 가장자리 */}
-      <div
-        className="absolute top-0 left-0 right-0 h-12 z-30 cursor-move"
-        data-tauri-drag-region
-      />
-      {/* 좌측 가장자리 */}
-      <div
-        className="absolute top-12 bottom-12 left-0 w-12 z-30 cursor-move"
-        data-tauri-drag-region
-      />
+        {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
+        {/* 상단 가장자리 */}
+        <div
+          className="absolute top-0 left-0 right-0 h-12 z-30 cursor-move"
+          data-tauri-drag-region
+        />
+        {/* 좌측 가장자리 (사이드바 고려) */}
+        <div
+          className={`absolute top-12 bottom-12 left-0 w-12 z-30 cursor-move transition-all duration-200`}
+          data-tauri-drag-region
+        />
 
-      <Footer isDarkMode={isDarkMode} />
+        <Footer isDarkMode={isDarkMode} />
 
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }}
-      />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#333',
+              color: '#fff',
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }
