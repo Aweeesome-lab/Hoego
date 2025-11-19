@@ -2,6 +2,7 @@ mod ai_summary;
 mod history;
 mod llm;
 mod model_selection;
+mod pii_masker;
 mod shortcuts;
 mod tray;
 mod utils;

@@ -9,6 +9,7 @@ use time::OffsetDateTime;
 
 use crate::history::{HistoryState, ensure_daily_file};
 use crate::llm;
+use crate::pii_masker;
 use crate::utils::*;
 
 #[derive(Debug, Serialize, Clone)]
@@ -149,8 +150,19 @@ pub async fn generate_ai_feedback_stream(
         return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
     }
 
-    // 프롬프트 구성 (business journal coach)
-    let prompt = llm::prompts::PromptTemplate::for_business_journal_coach(&today_content);
+    // 🔒 개인정보 마스킹 처리 (AI 전송 전)
+    let masked_content = pii_masker::mask_pii(&today_content, false);
+
+    eprintln!("[PII Masking] Original length: {} chars", today_content.len());
+    eprintln!("[PII Masking] Masked length: {} chars", masked_content.len());
+    if today_content != masked_content {
+        eprintln!("[PII Masking] ⚠️ PII detected and masked");
+    } else {
+        eprintln!("[PII Masking] ✅ No PII detected");
+    }
+
+    // 프롬프트 구성 (business journal coach) - 마스킹된 내용 사용
+    let prompt = llm::prompts::PromptTemplate::for_business_journal_coach(&masked_content);
     let chat_messages = prompt.to_chat_format();
 
     // 선택된 모델 확인

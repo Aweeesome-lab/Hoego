@@ -1793,6 +1793,7 @@ dependencies = [
  "num_cpus",
  "objc",
  "ratatui",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

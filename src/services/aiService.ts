@@ -14,6 +14,7 @@ import {
   STRUCTURED_FEEDBACK_SYSTEM_PROMPT,
 } from '@/constants/aiPrompts';
 import { CloudLLMClient } from '@/lib/cloud-llm';
+import { maskPII, logMaskingComparison } from '@/utils/pii-mask';
 
 // ============================================================================
 // Types
@@ -187,21 +188,41 @@ export async function generateStructuredFeedback(
     );
   }
 
-  // Build user prompt with structured context
-  let userPrompt = STRUCTURED_FEEDBACK_PROMPT;
-  userPrompt += `\n\n---\n\n## 분석 대상\n\n**오늘의 덤프:**\n${dumpContent}`;
+  // 🔒 개인정보 마스킹 처리 (AI 전송 전)
+  const maskedDumpContent = maskPII(dumpContent, {
+    preserveStructure: false,
+    disableNameMasking: false,
+    disablePathMasking: true, // 파일 경로는 컨텍스트에 유용할 수 있으므로 선택적
+  });
 
-  // Add recent history with analysis instructions
-  if (recentHistory && recentHistory.length > 0) {
-    userPrompt += `\n\n---\n\n## 패턴 분석을 위한 최근 ${recentHistory.length}일 데이터\n\n`;
+  const maskedHistory = recentHistory?.map((history) =>
+    maskPII(history, {
+      preserveStructure: false,
+      disableNameMasking: false,
+      disablePathMasking: true,
+    })
+  );
+
+  // Log masking comparison in dev mode
+  if (import.meta.env.DEV) {
+    logMaskingComparison(dumpContent);
+  }
+
+  // Build user prompt with structured context (마스킹된 내용 사용)
+  let userPrompt = STRUCTURED_FEEDBACK_PROMPT;
+  userPrompt += `\n\n---\n\n## 분석 대상\n\n**오늘의 덤프:**\n${maskedDumpContent}`;
+
+  // Add recent history with analysis instructions (마스킹된 히스토리 사용)
+  if (maskedHistory && maskedHistory.length > 0) {
+    userPrompt += `\n\n---\n\n## 패턴 분석을 위한 최근 ${maskedHistory.length}일 데이터\n\n`;
     userPrompt += `**분석 지침:**\n`;
     userPrompt += `1. 오늘 덤프와 비교하여 **반복되는 감정/행동/상황** 식별\n`;
     userPrompt += `2. **빈도와 변화 추이** 파악 (예: "지난 5일 중 4일", "3일 연속 증가")\n`;
     userPrompt += `3. **트리거 패턴** 발견 (같은 상황 → 같은 반응)\n`;
     userPrompt += `4. **대처 효과** 평가 (이전 대처 방식이 효과적이었는가)\n\n`;
 
-    recentHistory.forEach((history, index) => {
-      userPrompt += `**Day -${recentHistory.length - index}:**\n${history}\n\n`;
+    maskedHistory.forEach((history, index) => {
+      userPrompt += `**Day -${maskedHistory.length - index}:**\n${history}\n\n`;
     });
 
     userPrompt += `\n**중요**: 위 데이터에서 **실제 발견한 구체적 패턴**만 언급하세요. 추측 금지.\n`;
