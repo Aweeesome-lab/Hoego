@@ -203,7 +203,7 @@ export async function openLLMSettings(): Promise<void> {
  * 설정 윈도우를 엽니다
  */
 export async function openSettingsWindow(): Promise<void> {
-  return tauriInvoke<void>('open_settings_window');
+  return tauriInvoke<void>('open_settings_window_command');
 }
 
 // ============================================================================

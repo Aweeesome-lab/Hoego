@@ -21,7 +21,8 @@ use tray::{build_tray, handle_tray_event};
 use weekly_data::get_week_data;
 use window_manager::{
     ensure_accessibility_permission, get_window_position, hide_main_window, open_llm_settings,
-    set_window_corner_radius, set_window_position, toggle_overlay_window,
+    open_settings_window_command, set_window_corner_radius, set_window_position,
+    toggle_overlay_window,
 };
 
 // LLM Command Handlers
@@ -269,6 +270,7 @@ fn main() {
             set_window_position,
             get_window_position,
             open_llm_settings,
+            open_settings_window_command,
             // Weekly dashboard commands
             get_week_data,
             // LLM commands

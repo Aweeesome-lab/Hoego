@@ -100,5 +100,5 @@ export async function openEngineFolder(): Promise<void> {
 }
 
 export async function openSettingsWindow(): Promise<void> {
-  return await invoke('open_settings_window');
+  return await invoke('open_settings_window_command');
 }

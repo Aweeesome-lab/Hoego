@@ -286,3 +286,8 @@ pub fn get_window_position(app: AppHandle) -> Result<Option<WindowPositionPayloa
 pub fn open_llm_settings(app: AppHandle) -> Result<(), String> {
     open_settings_window(&app)
 }
+
+#[tauri::command]
+pub fn open_settings_window_command(app: AppHandle) -> Result<(), String> {
+    open_settings_window(&app)
+}

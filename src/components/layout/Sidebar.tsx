@@ -302,7 +302,7 @@ export const Sidebar = React.memo(function Sidebar({
           }`}
         >
           <Settings className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-xs font-medium">Settings</span>
+          <span className="text-xs font-medium">설정</span>
         </button>
       </div>
     </div>
