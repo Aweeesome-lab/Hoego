@@ -67,7 +67,7 @@ export const DumpPanel = React.memo(function DumpPanel({
       <div className="flex-1 overflow-hidden px-3.5 py-2.5">
         <div
           ref={markdownRef}
-          className="h-full w-full overflow-y-auto"
+          className="h-full w-full overflow-y-auto overflow-x-hidden"
           onMouseDown={(e) => e.stopPropagation()}
           style={{ pointerEvents: 'auto' }}
           role="article"

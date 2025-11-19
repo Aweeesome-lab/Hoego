@@ -152,13 +152,26 @@ pub async fn generate_ai_feedback_stream(
 
     // 🔒 개인정보 마스킹 처리 (AI 전송 전)
     let masked_content = pii_masker::mask_pii(&today_content, false);
+    let pii_detected = today_content != masked_content;
 
     eprintln!("[PII Masking] Original length: {} chars", today_content.len());
     eprintln!("[PII Masking] Masked length: {} chars", masked_content.len());
-    if today_content != masked_content {
+    if pii_detected {
         eprintln!("[PII Masking] ⚠️ PII detected and masked");
     } else {
         eprintln!("[PII Masking] ✅ No PII detected");
+    }
+
+    // 마스킹 통계를 프론트엔드로 전송 (개발 모드 검증용)
+    if let Err(e) = app.emit_all(
+        "ai_feedback_masking_stats",
+        serde_json::json!({
+            "originalLength": today_content.len(),
+            "maskedLength": masked_content.len(),
+            "piiDetected": pii_detected,
+        }),
+    ) {
+        eprintln!("[PII Masking] Failed to emit masking stats: {}", e);
     }
 
     // 프롬프트 구성 (business journal coach) - 마스킹된 내용 사용

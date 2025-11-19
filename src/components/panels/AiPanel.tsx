@@ -84,8 +84,8 @@ export const AiPanel = React.memo(function AiPanel({
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-3.5 py-3">
-        <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-3">
+        <div className="space-y-4 max-w-full">
           {isPipelineRunning ? (
             <Response isDarkMode={isDarkMode}>
               {streamingAiText ? (

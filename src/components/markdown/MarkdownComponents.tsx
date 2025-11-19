@@ -55,7 +55,7 @@ export function useMarkdownComponents({
       ul: ({ children, ...props }) => (
         <ul
           {...props}
-          className="mb-1.5 ml-4 list-disc space-y-0.5 text-[13px] leading-5"
+          className="mb-1.5 ml-4 list-disc space-y-0.5 text-[13px] leading-5 break-words"
         >
           {children}
         </ul>
@@ -63,7 +63,7 @@ export function useMarkdownComponents({
       ol: ({ children, ...props }) => (
         <ol
           {...props}
-          className="mb-1.5 ml-4 list-decimal space-y-0.5 text-[13px] leading-5"
+          className="mb-1.5 ml-4 list-decimal space-y-0.5 text-[13px] leading-5 break-words"
         >
           {children}
         </ol>
@@ -74,7 +74,7 @@ export function useMarkdownComponents({
           return (
             <li
               {...props}
-              className="flex items-start gap-2 leading-5 text-[13px]"
+              className="flex items-start gap-2 leading-5 text-[13px] break-words"
               style={{ listStyle: 'none' }}
               onMouseDown={(e) => e.stopPropagation()}
             >
@@ -103,18 +103,18 @@ export function useMarkdownComponents({
                   />
                 </Checkbox.Indicator>
               </Checkbox.Root>
-              <div className="flex-1 select-text">{children}</div>
+              <div className="flex-1 select-text break-words">{children}</div>
             </li>
           );
         }
         return (
-          <li {...props} className="leading-5 text-[13px]">
+          <li {...props} className="leading-5 text-[13px] break-words">
             {children}
           </li>
         );
       },
       p: ({ children, ...props }) => (
-        <p {...props} className="mb-1.5 text-[13px] leading-5">
+        <p {...props} className="mb-1.5 text-[13px] leading-5 break-words">
           {children}
         </p>
       ),
@@ -124,7 +124,7 @@ export function useMarkdownComponents({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sky-500 underline decoration-sky-500/50 underline-offset-2 hover:text-sky-400"
+          className="text-sky-500 underline decoration-sky-500/50 underline-offset-2 hover:text-sky-400 break-all"
         >
           {children}
         </a>
@@ -136,7 +136,7 @@ export function useMarkdownComponents({
           return (
             <code
               {...props}
-              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-[11px] ${
+              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-[11px] break-words ${
                 isDarkMode ? 'bg-slate-50/10 text-slate-100' : ''
               }`}
             >
@@ -147,11 +147,11 @@ export function useMarkdownComponents({
         const language = className || '';
         return (
           <pre
-            className={`my-3 overflow-x-auto rounded-md bg-slate-900/80 p-3 text-xs text-slate-100 ${
+            className={`my-3 overflow-x-auto rounded-md bg-slate-900/80 p-3 text-xs text-slate-100 max-w-full ${
               !isDarkMode ? 'bg-slate-900/90' : ''
             }`}
           >
-            <code className={language} {...props}>
+            <code className={`${language} break-words whitespace-pre-wrap`} {...props}>
               {children}
             </code>
           </pre>
@@ -160,7 +160,7 @@ export function useMarkdownComponents({
       blockquote: ({ children, ...props }) => (
         <blockquote
           {...props}
-          className={`my-3 border-l-2 pl-3 ${
+          className={`my-3 border-l-2 pl-3 break-words ${
             isDarkMode
               ? 'border-slate-500 text-slate-200'
               : 'border-slate-300 text-slate-700'
@@ -170,10 +170,10 @@ export function useMarkdownComponents({
         </blockquote>
       ),
       table: ({ children, ...props }) => (
-        <div className="my-3 overflow-x-auto">
+        <div className="my-3 overflow-x-auto max-w-full">
           <table
             {...props}
-            className={`w-full border-collapse text-[13px] leading-5 ${
+            className={`w-full border-collapse text-[13px] leading-5 break-words ${
               isDarkMode ? 'text-slate-200' : 'text-slate-800'
             }`}
           >
@@ -193,7 +193,7 @@ export function useMarkdownComponents({
       th: ({ children, ...props }) => (
         <th
           {...props}
-          className="border border-slate-200/30 px-3 py-2 text-left text-[13px] font-semibold"
+          className="border border-slate-200/30 px-3 py-2 text-left text-[13px] font-semibold break-words"
         >
           {children}
         </th>
@@ -201,7 +201,7 @@ export function useMarkdownComponents({
       td: ({ children, ...props }) => (
         <td
           {...props}
-          className="border border-slate-200/30 px-3 py-2 align-top text-[13px]"
+          className="border border-slate-200/30 px-3 py-2 align-top text-[13px] break-words"
         >
           {children}
         </td>

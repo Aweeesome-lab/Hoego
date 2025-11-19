@@ -32,7 +32,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
         }`}
       >
         {retrospectViewMode !== 'preview' && (
-          <div className="h-full w-full overflow-y-auto">
+          <div className="h-full w-full overflow-y-auto overflow-x-hidden">
             <textarea
               ref={retrospectRef}
               value={retrospectContent}
@@ -53,7 +53,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
         )}
         {retrospectViewMode !== 'edit' && (
           <div
-            className={`h-full w-full overflow-y-auto rounded-xl border px-4 py-3 text-[13px] ${
+            className={`h-full w-full overflow-y-auto overflow-x-hidden rounded-xl border px-4 py-3 text-[13px] ${
               isDarkMode
                 ? 'border-white/10 bg-[#05070c] text-slate-100'
                 : 'border-slate-200 bg-slate-50 text-slate-900'
