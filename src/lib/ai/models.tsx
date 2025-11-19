@@ -121,16 +121,18 @@ export function ModelsContent() {
         { duration: 5000 }
       );
     });
-    const u4 = listen('ai:model_download_done', async (e: any) => {
-      await refreshInstalled();
-      setInstalling(null);
-      // 진행률 초기화
-      const p = e.payload as { filename: string };
-      setProgress((prev) => {
-        const newProgress = { ...prev };
-        delete newProgress[p.filename];
-        return newProgress;
-      });
+    const u4 = listen('ai:model_download_done', (e: any) => {
+      void (async () => {
+        await refreshInstalled();
+        setInstalling(null);
+        // 진행률 초기화
+        const p = e.payload as { filename: string };
+        setProgress((prev) => {
+          const newProgress = { ...prev };
+          delete newProgress[p.filename];
+          return newProgress;
+        });
+      })();
     });
 
     // 엔진 설치 이벤트
@@ -152,17 +154,19 @@ export function ModelsContent() {
         { duration: 5000 }
       );
     });
-    const u8 = listen('ai:engine_install_done', async () => {
-      await refreshInstalled();
-      // 엔진 설치 완료 시 toast 표시 (모델 다운로드 중이면 자동으로 계속 진행)
-      if (!installing) {
-        setInstallingEngine(false);
-        setEngineProgress(null);
-        toast.success(
-          '✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다.',
-          { duration: 4000 }
-        );
-      }
+    const u8 = listen('ai:engine_install_done', () => {
+      void (async () => {
+        await refreshInstalled();
+        // 엔진 설치 완료 시 toast 표시 (모델 다운로드 중이면 자동으로 계속 진행)
+        if (!installing) {
+          setInstallingEngine(false);
+          setEngineProgress(null);
+          toast.success(
+            '✅ llama.cpp 엔진 설치 완료!\n\n이제 모델을 다운로드하고 서버를 시작할 수 있습니다.',
+            { duration: 4000 }
+          );
+        }
+      })();
     });
 
     // AI 요약 이벤트
@@ -221,13 +225,15 @@ export function ModelsContent() {
           {running && (
             <div className="mt-3 pt-3 border-t border-white/5">
               <button
-                onClick={async () => {
-                  try {
-                    await aiLlamaStopServer();
-                  } catch (_e) {
-                    // Ignore stop errors
-                  }
-                  await handleCheck();
+                onClick={() => {
+                  void (async () => {
+                    try {
+                      await aiLlamaStopServer();
+                    } catch (_e) {
+                      // Ignore stop errors
+                    }
+                    await handleCheck();
+                  })();
                 }}
                 className="w-full rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300 hover:bg-red-500/20 transition-all"
               >

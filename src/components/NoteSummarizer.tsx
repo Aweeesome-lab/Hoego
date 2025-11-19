@@ -209,13 +209,15 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
                     모델을 다운로드하여 요약 기능을 사용하세요
                   </p>
                   <button
-                    onClick={async () => {
-                      try {
-                        await invoke('open_llm_settings');
-                        handleClose();
-                      } catch (err) {
-                        console.error('Failed to open settings:', err);
-                      }
+                    onClick={() => {
+                      void (async () => {
+                        try {
+                          await invoke('open_llm_settings');
+                          handleClose();
+                        } catch (err) {
+                          console.error('Failed to open settings:', err);
+                        }
+                      })();
                     }}
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-medium transition ${
                       isDarkMode

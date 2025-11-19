@@ -142,12 +142,14 @@ export function useAiPipeline(targetDate?: string | null) {
         filename: string;
         path: string;
         createdAt?: string;
-      }>('ai_feedback_stream_complete', async () => {
-        cleanup();
-        await loadAiSummaries();
-        setSelectedSummaryIndex(0);
-        setPipelineStage('done');
-        setIsPipelineRunning(false);
+      }>('ai_feedback_stream_complete', () => {
+        void (async () => {
+          cleanup();
+          await loadAiSummaries();
+          setSelectedSummaryIndex(0);
+          setPipelineStage('done');
+          setIsPipelineRunning(false);
+        })();
       });
       unsubs.push(unComplete);
 
@@ -249,7 +251,7 @@ export function useAiPipeline(targetDate?: string | null) {
    * Auto-load summaries when targetDate changes
    */
   useEffect(() => {
-    loadAiSummaries();
+    void loadAiSummaries();
   }, [loadAiSummaries]);
 
   return {

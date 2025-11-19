@@ -117,7 +117,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
       provider: option.provider,
       displayName: option.displayName,
     };
-    setSelectedModel(newSelection);
+    void setSelectedModel(newSelection);
     setSelectedModelState(newSelection);
     setShowModelPicker(false);
   };

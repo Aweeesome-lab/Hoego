@@ -152,7 +152,7 @@ export async function autoSelectModel(): Promise<SelectedModel> {
       provider: firstAvailable.provider,
       displayName: firstAvailable.displayName,
     };
-    setSelectedModel(newSelection);
+    void setSelectedModel(newSelection);
     return newSelection;
   }
 

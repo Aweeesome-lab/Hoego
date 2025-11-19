@@ -275,39 +275,41 @@ export function Header({
         >
           <button
             type="button"
-            onClick={async () => {
-              // 편집 종료: 현재 줄에 타임스탬프 부착 후 저장/종료
-              let contentToSave = editingContent;
-              const el = editorRef.current;
-              if (el) {
-                const start = el.selectionStart;
-                const end = el.selectionEnd;
-                const before = editingContent.slice(0, start);
-                const after = editingContent.slice(end);
-                const lineStart = before.lastIndexOf('\n') + 1;
-                const currentLine = before.slice(lineStart);
-                const stampedLine = appendTimestampToLine(currentLine);
-                const newContent =
-                  editingContent.slice(0, lineStart) + stampedLine + after;
-                if (newContent !== editingContent) {
-                  setEditingContent(newContent);
-                  contentToSave = newContent;
+            onClick={() => {
+              void (async () => {
+                // 편집 종료: 현재 줄에 타임스탬프 부착 후 저장/종료
+                let contentToSave = editingContent;
+                const el = editorRef.current;
+                if (el) {
+                  const start = el.selectionStart;
+                  const end = el.selectionEnd;
+                  const before = editingContent.slice(0, start);
+                  const after = editingContent.slice(end);
+                  const lineStart = before.lastIndexOf('\n') + 1;
+                  const currentLine = before.slice(lineStart);
+                  const stampedLine = appendTimestampToLine(currentLine);
+                  const newContent =
+                    editingContent.slice(0, lineStart) + stampedLine + after;
+                  if (newContent !== editingContent) {
+                    setEditingContent(newContent);
+                    contentToSave = newContent;
+                  }
                 }
-              }
-              try {
-                setIsSaving(true);
-                if (contentToSave !== lastSavedRef.current) {
-                  await saveTodayMarkdown(contentToSave);
-                  lastSavedRef.current = contentToSave;
+                try {
+                  setIsSaving(true);
+                  if (contentToSave !== lastSavedRef.current) {
+                    await saveTodayMarkdown(contentToSave);
+                    lastSavedRef.current = contentToSave;
+                  }
+                  await loadMarkdown();
+                } catch (error) {
+                  if (import.meta.env.DEV)
+                    console.error('[hoego] 저장 실패:', error);
+                } finally {
+                  setIsSaving(false);
+                  setIsEditing(false);
                 }
-                await loadMarkdown();
-              } catch (error) {
-                if (import.meta.env.DEV)
-                  console.error('[hoego] 저장 실패:', error);
-              } finally {
-                setIsSaving(false);
-                setIsEditing(false);
-              }
+              })();
             }}
             className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
               isDarkMode
