@@ -8,6 +8,8 @@ import {
   RotateCcw,
   Brain,
   NotebookPen,
+  PanelLeftOpen,
+  PanelLeftClose,
 } from 'lucide-react';
 import React from 'react';
 
@@ -158,6 +160,16 @@ interface HeaderProps {
    * 다크모드 활성화 여부 (계산된 값)
    */
   isDarkMode: boolean;
+
+  /**
+   * 사이드바 열림 상태
+   */
+  isSidebarOpen: boolean;
+
+  /**
+   * 사이드바 토글 함수
+   */
+  toggleSidebar: () => void;
 }
 
 export function Header({
@@ -187,6 +199,8 @@ export function Header({
   themeMode,
   toggleTheme,
   isDarkMode,
+  isSidebarOpen,
+  toggleSidebar,
 }: HeaderProps) {
   return (
     <div
@@ -196,6 +210,24 @@ export function Header({
           : 'border-slate-200/50 bg-slate-50/90'
       }`}
     >
+      {/* Sidebar Toggle Button */}
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all ${
+          isDarkMode
+            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300 hover:bg-slate-800/80'
+            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+        }`}
+        aria-label={isSidebarOpen ? '사이드바 닫기' : '사이드바 열기'}
+      >
+        {isSidebarOpen ? (
+          <PanelLeftClose className="h-3.5 w-3.5" />
+        ) : (
+          <PanelLeftOpen className="h-3.5 w-3.5" />
+        )}
+      </button>
+
       <button
         type="button"
         className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${

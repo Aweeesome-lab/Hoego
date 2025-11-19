@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/tauri';
-import { Settings } from 'lucide-react';
 import React from 'react';
 
 interface FooterProps {
@@ -9,33 +7,12 @@ interface FooterProps {
 export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
   return (
     <div
-      className={`relative z-50 flex h-12 shrink-0 items-center justify-between border-t px-4 ${
+      className={`relative z-50 flex h-12 shrink-0 items-center justify-end border-t px-4 ${
         isDarkMode
           ? 'border-white/10 bg-[#12151d]/90'
           : 'border-slate-200/50 bg-slate-50/90'
       }`}
     >
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          className={`flex items-center gap-2 text-xs transition ${
-            isDarkMode
-              ? 'text-slate-400 hover:text-slate-200'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={async () => {
-            try {
-              await invoke('open_llm_settings');
-            } catch (err) {
-              console.error('Failed to open LLM settings:', err);
-            }
-          }}
-        >
-          <Settings className="h-4 w-4" />
-          <span>AI 설정</span>
-        </button>
-      </div>
       <div
         className={`flex items-center gap-4 text-[11px] uppercase tracking-[0.25em] ${
           isDarkMode ? 'text-slate-500' : 'text-slate-400'

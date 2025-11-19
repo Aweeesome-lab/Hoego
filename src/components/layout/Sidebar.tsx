@@ -1,4 +1,4 @@
-import { Calendar, ChevronDown, ChevronRight, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronRight, Settings } from 'lucide-react';
 import React from 'react';
 
 import type { HistoryFileInfo } from '@/types/tauri-commands';
@@ -122,50 +122,28 @@ export const Sidebar = React.memo(function Sidebar({
   };
 
   if (!isOpen) {
-    return (
-      <>
-        <div
-          className={`fixed left-0 top-0 h-full w-12 z-40 ${
-            isDarkMode ? 'bg-slate-900/98' : 'bg-white/98'
-          } border-r border-slate-200/60 dark:border-slate-700/60`}
-        />
-        {/* 고정 위치 토글 버튼 */}
-        <button
-          type="button"
-          onClick={onToggle}
-          className={`fixed left-2 top-3 z-50 p-1.5 rounded-md transition-all duration-200 ${
-            isDarkMode
-              ? 'hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
-              : 'hover:bg-slate-100/80 text-slate-500 hover:text-slate-700'
-          }`}
-          aria-label="사이드바 열기"
-        >
-          <PanelLeftOpen className="h-4 w-4" />
-        </button>
-      </>
-    );
+    return null;
   }
 
   return (
-    <>
-      <div
-        className={`fixed left-0 top-0 h-full w-56 z-40 flex flex-col ${
-          isDarkMode ? 'bg-slate-900/98' : 'bg-white/98'
-        } border-r border-slate-200/60 dark:border-slate-700/60`}
-      >
-        {/* 헤더 */}
-        <div className="flex items-center gap-2 px-3 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
-          <div
-            className={`w-6 h-6 rounded-md flex items-center justify-center ${
-              isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
-            }`}
-          >
-            <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>H</span>
-          </div>
-          <span className={`text-xs font-medium tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-            Hoego
-          </span>
+    <div
+      className={`fixed left-0 top-0 h-full w-56 z-40 flex flex-col ${
+        isDarkMode ? 'bg-slate-900/98' : 'bg-white/98'
+      } border-r border-slate-200/60 dark:border-slate-700/60`}
+    >
+      {/* 헤더 */}
+      <div className="flex items-center gap-2 px-3 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
+        <div
+          className={`w-6 h-6 rounded-md flex items-center justify-center ${
+            isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
+          }`}
+        >
+          <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>H</span>
         </div>
+        <span className={`text-xs font-medium tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+          Hoego
+        </span>
+      </div>
 
       {/* 메뉴 섹션 */}
       <div className="flex-1 overflow-y-auto py-2">
@@ -298,19 +276,5 @@ export const Sidebar = React.memo(function Sidebar({
         </button>
       </div>
     </div>
-    {/* 고정 위치 토글 버튼 */}
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`fixed left-2 top-3 z-50 p-1.5 rounded-md transition-all duration-200 ${
-        isDarkMode
-          ? 'hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
-          : 'hover:bg-slate-100/80 text-slate-500 hover:text-slate-700'
-      }`}
-      aria-label="사이드바 닫기"
-    >
-      <PanelLeftClose className="h-4 w-4" />
-    </button>
-  </>
   );
 });

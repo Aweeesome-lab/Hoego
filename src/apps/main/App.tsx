@@ -501,7 +501,7 @@ export default function App() {
       {/* Main content */}
       <div
         className={`flex-1 flex flex-col overflow-hidden ${
-          isSidebarOpen ? 'ml-56' : 'ml-12'
+          isSidebarOpen ? 'ml-56' : 'ml-0'
         } transition-all duration-200`}
       >
         <Header
@@ -531,6 +531,8 @@ export default function App() {
         themeMode={themeMode}
         toggleTheme={toggleTheme}
         isDarkMode={isDarkMode}
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
       />
 
       <div
