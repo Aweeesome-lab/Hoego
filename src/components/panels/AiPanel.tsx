@@ -69,7 +69,7 @@ export const AiPanel = React.memo(function AiPanel({
           <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
             정리하기(feedback)
           </span>
-          {/* PII 마스킹 배지 (개발 모드 전용) */}
+          {/* 개인정보 보호 배지 (개발 모드 전용) */}
           {import.meta.env.DEV && piiMaskingStats && (
             <div
               className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium ${
@@ -81,11 +81,11 @@ export const AiPanel = React.memo(function AiPanel({
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                     : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
               }`}
-              title={`PII ${piiMaskingStats.piiDetected ? '감지됨' : '없음'} | 원본: ${piiMaskingStats.originalLength}자 → 마스킹: ${piiMaskingStats.maskedLength}자`}
+              title={`개인정보 ${piiMaskingStats.piiDetected ? '감지 및 보호됨' : '없음'} | 원본: ${piiMaskingStats.originalLength}자 → 보호 처리: ${piiMaskingStats.maskedLength}자`}
             >
               <Shield className="h-2.5 w-2.5" />
               <span>
-                {piiMaskingStats.piiDetected ? 'PII 마스킹됨' : 'PII 없음'}
+                {piiMaskingStats.piiDetected ? '개인정보 보호됨' : '개인정보 없음'}
               </span>
             </div>
           )}
