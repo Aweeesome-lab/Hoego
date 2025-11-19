@@ -118,10 +118,32 @@ pub async fn generate_ai_feedback_stream(
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
     cloud_llm_state: State<'_, llm::CloudLLMState>,
     model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
+    target_date: Option<String>, // Optional target date in YYYY-MM-DD format
 ) -> Result<(), String> {
-    let now = current_local_time()?;
-    let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
-    let today_content = fs::read_to_string(&today_path).unwrap_or_default();
+    // Determine the target date
+    let target_time = if let Some(date_str) = target_date {
+        // Parse the provided date (YYYY-MM-DD format)
+        let date_format = time::format_description::parse("[year]-[month]-[day]")
+            .map_err(|e| format!("날짜 형식 파싱 실패: {}", e))?;
+
+        let date = time::Date::parse(&date_str, &date_format)
+            .map_err(|e| format!("날짜 파싱 실패 ({}): {}", date_str, e))?;
+
+        // Convert to OffsetDateTime with current local time zone
+        let current_offset = OffsetDateTime::now_local()
+            .map_err(|e| format!("로컬 시간 오프셋 가져오기 실패: {}", e))?
+            .offset();
+
+        date.with_hms(12, 0, 0)
+            .map_err(|e| format!("시간 설정 실패: {}", e))?
+            .assume_offset(current_offset)
+    } else {
+        // Use today's date
+        current_local_time()?
+    };
+
+    let (target_path, _) = ensure_daily_file(history.inner(), &target_time)?;
+    let today_content = fs::read_to_string(&target_path).unwrap_or_default();
 
     if today_content.trim().is_empty() {
         return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
@@ -259,7 +281,7 @@ pub async fn generate_ai_feedback_stream(
             let processing_time_ms = start_time.elapsed().as_millis() as u64;
             let markdown = format!(
                 "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms*",
-                format_date_label(&now),
+                format_date_label(&target_time),
                 if full_text.trim().is_empty() {
                     "(생성된 요약이 비어 있습니다)".to_string()
                 } else {
@@ -269,7 +291,7 @@ pub async fn generate_ai_feedback_stream(
                 processing_time_ms
             );
 
-            match write_ai_summary_file(&now, &markdown) {
+            match write_ai_summary_file(&target_time, &markdown) {
                 Ok(saved) => {
                     let _ = app.emit_all(
                         "ai_feedback_stream_complete",
@@ -302,13 +324,27 @@ pub async fn generate_ai_feedback_stream(
 }
 
 #[tauri::command]
-pub fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, String> {
+pub fn list_ai_summaries(limit: Option<usize>, target_date: Option<String>) -> Result<Vec<AiSummaryFile>, String> {
     let dir = summaries_directory_path()?;
     ensure_summaries_dir(&dir)?;
 
-    // Get today's date in YYYYMMDD format
-    let today = current_local_time()?;
-    let today_date_key = format_date_key(&today)?;
+    // Determine which date to filter for
+    let date_key = if let Some(date_str) = target_date {
+        // Parse YYYY-MM-DD format and convert to YYYYMMDD
+        let date_format = time::format_description::parse("[year]-[month]-[day]")
+            .map_err(|e| format!("날짜 형식 파싱 실패: {}", e))?;
+
+        let date = time::Date::parse(&date_str, &date_format)
+            .map_err(|e| format!("날짜 파싱 실패 ({}): {}", date_str, e))?;
+
+        // Convert to YYYYMMDD format
+        date.format(&time::macros::format_description!("[year][month][day]"))
+            .map_err(|e| format!("날짜 포맷 실패: {}", e))?
+    } else {
+        // Use today's date
+        let today = current_local_time()?;
+        format_date_key(&today)?
+    };
 
     let mut summaries: Vec<(OffsetDateTime, AiSummaryFile)> = fs::read_dir(&dir)
         .map_err(|error| error.to_string())?
@@ -320,8 +356,8 @@ pub fn list_ai_summaries(limit: Option<usize>) -> Result<Vec<AiSummaryFile>, Str
                 }
                 let filename = entry.file_name().to_string_lossy().into_owned();
 
-                // Filter for today's summaries only (ai-feedback-YYYYMMDD*.md pattern)
-                if !filename.starts_with(&format!("ai-feedback-{today_date_key}")) {
+                // Filter for the specified date's summaries (ai-feedback-YYYYMMDD*.md pattern)
+                if !filename.starts_with(&format!("ai-feedback-{date_key}")) {
                     return None;
                 }
 

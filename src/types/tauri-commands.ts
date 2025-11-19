@@ -137,6 +137,7 @@ export interface PromptConfig {
 
 export interface AiSummaryPayload {
   content: string;
+  targetDate?: string; // Optional target date (YYYY-MM-DD format) - defaults to today
   options?: {
     style?: string;
     maxTokens?: number;
@@ -259,9 +260,9 @@ export type TauriCommands = {
   llm_reset_prompt_config: () => Promise<void>;
 
   // AI summary commands
-  generate_ai_feedback: (payload: AiSummaryPayload) => Promise<string>;
-  generate_ai_feedback_stream: (payload: AiSummaryPayload) => Promise<void>;
-  list_ai_summaries: (limit?: number) => Promise<AiSummaryInfo[]>;
+  generate_ai_feedback: (targetDate?: string) => Promise<string>;
+  generate_ai_feedback_stream: (targetDate?: string) => Promise<void>;
+  list_ai_summaries: (limit?: number, targetDate?: string) => Promise<AiSummaryInfo[]>;
 
   // Weekly dashboard commands
   get_week_data: (payload: GetWeekDataPayload) => Promise<WeekData>;

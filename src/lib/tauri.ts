@@ -113,6 +113,16 @@ export const getTodayMarkdown = async (): Promise<TodayMarkdown> => {
   return tauriInvoke<TodayMarkdown>('get_today_markdown');
 };
 
+export const getHistoryMarkdown = async (filePath: string): Promise<string> => {
+  try {
+    return await tauriInvoke<string>('get_history_markdown', { filePath });
+  } catch (error) {
+    if (import.meta.env.DEV)
+      console.error('[hoego] getHistoryMarkdown 실패:', error);
+    throw error;
+  }
+};
+
 export const saveTodayMarkdown = async (content: string): Promise<void> => {
   try {
     await tauriInvoke<void>('save_today_markdown', { content });
@@ -144,21 +154,29 @@ export const appendHistoryEntry = async (
 };
 
 export const listAiSummaries = async (
-  limit = DEFAULT_AI_SUMMARY_LIMIT
+  limit = DEFAULT_AI_SUMMARY_LIMIT,
+  targetDate?: string
 ): Promise<AiSummaryEntry[]> => {
-  return tauriInvoke<AiSummaryEntry[]>('list_ai_summaries', { limit });
+  return tauriInvoke<AiSummaryEntry[]>('list_ai_summaries', {
+    limit,
+    targetDate: targetDate ?? null,
+  });
 };
 
 export const createAiSummaryDraft = async (): Promise<AiSummaryEntry> => {
   return tauriInvoke<AiSummaryEntry>('create_ai_summary_draft');
 };
 
-export const generateAiFeedback = async (): Promise<AiSummaryEntry> => {
-  return tauriInvoke<AiSummaryEntry>('generate_ai_feedback');
+export const generateAiFeedback = async (
+  targetDate?: string
+): Promise<AiSummaryEntry> => {
+  return tauriInvoke<AiSummaryEntry>('generate_ai_feedback', { targetDate });
 };
 
-export const generateAiFeedbackStream = async (): Promise<void> => {
-  return tauriInvoke<void>('generate_ai_feedback_stream');
+export const generateAiFeedbackStream = async (
+  targetDate?: string
+): Promise<void> => {
+  return tauriInvoke<void>('generate_ai_feedback_stream', { targetDate });
 };
 
 export const onHistoryUpdated = async (

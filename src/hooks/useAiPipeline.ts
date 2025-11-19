@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 
 import { generateAiFeedbackStream, listAiSummaries } from '@/lib/tauri';
@@ -7,14 +7,28 @@ import { useAppStore } from '@/store';
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
 
 /**
+ * 날짜 형식 변환: YYYYMMDD -> YYYY-MM-DD
+ * @param date - YYYYMMDD 형식의 날짜 문자열
+ * @returns YYYY-MM-DD 형식의 날짜 문자열
+ */
+function formatDateForBackend(date: string): string {
+  if (date.length === 8) {
+    return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+  }
+  return date;
+}
+
+/**
  * Unified AI Pipeline Hook
  * Combines categorization and feedback generation into a single sequential pipeline
  *
  * Pipeline Flow:
  * 1. Stage: Categorizing - AI categorizes the dump content
  * 2. Stage: Generating Feedback - AI generates feedback (streaming) based on categorized content
+ *
+ * @param targetDate - Optional target date (YYYYMMDD or YYYY-MM-DD) for which to generate feedback. Defaults to today.
  */
-export function useAiPipeline() {
+export function useAiPipeline(targetDate?: string | null) {
   // Zustand store selectors
   const aiSummaries = useAppStore((state) => state.aiSummaries);
   const selectedSummaryIndex = useAppStore(
@@ -49,7 +63,9 @@ export function useAiPipeline() {
   const loadAiSummaries = useCallback(async () => {
     try {
       setSummariesError(null);
-      const summaries = await listAiSummaries(DEFAULT_AI_SUMMARY_LIMIT);
+      // Convert date format from YYYYMMDD to YYYY-MM-DD if needed
+      const formattedDate = targetDate ? formatDateForBackend(targetDate) : undefined;
+      const summaries = await listAiSummaries(DEFAULT_AI_SUMMARY_LIMIT, formattedDate);
       setAiSummaries(summaries);
       const currentIndex = useAppStore.getState().selectedSummaryIndex;
       if (!summaries.length) {
@@ -64,7 +80,7 @@ export function useAiPipeline() {
       setAiSummaries([]);
       setSelectedSummaryIndex(0);
     }
-  }, [setAiSummaries, setSelectedSummaryIndex, setSummariesError]);
+  }, [targetDate, setAiSummaries, setSelectedSummaryIndex, setSummariesError]);
 
   /**
    * Generate AI feedback (streaming)
@@ -140,7 +156,11 @@ export function useAiPipeline() {
       );
       unsubs.push(unError);
 
-      await generateAiFeedbackStream();
+      // Convert date format from YYYYMMDD to YYYY-MM-DD if needed
+      const formattedDate = targetDate ? formatDateForBackend(targetDate) : undefined;
+
+      // Pass targetDate to the backend (undefined means today)
+      await generateAiFeedbackStream(formattedDate);
     } catch (error) {
       if (import.meta.env.DEV)
         console.error('[hoego] AI 피드백 스트리밍 시작 실패', error);
@@ -155,6 +175,7 @@ export function useAiPipeline() {
       throw error;
     }
   }, [
+    targetDate,
     loadAiSummaries,
     setSelectedSummaryIndex,
     setPipelineStage,
@@ -214,6 +235,13 @@ export function useAiPipeline() {
     },
     []
   );
+
+  /**
+   * Auto-load summaries when targetDate changes
+   */
+  useEffect(() => {
+    loadAiSummaries();
+  }, [loadAiSummaries]);
 
   return {
     // State
