@@ -97,7 +97,7 @@ export default function App() {
     streamingCleanupRef,
     loadAiSummaries,
     handleRunPipeline,
-  } = useAiPipeline();
+  } = useAiPipeline(currentHistoryDate);
 
   const {
     retrospectContent,
@@ -501,7 +501,7 @@ export default function App() {
       {/* Main content */}
       <div
         className={`flex-1 flex flex-col overflow-hidden ${
-          isSidebarOpen ? 'ml-64' : 'ml-12'
+          isSidebarOpen ? 'ml-56' : 'ml-12'
         } transition-all duration-200`}
       >
         <Header
