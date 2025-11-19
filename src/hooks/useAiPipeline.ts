@@ -51,6 +51,7 @@ export function useAiPipeline(targetDate?: string | null) {
   );
   const setPipelineStage = useAppStore((state) => state.setPipelineStage);
   const setStreamingAiText = useAppStore((state) => state.setStreamingAiText);
+  const setPiiMaskingStats = useAppStore((state) => state.setPiiMaskingStats);
 
   // Refs for streaming
   const streamingBufferRef = useRef('');
@@ -164,6 +165,19 @@ export function useAiPipeline(targetDate?: string | null) {
         }
       );
       unsubs.push(unError);
+
+      // PII 마스킹 통계 이벤트 리스너
+      const unMaskingStats = await listen<{
+        originalLength: number;
+        maskedLength: number;
+        piiDetected: boolean;
+      }>('ai_feedback_masking_stats', (e) => {
+        if (import.meta.env.DEV) {
+          console.log('[PII Masking Stats]', e.payload);
+        }
+        setPiiMaskingStats(e.payload);
+      });
+      unsubs.push(unMaskingStats);
 
       // Convert date format from YYYYMMDD to YYYY-MM-DD if needed
       const formattedDate = targetDate

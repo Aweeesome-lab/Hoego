@@ -147,6 +147,15 @@ interface AiSlice {
   isAiPanelExpanded: boolean;
 
   /**
+   * PII 마스킹 통계 (개발 모드 검증용)
+   */
+  piiMaskingStats: {
+    originalLength: number;
+    maskedLength: number;
+    piiDetected: boolean;
+  } | null;
+
+  /**
    * AI 요약 목록 설정
    * @param summaries - AI 요약 배열
    */
@@ -189,6 +198,16 @@ interface AiSlice {
   setIsAiPanelExpanded: (
     isExpanded: boolean | ((prev: boolean) => boolean)
   ) => void;
+
+  /**
+   * PII 마스킹 통계 설정
+   * @param stats - 마스킹 통계 또는 null
+   */
+  setPiiMaskingStats: (stats: {
+    originalLength: number;
+    maskedLength: number;
+    piiDetected: boolean;
+  } | null) => void;
 }
 
 /**
@@ -473,6 +492,7 @@ export const useAppStore = create<AppStore>()(
       pipelineStage: 'idle',
       streamingAiText: '',
       isAiPanelExpanded: false,
+      piiMaskingStats: null,
       setAiSummaries: (summaries) => set({ aiSummaries: summaries }),
       setSelectedSummaryIndex: (index) => set({ selectedSummaryIndex: index }),
       setSummariesError: (error) => set({ summariesError: error }),
@@ -487,6 +507,7 @@ export const useAppStore = create<AppStore>()(
               ? isExpanded(state.isAiPanelExpanded)
               : isExpanded,
         })),
+      setPiiMaskingStats: (stats) => set({ piiMaskingStats: stats }),
 
       // Retrospect Slice
       retrospectContent: '',
