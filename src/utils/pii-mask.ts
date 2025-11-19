@@ -15,7 +15,8 @@ const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
  * 전화번호 마스킹 패턴 (한국)
  * 010-1234-5678, 02-123-4567, (02)123-4567, 01012345678 → [PHONE]
  */
-const PHONE_REGEX = /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}|\(\d{2,3}\)\s?\d{3,4}[-\s]?\d{4})/g;
+const PHONE_REGEX =
+  /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}|\(\d{2,3}\)\s?\d{3,4}[-\s]?\d{4})/g;
 
 /**
  * 주민등록번호 마스킹 패턴
@@ -59,13 +60,15 @@ const KOREAN_NAME_REGEX = /\b[가-힣]{1,2}\s[가-힣]{2,3}\b/g;
  * API key 마스킹 패턴
  * OpenAI: sk-..., AWS: AKIA..., GitHub: ghp_/gho_..., Generic: api_key_...
  */
-const API_KEY_REGEX = /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/g;
+const API_KEY_REGEX =
+  /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/g;
 
 /**
  * JWT token 마스킹 패턴
  * eyJ... (header.payload.signature)
  */
-const JWT_TOKEN_REGEX = /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
+const JWT_TOKEN_REGEX =
+  /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
 
 /**
  * Bearer token 마스킹 패턴
@@ -117,7 +120,11 @@ export interface MaskOptions {
  * 9. Korean names (optional) - 가장 보수적, false positive 방지를 위해 마지막
  */
 export function maskPII(text: string, options: MaskOptions = {}): string {
-  const { preserveStructure = false, disableNameMasking = false, disablePathMasking = false } = options;
+  const {
+    preserveStructure = false,
+    disableNameMasking = false,
+    disablePathMasking = false,
+  } = options;
 
   let result = text;
 
@@ -127,40 +134,60 @@ export function maskPII(text: string, options: MaskOptions = {}): string {
   };
 
   // 1. Mask API keys - FIRST as most sensitive
-  result = result.replace(API_KEY_REGEX, (match) => createMask('API_KEY', match.length));
+  result = result.replace(API_KEY_REGEX, (match) =>
+    createMask('API_KEY', match.length)
+  );
 
   // 2. Mask JWT tokens
-  result = result.replace(JWT_TOKEN_REGEX, (match) => createMask('JWT', match.length));
+  result = result.replace(JWT_TOKEN_REGEX, (match) =>
+    createMask('JWT', match.length)
+  );
 
   // 3. Mask Bearer tokens
-  result = result.replace(BEARER_TOKEN_REGEX, (match) => createMask('BEARER', match.length));
+  result = result.replace(BEARER_TOKEN_REGEX, (match) =>
+    createMask('BEARER', match.length)
+  );
 
   // 4. Mask Korean SSN (주민등록번호)
-  result = result.replace(SSN_REGEX, (match) => createMask('SSN', match.length));
+  result = result.replace(SSN_REGEX, (match) =>
+    createMask('SSN', match.length)
+  );
 
   // 5. Mask credit card numbers
-  result = result.replace(CARD_REGEX, (match) => createMask('CARD', match.length));
+  result = result.replace(CARD_REGEX, (match) =>
+    createMask('CARD', match.length)
+  );
 
   // 6. Mask phone numbers
-  result = result.replace(PHONE_REGEX, (match) => createMask('PHONE', match.length));
+  result = result.replace(PHONE_REGEX, (match) =>
+    createMask('PHONE', match.length)
+  );
 
   // 7. Mask emails
-  result = result.replace(EMAIL_REGEX, (match) => createMask('EMAIL', match.length));
+  result = result.replace(EMAIL_REGEX, (match) =>
+    createMask('EMAIL', match.length)
+  );
 
   // 8. Mask IP addresses
   result = result.replace(IP_REGEX, (match) => createMask('IP', match.length));
 
   // 9. Mask file paths (optional)
   if (!disablePathMasking) {
-    result = result.replace(PATH_REGEX, (match) => createMask('PATH', match.length));
+    result = result.replace(PATH_REGEX, (match) =>
+      createMask('PATH', match.length)
+    );
   }
 
   // 10. Mask Korean addresses
-  result = result.replace(ADDRESS_REGEX, (match) => createMask('ADDRESS', match.length));
+  result = result.replace(ADDRESS_REGEX, (match) =>
+    createMask('ADDRESS', match.length)
+  );
 
   // 11. Mask Korean names (optional, most conservative - do last to avoid false positives)
   if (!disableNameMasking) {
-    result = result.replace(KOREAN_NAME_REGEX, (match) => createMask('NAME', match.length));
+    result = result.replace(KOREAN_NAME_REGEX, (match) =>
+      createMask('NAME', match.length)
+    );
   }
 
   return result;
@@ -175,15 +202,21 @@ export function maskPII(text: string, options: MaskOptions = {}): string {
 export function containsPII(text: string): boolean {
   // Note: We create new regex instances because test() with global flag maintains state
   return (
-    /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/.test(text) ||
+    /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/.test(
+      text
+    ) ||
     /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/.test(text) ||
     /\bBearer\s+[A-Za-z0-9_\-.]+\b/.test(text) ||
     /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(text) ||
-    /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}|\(\d{2,3}\)\s?\d{3,4}[-\s]?\d{4})/.test(text) ||
+    /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}|\(\d{2,3}\)\s?\d{3,4}[-\s]?\d{4})/.test(
+      text
+    ) ||
     /\b\d{6}[-]?\d{7}\b/.test(text) ||
     /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/.test(text) ||
     /\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(text) ||
-    /[가-힣]+(?:시|도|군|구)\s+[가-힣]+(?:시|군|구|동|읍|면)\s*[\d가-힣\s-]*/.test(text) ||
+    /[가-힣]+(?:시|도|군|구)\s+[가-힣]+(?:시|군|구|동|읍|면)\s*[\d가-힣\s-]*/.test(
+      text
+    ) ||
     /\b[가-힣]{1,2}\s[가-힣]{2,3}\b/.test(text)
   );
 }
@@ -217,7 +250,11 @@ export function maskPIIWithStats(
   const masked = maskPII(text, options);
 
   // Count number of masked items by comparing differences
-  const maskedCount = (masked.match(/\[(API_KEY|JWT|BEARER|EMAIL|PHONE|SSN|CARD|IP|PATH|ADDRESS|NAME)(_\d+)?\]/g) || []).length;
+  const maskedCount = (
+    masked.match(
+      /\[(API_KEY|JWT|BEARER|EMAIL|PHONE|SSN|CARD|IP|PATH|ADDRESS|NAME)(_\d+)?\]/g
+    ) || []
+  ).length;
 
   return {
     masked,
@@ -236,7 +273,11 @@ export function maskPIIWithStats(
  * @param text - 원본 텍스트
  * @param options - 마스킹 옵션
  */
-export function logMaskingComparison(text: string, options: MaskOptions = {}): void {
+/* eslint-disable no-console */
+export function logMaskingComparison(
+  text: string,
+  options: MaskOptions = {}
+): void {
   if (import.meta.env.DEV) {
     const { masked, stats } = maskPIIWithStats(text, options);
 
@@ -257,3 +298,4 @@ export function logMaskingComparison(text: string, options: MaskOptions = {}): v
     console.groupEnd();
   }
 }
+/* eslint-enable no-console */

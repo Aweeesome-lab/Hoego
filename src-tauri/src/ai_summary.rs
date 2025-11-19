@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 use time::format_description::well_known::Rfc3339;
@@ -11,6 +12,33 @@ use crate::history::{HistoryState, ensure_daily_file};
 use crate::llm;
 use crate::pii_masker;
 use crate::utils::*;
+
+/// AI 피드백 스트리밍 취소 상태 관리
+pub struct StreamCancellationState {
+    pub is_cancelled: Arc<AtomicBool>,
+}
+
+impl Default for StreamCancellationState {
+    fn default() -> Self {
+        Self {
+            is_cancelled: Arc::new(AtomicBool::new(false)),
+        }
+    }
+}
+
+impl StreamCancellationState {
+    pub fn reset(&self) {
+        self.is_cancelled.store(false, Ordering::SeqCst);
+    }
+
+    pub fn cancel(&self) {
+        self.is_cancelled.store(true, Ordering::SeqCst);
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.is_cancelled.load(Ordering::SeqCst)
+    }
+}
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -139,8 +167,11 @@ pub async fn generate_ai_feedback_stream(
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
     cloud_llm_state: State<'_, llm::CloudLLMState>,
     model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
+    cancellation_state: State<'_, StreamCancellationState>,
     target_date: Option<String>, // Optional target date in YYYY-MM-DD format
 ) -> Result<(), String> {
+    // 스트리밍 시작 시 취소 플래그 초기화
+    cancellation_state.reset();
     // Determine the target date
     let target_time = if let Some(date_str) = target_date {
         // Parse the provided date (YYYY-MM-DD format)
@@ -213,10 +244,9 @@ pub async fn generate_ai_feedback_stream(
     };
 
     let start_time = std::time::Instant::now();
-    let result: Result<String, String>;
-    let model_used: String;
 
-    if use_cloud_llm {
+    // 모델별 처리 및 결과 반환
+    let (result, model_used) = if use_cloud_llm {
         // Cloud LLM 사용
         eprintln!("[AI Feedback] Using Cloud LLM");
 
@@ -258,12 +288,20 @@ pub async fn generate_ai_feedback_stream(
             // 스트리밍 방식으로 호출
             match provider.stream(request).await {
                 Ok(mut rx) => {
-                    model_used = cloud_model_id.clone();
+                    let model_name = cloud_model_id.clone();
                     let mut full_text = String::new();
                     let emit_handle = app.clone();
+                    let mut cancelled = false;
 
                     // 스트림에서 델타 수신하며 emit
                     while let Some(delta) = rx.recv().await {
+                        // 취소 확인
+                        if cancellation_state.is_cancelled() {
+                            eprintln!("[Cloud LLM Stream] Cancelled by user");
+                            cancelled = true;
+                            break;
+                        }
+
                         full_text.push_str(&delta);
 
                         // 델타를 프론트엔드로 emit
@@ -276,36 +314,52 @@ pub async fn generate_ai_feedback_stream(
                         }
                     }
 
-                    result = Ok(full_text);
+                    // 취소는 에러가 아니라 조기 종료로 처리
+                    if cancelled {
+                        // 취소된 경우 빈 문자열로 처리하고 함수를 조기 반환
+                        return Ok(());
+                    }
+
+                    (Ok(full_text), model_name)
                 }
                 Err(e) => {
-                    model_used = "Cloud LLM (failed)".to_string();
-                    result = Err(format!("Cloud LLM 오류: {}", e));
+                    (
+                        Err(format!("Cloud LLM 오류: {}", e)),
+                        "Cloud LLM (failed)".to_string(),
+                    )
                 }
             }
         } else {
-            model_used = "Cloud LLM (not configured)".to_string();
-            result = Err("Cloud LLM이 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.".to_string());
+            (
+                Err("Cloud LLM이 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.".to_string()),
+                "Cloud LLM (not configured)".to_string(),
+            )
         }
     } else {
         // 로컬 LLM 사용
         let mut engine = llm_state.engine.lock().await;
 
-        model_used = engine
+        let model_name = engine
             .get_model_info()
             .map(|m| m.name)
             .unwrap_or_else(|| "unknown".to_string());
 
         let mut last_emit_ok = true;
         let emit_handle = app.clone();
+        let cancel_check = cancellation_state.clone();
 
         // 스트리밍 호출
-        result = engine
+        let result = engine
             .chat_complete_stream(
                 chat_messages,
                 None,
                 None,
                 |delta| {
+                    // 취소 확인
+                    if cancel_check.is_cancelled() {
+                        return;
+                    }
+
                     if last_emit_ok {
                         if let Err(e) = emit_handle.emit_all(
                             "ai_feedback_stream_delta",
@@ -319,7 +373,15 @@ pub async fn generate_ai_feedback_stream(
             )
             .await
             .map_err(|e| e.to_string());
-    }
+
+        // 스트리밍 완료 후 취소 확인
+        if cancellation_state.is_cancelled() {
+            // 취소된 경우 정상 종료
+            return Ok(());
+        }
+
+        (result, model_name)
+    };
 
     match result {
         Ok(full_text) => {
@@ -375,6 +437,26 @@ pub async fn generate_ai_feedback_stream(
             Err(msg)
         }
     }
+}
+
+/// AI 피드백 스트리밍을 취소합니다
+#[tauri::command]
+pub async fn cancel_ai_feedback_stream(
+    app: AppHandle,
+    cancellation_state: State<'_, StreamCancellationState>,
+) -> Result<(), String> {
+    eprintln!("[AI Feedback] Cancel requested");
+    cancellation_state.cancel();
+
+    // 취소 이벤트를 프론트엔드로 전송
+    if let Err(e) = app.emit_all(
+        "ai_feedback_stream_cancelled",
+        &serde_json::json!({}),
+    ) {
+        eprintln!("[AI Feedback] Failed to emit cancellation event: {}", e);
+    }
+
+    Ok(())
 }
 
 #[tauri::command]

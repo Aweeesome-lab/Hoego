@@ -1,7 +1,7 @@
-/// PII (Personally Identifiable Information) Masking Module
-///
-/// AI 피드백 전송 전에 개인정보를 마스킹 처리합니다.
-/// 이메일, 전화번호, 주민등록번호, 신용카드, IP, 파일 경로 등을 보호합니다.
+//! PII (Personally Identifiable Information) Masking Module
+//!
+//! AI 피드백 전송 전에 개인정보를 마스킹 처리합니다.
+//! 이메일, 전화번호, 주민등록번호, 신용카드, IP, 파일 경로 등을 보호합니다.
 
 use regex::Regex;
 use std::sync::OnceLock;

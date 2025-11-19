@@ -1,6 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use time::OffsetDateTime;
 
 use crate::history::{ensure_daily_file, HistoryState};
@@ -38,7 +38,7 @@ pub fn read_last_n_lines(file_path: &std::path::Path, n: usize) -> Result<Vec<St
     let reader = BufReader::new(file);
     let lines: Vec<String> = reader
         .lines()
-        .filter_map(|line| line.ok())
+        .map_while(Result::ok)
         .collect();
 
     let start_idx = if lines.len() > n {
@@ -51,7 +51,7 @@ pub fn read_last_n_lines(file_path: &std::path::Path, n: usize) -> Result<Vec<St
 }
 
 /// 로그 항목을 파일에 추가합니다
-pub fn append_log_entry(file_path: &PathBuf, content: &str) -> Result<(), String> {
+pub fn append_log_entry(file_path: &Path, content: &str) -> Result<(), String> {
     let now = current_local_time()?;
     let time_label = format_time_with_seconds(&now)?;
 
@@ -71,7 +71,7 @@ pub fn append_log_entry(file_path: &PathBuf, content: &str) -> Result<(), String
 }
 
 /// 세션 헤더를 파일에 추가합니다
-pub fn append_session_header(file_path: &PathBuf, session_title: &str) -> Result<(), String> {
+pub fn append_session_header(file_path: &Path, session_title: &str) -> Result<(), String> {
     let now = current_local_time()?;
     let time_label = format_time_with_seconds(&now)?;
 
@@ -96,7 +96,7 @@ pub fn clear_screen() {
 }
 
 /// 화면 헤더를 출력합니다
-pub fn print_header(file_path: &PathBuf, now: &OffsetDateTime) {
+pub fn print_header(file_path: &Path, now: &OffsetDateTime) {
     let date_label = format_date_label(now);
     let path_str = file_path
         .to_string_lossy()
@@ -111,7 +111,7 @@ pub fn print_header(file_path: &PathBuf, now: &OffsetDateTime) {
 }
 
 /// 최근 로그를 출력합니다
-pub fn print_recent_lines(file_path: &PathBuf, n: usize) -> Result<(), String> {
+pub fn print_recent_lines(file_path: &Path, n: usize) -> Result<(), String> {
     let lines = read_last_n_lines(file_path, n)?;
 
     if lines.is_empty() {

@@ -151,7 +151,10 @@ export function useMarkdownComponents({
               !isDarkMode ? 'bg-slate-900/90' : ''
             }`}
           >
-            <code className={`${language} break-words whitespace-pre-wrap`} {...props}>
+            <code
+              className={`${language} break-words whitespace-pre-wrap`}
+              {...props}
+            >
               {children}
             </code>
           </pre>

@@ -179,6 +179,10 @@ export const generateAiFeedbackStream = async (
   return tauriInvoke<void>('generate_ai_feedback_stream', { targetDate });
 };
 
+export const cancelAiFeedbackStream = async (): Promise<void> => {
+  return tauriInvoke<void>('cancel_ai_feedback_stream');
+};
+
 export const onHistoryUpdated = async (
   callback: (overview: HistoryOverview | undefined) => void
 ): Promise<UnlistenFn> => {

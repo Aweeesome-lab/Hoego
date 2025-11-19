@@ -100,6 +100,7 @@ export default function App() {
     streamingCleanupRef,
     loadAiSummaries,
     handleRunPipeline,
+    handleCancelPipeline,
   } = useAiPipeline(currentHistoryDate);
 
   const {
@@ -433,6 +434,13 @@ export default function App() {
     })();
   }, [handleRunPipeline]);
 
+  const handlePipelineCancellation = React.useCallback(() => {
+    void (async () => {
+      // Cancel the running pipeline
+      await handleCancelPipeline();
+    })();
+  }, [handleCancelPipeline]);
+
   // Sidebar handlers
   const handleHomeClick = React.useCallback(() => {
     // 오늘 날짜로 돌아가기
@@ -584,6 +592,7 @@ export default function App() {
               selectedSummary={selectedSummary}
               markdownComponents={markdownComponents}
               handleRunPipeline={handlePipelineExecution}
+              handleCancelPipeline={handlePipelineCancellation}
             />
           </React.Suspense>
 

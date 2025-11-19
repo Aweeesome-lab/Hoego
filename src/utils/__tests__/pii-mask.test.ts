@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { maskPII, containsPII, maskPIIWithStats } from '../pii-mask';
 
 describe('PII Masking Utility', () => {
@@ -185,7 +186,8 @@ describe('PII Masking Utility', () => {
     });
 
     it('should handle mixed Korean and English text', () => {
-      const text = 'Contact me at test@example.com or 이메일: support@company.kr';
+      const text =
+        'Contact me at test@example.com or 이메일: support@company.kr';
       const masked = maskPII(text);
 
       expect(masked).toContain('[EMAIL]');
@@ -216,7 +218,8 @@ describe('PII Masking Utility', () => {
 
   describe('API keys and tokens masking', () => {
     it('should mask OpenAI API keys', () => {
-      const text = 'API key: sk-proj-1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH';
+      const text =
+        'API key: sk-proj-1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH';
       const masked = maskPII(text);
 
       expect(masked).toContain('[API_KEY]');
@@ -240,7 +243,8 @@ describe('PII Masking Utility', () => {
     });
 
     it('should mask JWT tokens', () => {
-      const text = 'JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+      const text =
+        'JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
       const masked = maskPII(text);
 
       expect(masked).toContain('[JWT]');
@@ -248,7 +252,8 @@ describe('PII Masking Utility', () => {
     });
 
     it('should mask Bearer tokens', () => {
-      const text = 'Authorization: Bearer abc123def456ghi789jkl012mno345pqr678stu901vwx234';
+      const text =
+        'Authorization: Bearer abc123def456ghi789jkl012mno345pqr678stu901vwx234';
       const masked = maskPII(text);
 
       expect(masked).toContain('[BEARER]');
@@ -256,7 +261,8 @@ describe('PII Masking Utility', () => {
     });
 
     it('should mask API keys before other patterns', () => {
-      const text = 'API: sk-1234567890123456789012345678901234567890123456 Email: test@example.com';
+      const text =
+        'API: sk-1234567890123456789012345678901234567890123456 Email: test@example.com';
       const masked = maskPII(text);
 
       expect(masked).toContain('[API_KEY]');
@@ -266,9 +272,15 @@ describe('PII Masking Utility', () => {
     });
 
     it('should detect API keys with containsPII', () => {
-      expect(containsPII('sk-1234567890123456789012345678901234567890123456')).toBe(true);
+      expect(
+        containsPII('sk-1234567890123456789012345678901234567890123456')
+      ).toBe(true);
       expect(containsPII('AKIAIOSFODNN7EXAMPLE')).toBe(true);
-      expect(containsPII('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc')).toBe(true);
+      expect(
+        containsPII(
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc'
+        )
+      ).toBe(true);
     });
   });
 });

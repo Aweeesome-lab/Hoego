@@ -6,6 +6,7 @@ import {
   ResponsiveContainer,
   Legend,
   Tooltip,
+  type PieLabelRenderProps,
 } from 'recharts';
 
 interface CategoryPieChartProps {
@@ -45,7 +46,8 @@ export function CategoryPieChart({ data, isDarkMode }: CategoryPieChartProps) {
   }, [data]);
 
   // Custom label for the pie chart
-  const renderLabel = (entry: { percentage: string }) => {
+  const renderLabel = (props: PieLabelRenderProps) => {
+    const entry = props as PieLabelRenderProps & { percentage: string };
     return `${entry.percentage}%`;
   };
 
@@ -60,7 +62,8 @@ export function CategoryPieChart({ data, isDarkMode }: CategoryPieChartProps) {
     }>;
   }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
+      const data = payload[0]?.payload;
+      if (!data) return null;
       return (
         <div
           className={`px-3 py-2 rounded-lg border shadow-lg ${

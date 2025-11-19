@@ -12,7 +12,10 @@ mod window_manager;
 use std::sync::Arc;
 use tauri::{Manager, WindowEvent};
 
-use ai_summary::{generate_ai_feedback, generate_ai_feedback_stream, list_ai_summaries};
+use ai_summary::{
+    cancel_ai_feedback_stream, generate_ai_feedback, generate_ai_feedback_stream,
+    list_ai_summaries, StreamCancellationState,
+};
 use history::{
     append_history_entry, get_history_markdown, get_today_markdown, list_history,
     open_history_folder, save_today_markdown, HistoryState,
@@ -249,11 +252,15 @@ fn main() {
     // Initialize Model Selection State
     let model_selection_state = model_selection::ModelSelectionState::new();
 
+    // Initialize Stream Cancellation State
+    let stream_cancellation_state = StreamCancellationState::default();
+
     tauri::Builder::default()
         .manage(HistoryState::default())
         .manage(llm_manager.clone())
         .manage(cloud_llm_state)
         .manage(model_selection_state)
+        .manage(stream_cancellation_state)
         .system_tray(build_tray())
         .on_system_tray_event(handle_tray_event)
         .invoke_handler(tauri::generate_handler![
@@ -264,6 +271,7 @@ fn main() {
             list_history,
             generate_ai_feedback,
             generate_ai_feedback_stream,
+            cancel_ai_feedback_stream,
             list_ai_summaries,
             open_history_folder,
             hide_main_window,

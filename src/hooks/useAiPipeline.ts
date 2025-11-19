@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 
-import { generateAiFeedbackStream, listAiSummaries } from '@/lib/tauri';
+import {
+  cancelAiFeedbackStream,
+  generateAiFeedbackStream,
+  listAiSummaries,
+} from '@/lib/tauri';
 import { useAppStore } from '@/store';
 
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
@@ -57,6 +61,7 @@ export function useAiPipeline(targetDate?: string | null) {
   const streamingBufferRef = useRef('');
   const streamingTimerRef = useRef<number | null>(null);
   const streamingCleanupRef = useRef<(() => void) | null>(null);
+  const isCancellingRef = useRef(false); // 취소 상태 추적
 
   /**
    * Load AI summaries from storage
@@ -92,9 +97,10 @@ export function useAiPipeline(targetDate?: string | null) {
    * Generate AI feedback (streaming)
    */
   const generateFeedback = useCallback(async () => {
-    // Clear previous content
+    // Clear previous content and reset cancellation state
     setStreamingAiText('');
     streamingBufferRef.current = '';
+    isCancellingRef.current = false;
 
     // Event subscription: delta/complete/error
     const unsubs: Array<() => void> = [];
@@ -158,13 +164,28 @@ export function useAiPipeline(targetDate?: string | null) {
         'ai_feedback_stream_error',
         (e) => {
           cleanup();
-          const msg = e.payload?.message || '알 수 없는 오류';
-          toast.error(`AI 피드백 생성에 실패했습니다: ${msg}`);
+          // 취소 중이면 에러 토스트를 표시하지 않음
+          if (!isCancellingRef.current) {
+            const msg = e.payload?.message || '알 수 없는 오류';
+            toast.error(`AI 피드백 생성에 실패했습니다: ${msg}`);
+          }
           setPipelineStage('idle');
           setIsPipelineRunning(false);
         }
       );
       unsubs.push(unError);
+
+      const unCancelled = await listen<{ message: string }>(
+        'ai_feedback_stream_cancelled',
+        () => {
+          cleanup();
+          toast('사용자에 의해서 피드백 생성이 취소되었습니다');
+          setPipelineStage('idle');
+          setIsPipelineRunning(false);
+          isCancellingRef.current = false; // 취소 상태 리셋
+        }
+      );
+      unsubs.push(unCancelled);
 
       // PII 마스킹 통계 이벤트 리스너
       const unMaskingStats = await listen<{
@@ -173,6 +194,7 @@ export function useAiPipeline(targetDate?: string | null) {
         piiDetected: boolean;
       }>('ai_feedback_masking_stats', (e) => {
         if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
           console.log('[PII Masking Stats]', e.payload);
         }
         setPiiMaskingStats(e.payload);
@@ -189,11 +211,16 @@ export function useAiPipeline(targetDate?: string | null) {
     } catch (error) {
       if (import.meta.env.DEV)
         console.error('[hoego] AI 피드백 스트리밍 시작 실패', error);
-      toast.error(
-        `AI 피드백 생성에 실패했습니다: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
+
+      // 취소 중이 아닐 때만 에러 토스트 표시
+      if (!isCancellingRef.current) {
+        toast.error(
+          `AI 피드백 생성에 실패했습니다: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+
       cleanup();
       setPipelineStage('idle');
       setIsPipelineRunning(false);
@@ -206,6 +233,7 @@ export function useAiPipeline(targetDate?: string | null) {
     setPipelineStage,
     setIsPipelineRunning,
     setStreamingAiText,
+    setPiiMaskingStats,
   ]);
 
   /**
@@ -234,6 +262,34 @@ export function useAiPipeline(targetDate?: string | null) {
     setIsPipelineRunning,
     setPipelineStage,
   ]);
+
+  /**
+   * Cancel the running pipeline
+   */
+  const handleCancelPipeline = useCallback(async () => {
+    if (!isPipelineRunning) return;
+
+    // Set cancelling flag to prevent error toasts during cancellation
+    isCancellingRef.current = true;
+
+    // Immediately update state to prevent duplicate cancel requests
+    setIsPipelineRunning(false);
+    setPipelineStage('idle');
+
+    try {
+      await cancelAiFeedbackStream();
+      // Cleanup and state updates are handled in the 'ai_feedback_stream_cancelled' event
+    } catch (error) {
+      if (import.meta.env.DEV)
+        console.error('[hoego] AI 피드백 취소 실패', error);
+      // Reset cancelling flag on failure
+      isCancellingRef.current = false;
+      toast.error('AI 피드백 취소에 실패했습니다');
+      // Revert state if cancellation failed
+      setIsPipelineRunning(true);
+      setPipelineStage('analyzing');
+    }
+  }, [isPipelineRunning, setIsPipelineRunning, setPipelineStage]);
 
   /**
    * Get label for AI summary entry
@@ -282,6 +338,7 @@ export function useAiPipeline(targetDate?: string | null) {
     setSelectedSummaryIndex,
     loadAiSummaries,
     handleRunPipeline,
+    handleCancelPipeline,
     getSummaryLabel,
   };
 }

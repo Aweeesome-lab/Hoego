@@ -745,7 +745,7 @@ export default function ModelsPanel({ onClose }: Props) {
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Escape' || e.key === 'Enter') {
-            onClose();
+            onClose?.();
           }
         }}
         role="button"

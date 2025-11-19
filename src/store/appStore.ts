@@ -203,11 +203,13 @@ interface AiSlice {
    * PII 마스킹 통계 설정
    * @param stats - 마스킹 통계 또는 null
    */
-  setPiiMaskingStats: (stats: {
-    originalLength: number;
-    maskedLength: number;
-    piiDetected: boolean;
-  } | null) => void;
+  setPiiMaskingStats: (
+    stats: {
+      originalLength: number;
+      maskedLength: number;
+      piiDetected: boolean;
+    } | null
+  ) => void;
 }
 
 /**

@@ -56,7 +56,8 @@ export function ProductivityChart({
     }>;
   }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
+      const data = payload[0]?.payload;
+      if (!data) return null;
       return (
         <div
           className={`px-3 py-2 rounded-lg border shadow-lg ${

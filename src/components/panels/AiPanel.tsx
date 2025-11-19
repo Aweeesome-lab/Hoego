@@ -1,4 +1,4 @@
-import { Sparkles, Loader2, Shield } from 'lucide-react';
+import { Sparkles, Loader2, Shield, Square } from 'lucide-react';
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 
@@ -23,6 +23,7 @@ interface AiPanelProps {
   markdownComponents: Components;
   // Unified pipeline handler
   handleRunPipeline: () => void;
+  handleCancelPipeline: () => void;
 }
 
 export const AiPanel = React.memo(function AiPanel({
@@ -36,6 +37,7 @@ export const AiPanel = React.memo(function AiPanel({
   selectedSummary,
   markdownComponents,
   handleRunPipeline,
+  handleCancelPipeline,
 }: AiPanelProps) {
   // Get PII masking stats from store (실시간 생성 중)
   const piiMaskingStats = useAppStore((state) => state.piiMaskingStats);
@@ -44,8 +46,11 @@ export const AiPanel = React.memo(function AiPanel({
   const selectedSummaryPiiMasked = selectedSummary?.piiMasked;
 
   // 표시할 개인정보 보호 정보: 실시간 생성 중이면 stats, 아니면 선택된 파일의 메타데이터
-  const showPiiInfo = isPipelineRunning ? piiMaskingStats :
-    (selectedSummaryPiiMasked !== undefined ? { piiDetected: selectedSummaryPiiMasked } : null);
+  const showPiiInfo = isPipelineRunning
+    ? piiMaskingStats
+    : selectedSummaryPiiMasked !== undefined
+      ? { piiDetected: selectedSummaryPiiMasked }
+      : null;
 
   if (!isAiPanelExpanded) return null;
 
@@ -119,6 +124,20 @@ export const AiPanel = React.memo(function AiPanel({
               <Sparkles className="h-4 w-4" />
             )}
           </button>
+          {/* Cancel Button (only shown when pipeline is running) */}
+          {isPipelineRunning && (
+            <button
+              onClick={handleCancelPipeline}
+              title="생성 중지"
+              className={`rounded-full p-2 transition-colors border ${
+                isDarkMode
+                  ? 'border-red-500/30 hover:bg-red-500/10 text-red-400 hover:text-red-300 hover:border-red-500/50'
+                  : 'border-red-300 hover:bg-red-50 text-red-600 hover:text-red-700 hover:border-red-400'
+              }`}
+            >
+              <Square className="h-4 w-4 fill-current" />
+            </button>
+          )}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-3">
