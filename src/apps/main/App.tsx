@@ -287,7 +287,8 @@ export default function App() {
           inputRef.current?.focus();
         }, 100);
       } catch (error) {
-        if (import.meta.env.DEV) console.error('[hoego] 항목 추가 실패:', error);
+        if (import.meta.env.DEV)
+          console.error('[hoego] 항목 추가 실패:', error);
         toast.error(
           `작업 저장 실패: ${
             error instanceof Error ? error.message : String(error)

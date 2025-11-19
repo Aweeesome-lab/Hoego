@@ -342,7 +342,7 @@ export function ModelsContent() {
                       onClick={async () => {
                         if (isInstalled) {
                           // TODO: Add confirmation modal for better UX
-                          toast.info('모델을 재다운로드합니다.');
+                          toast('모델을 재다운로드합니다.');
                         }
                         try {
                           setInstalling(p.id);
@@ -588,7 +588,9 @@ export function ModelsContent() {
                           try {
                             await aiModelDelete(m.filename);
                             await refreshInstalled();
-                            toast.success(`${m.filename}이(가) 삭제되었습니다.`);
+                            toast.success(
+                              `${m.filename}이(가) 삭제되었습니다.`
+                            );
                           } catch (e) {
                             toast.error(
                               `삭제 실패: ${
