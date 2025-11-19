@@ -262,7 +262,10 @@ export type TauriCommands = {
   // AI summary commands
   generate_ai_feedback: (targetDate?: string) => Promise<string>;
   generate_ai_feedback_stream: (targetDate?: string) => Promise<void>;
-  list_ai_summaries: (limit?: number, targetDate?: string) => Promise<AiSummaryInfo[]>;
+  list_ai_summaries: (
+    limit?: number,
+    targetDate?: string
+  ) => Promise<AiSummaryInfo[]>;
 
   // Weekly dashboard commands
   get_week_data: (payload: GetWeekDataPayload) => Promise<WeekData>;

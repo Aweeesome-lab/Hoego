@@ -16,7 +16,7 @@ interface SidebarProps {
 
 // Helper function to format year from date string (YYYYMMDD)
 function formatYear(dateStr: string): string {
-  return dateStr.substring(0, 4) + '년';
+  return `${dateStr.substring(0, 4)}년`;
 }
 
 // Helper function to format month from date string (YYYYMMDD)
@@ -25,7 +25,7 @@ function formatMonth(dateStr: string): string {
     const monthNum = parseInt(dateStr.substring(4, 6), 10);
     return `${monthNum}월`;
   } catch {
-    return dateStr.substring(4, 6) + '월';
+    return `${dateStr.substring(4, 6)}월`;
   }
 }
 
@@ -52,13 +52,16 @@ export const Sidebar = React.memo(function Sidebar({
   isOpen,
   historyFiles,
   isLoadingHistory,
-  onToggle,
   onHomeClick,
   onSettingsClick,
   onHistoryFileClick,
 }: SidebarProps) {
-  const [expandedYears, setExpandedYears] = React.useState<Set<string>>(new Set());
-  const [expandedMonths, setExpandedMonths] = React.useState<Set<string>>(new Set());
+  const [expandedYears, setExpandedYears] = React.useState<Set<string>>(
+    new Set()
+  );
+  const [expandedMonths, setExpandedMonths] = React.useState<Set<string>>(
+    new Set()
+  );
 
   // Group files by year and month
   const groupedFiles = React.useMemo((): GroupedByYear => {
@@ -79,19 +82,21 @@ export const Sidebar = React.memo(function Sidebar({
 
     // Sort years in descending order (most recent first)
     const sortedYears: GroupedByYear = {};
-    Object.keys(grouped)
-      .sort((a, b) => b.localeCompare(a))
-      .forEach((year) => {
-        sortedYears[year] = {};
-        // Sort months within each year in descending order
-        Object.keys(grouped[year])
-          .sort((a, b) => b.localeCompare(a))
-          .forEach((month) => {
-            // Sort files within each month by date (descending)
-            sortedYears[year][month] = grouped[year][month].sort((a, b) =>
+
+    Object.entries(grouped)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .forEach(([year, yearGroup]) => {
+        const sortedYearGroup: YearGroup = {};
+
+        Object.entries(yearGroup)
+          .sort(([a], [b]) => b.localeCompare(a))
+          .forEach(([month, files]) => {
+            sortedYearGroup[month] = [...files].sort((a, b) =>
               b.date.localeCompare(a.date)
             );
           });
+
+        sortedYears[year] = sortedYearGroup;
       });
 
     return sortedYears;
@@ -138,9 +143,15 @@ export const Sidebar = React.memo(function Sidebar({
             isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
           }`}
         >
-          <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>H</span>
+          <span
+            className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}
+          >
+            H
+          </span>
         </div>
-        <span className={`text-xs font-medium tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+        <span
+          className={`text-xs font-medium tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}
+        >
           Hoego
         </span>
       </div>
@@ -162,20 +173,26 @@ export const Sidebar = React.memo(function Sidebar({
         </button>
 
         {/* History 섹션 헤더 */}
-        <div className={`px-3 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${
-          isDarkMode ? 'text-slate-500' : 'text-slate-400'
-        }`}>
+        <div
+          className={`px-3 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${
+            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+          }`}
+        >
           History
         </div>
 
         {/* Year and Month grouped history */}
         <div>
           {isLoadingHistory ? (
-            <div className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div
+              className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+            >
               Loading...
             </div>
           ) : historyFiles.length === 0 ? (
-            <div className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div
+              className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+            >
               No history yet
             </div>
           ) : (
@@ -198,9 +215,16 @@ export const Sidebar = React.memo(function Sidebar({
                       <ChevronRight className="h-3 w-3 shrink-0" />
                     )}
                     <Calendar className="h-3 w-3 shrink-0" />
-                    <span className="text-xs font-medium">{formatYear(yearKey)}</span>
-                    <span className={`ml-auto text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {Object.values(yearGroup).reduce((sum, files) => sum + files.length, 0)}
+                    <span className="text-xs font-medium">
+                      {formatYear(yearKey)}
+                    </span>
+                    <span
+                      className={`ml-auto text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                    >
+                      {Object.values(yearGroup).reduce(
+                        (sum, files) => sum + files.length,
+                        0
+                      )}
                     </span>
                   </button>
 
@@ -223,8 +247,12 @@ export const Sidebar = React.memo(function Sidebar({
                             ) : (
                               <ChevronRight className="h-2.5 w-2.5 shrink-0" />
                             )}
-                            <span className="text-[11px] font-medium">{formatMonth(monthKey)}</span>
-                            <span className={`ml-auto text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <span className="text-[11px] font-medium">
+                              {formatMonth(monthKey)}
+                            </span>
+                            <span
+                              className={`ml-auto text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-400'}`}
+                            >
                               {files.length}
                             </span>
                           </button>
@@ -244,7 +272,9 @@ export const Sidebar = React.memo(function Sidebar({
                                   }`}
                                   title={file.title}
                                 >
-                                  <div className="text-[11px] truncate">{file.title}</div>
+                                  <div className="text-[11px] truncate">
+                                    {file.title}
+                                  </div>
                                 </button>
                               ))}
                             </div>

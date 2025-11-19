@@ -1,24 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import { CloudLLMSettings } from './components/CloudLLMSettings';
-import { LLMSettings } from './components/LLMSettings';
 import { PromptSettings } from './components/PromptSettings';
 // import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
 
 import '@/styles/index.css';
 import {
-  Brain,
-  Download,
-  Settings,
   Info,
   Moon,
   Sun,
   MonitorSmartphone,
   FileText,
   NotebookPen,
-  Cloud,
-  BarChart3,
 } from 'lucide-react';
 
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Hoego CLI wrapper script
+# 사용법: hoego [옵션]
+
+# 스크립트의 실제 위치를 찾아서 프로젝트 루트로 이동
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || greadlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+# src-tauri 디렉토리로 이동
+cd "$SCRIPT_DIR/src-tauri" || exit 1
+
+# 인자가 없으면 기본적으로 'cli' 모드
+if [ $# -eq 0 ]; then
+    exec cargo run --bin hoego-cli --quiet --release -- cli
+else
+    exec cargo run --bin hoego-cli --quiet --release -- "$@"
+fi

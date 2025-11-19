@@ -16,6 +16,7 @@ interface DumpPanelProps {
   markdownContent: string;
   markdownComponents: Components;
   onSaveMarkdown: (content: string) => Promise<void>;
+  currentDateLabel?: string; // 현재 보고 있는 날짜 라벨
 }
 
 export const DumpPanel = React.memo(function DumpPanel({
@@ -28,6 +29,7 @@ export const DumpPanel = React.memo(function DumpPanel({
   appendTimestampToLine,
   markdownContent,
   markdownComponents,
+  currentDateLabel,
 }: DumpPanelProps) {
   return (
     <section
@@ -38,7 +40,18 @@ export const DumpPanel = React.memo(function DumpPanel({
       }`}
     >
       <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
-        <span>쏟아내기(dump)</span>
+        <div className="flex items-center gap-2">
+          <span>쏟아내기(dump)</span>
+          {currentDateLabel && (
+            <span
+              className={`text-[10px] font-normal normal-case tracking-normal ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}
+            >
+              · {currentDateLabel}
+            </span>
+          )}
+        </div>
         {isEditing ? (
           <span
             className={`rounded-full px-3 py-1 text-[10px] ${

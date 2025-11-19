@@ -3,7 +3,11 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { RetrospectiveTemplate } from '@/constants/retrospectiveTemplates';
 import type { AiSummaryEntry } from '@/lib/tauri';
-import type { WeekData, WeeklyActionItem } from '@/types/tauri-commands';
+import type {
+  WeekData,
+  WeeklyActionItem,
+  HistoryFileInfo,
+} from '@/types/tauri-commands';
 
 /**
  * Theme 관련 상태 슬라이스
@@ -376,13 +380,52 @@ interface RetrospectSlice {
 }
 
 /**
+ * Sidebar 관련 상태 슬라이스
+ */
+interface SidebarSlice {
+  /**
+   * 사이드바 열림/닫힘 상태
+   */
+  isSidebarOpen: boolean;
+
+  /**
+   * 히스토리 파일 목록
+   */
+  historyFiles: HistoryFileInfo[];
+
+  /**
+   * 히스토리 로딩 중 상태
+   */
+  isLoadingHistory: boolean;
+
+  /**
+   * 사이드바 열림 상태 변경
+   * @param isOpen - 열림 여부 또는 상태 변경 함수
+   */
+  setIsSidebarOpen: (isOpen: boolean | ((prev: boolean) => boolean)) => void;
+
+  /**
+   * 히스토리 파일 목록 설정
+   * @param files - 히스토리 파일 배열
+   */
+  setHistoryFiles: (files: HistoryFileInfo[]) => void;
+
+  /**
+   * 히스토리 로딩 상태 변경
+   * @param isLoading - 로딩 중 여부
+   */
+  setIsLoadingHistory: (isLoading: boolean) => void;
+}
+
+/**
  * 전체 애플리케이션 상태
  */
 export type AppStore = ThemeSlice &
   MarkdownSlice &
   AiSlice &
   RetrospectSlice &
-  WeeklyDashboardSlice;
+  WeeklyDashboardSlice &
+  SidebarSlice;
 
 /**
  * Zustand 스토어
@@ -499,6 +542,18 @@ export const useAppStore = create<AppStore>()(
       setStreamingSummaryText: (text) => set({ streamingSummaryText: text }),
       setActionItems: (actions) => set({ actionItems: actions }),
       setIsSavingActions: (isSaving) => set({ isSavingActions: isSaving }),
+
+      // Sidebar Slice
+      isSidebarOpen: true, // 기본값: 열림
+      historyFiles: [],
+      isLoadingHistory: false,
+      setIsSidebarOpen: (isOpen) =>
+        set((state) => ({
+          isSidebarOpen:
+            typeof isOpen === 'function' ? isOpen(state.isSidebarOpen) : isOpen,
+        })),
+      setHistoryFiles: (files) => set({ historyFiles: files }),
+      setIsLoadingHistory: (isLoading) => set({ isLoadingHistory: isLoading }),
     }),
     {
       name: 'hoego-storage',
@@ -511,6 +566,7 @@ export const useAppStore = create<AppStore>()(
         customRetrospectiveTemplates: state.customRetrospectiveTemplates,
         weekStartDay: state.weekStartDay,
         currentWeekStart: state.currentWeekStart,
+        isSidebarOpen: state.isSidebarOpen, // 사이드바 상태 영속화
       }),
     }
   )

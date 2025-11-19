@@ -1,5 +1,6 @@
+import type { HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
-import { HTMLAttributes } from 'react';
 
 export interface SeparatorProps extends HTMLAttributes<HTMLDivElement> {
   /**

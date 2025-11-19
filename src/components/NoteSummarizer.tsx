@@ -25,17 +25,17 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
   const [hasModel, setHasModel] = useState(false);
 
   useEffect(() => {
-    checkForModels();
-    const interval = setInterval(checkForModels, 5000);
+    void checkForModels();
+    const interval = setInterval(() => void checkForModels(), 5000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (isOpen) {
-      checkForModels();
+      void checkForModels();
       // 모달이 열리면 자동으로 요약 시작
       if (hasModel && content.trim() && !summary && !loading) {
-        handleSummarize();
+        void handleSummarize();
       }
     }
   }, [isOpen, hasModel]);
@@ -49,60 +49,64 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
     }
   };
 
-  const handleSummarize = async () => {
-    if (!content.trim()) {
-      setError('요약할 내용이 없습니다');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // 간단한 설정으로 전체 내용 요약
-      const result = await llmApi.summarizeNote({
-        content,
-        style: 'Bullet', // 기본값: 불릿 포인트
-        max_length: 200, // 적당한 길이
-      });
-
-      setSummary(result);
-    } catch (err) {
-      // 더 구체적인 에러 메시지 처리
-      const errorMessage =
-        err instanceof Error ? err.message : '요약 생성 실패';
-
-      // 모델이 없을 때의 에러 메시지 개선
-      if (
-        errorMessage.includes('No model loaded') ||
-        errorMessage.includes('model')
-      ) {
-        setError('AI 모델을 먼저 다운로드해주세요');
-        // 모델 상태 재확인
-        checkForModels();
-      } else if (
-        errorMessage.includes('timeout') ||
-        errorMessage.includes('Timeout')
-      ) {
-        setError('요약 생성 시간이 초과되었습니다. 다시 시도해주세요');
-      } else {
-        setError(errorMessage);
+  const handleSummarize = () => {
+    void (async () => {
+      if (!content.trim()) {
+        setError('요약할 내용이 없습니다');
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // 간단한 설정으로 전체 내용 요약
+        const result = await llmApi.summarizeNote({
+          content,
+          style: 'Bullet', // 기본값: 불릿 포인트
+          max_length: 200, // 적당한 길이
+        });
+
+        setSummary(result);
+      } catch (_err) {
+        // 더 구체적인 에러 메시지 처리
+        const errorMessage =
+          _err instanceof Error ? _err.message : '요약 생성 실패';
+
+        // 모델이 없을 때의 에러 메시지 개선
+        if (
+          errorMessage.includes('No model loaded') ||
+          errorMessage.includes('model')
+        ) {
+          setError('AI 모델을 먼저 다운로드해주세요');
+          // 모델 상태 재확인
+          void checkForModels();
+        } else if (
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('Timeout')
+        ) {
+          setError('요약 생성 시간이 초과되었습니다. 다시 시도해주세요');
+        } else {
+          setError(errorMessage);
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
-  const handleCopy = async () => {
-    if (!summary) return;
+  const handleCopy = () => {
+    void (async () => {
+      if (!summary) return;
 
-    try {
-      await navigator.clipboard.writeText(summary.summary);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      setError('클립보드 복사 실패');
-    }
+      try {
+        await navigator.clipboard.writeText(summary.summary);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (_err) {
+        setError('클립보드 복사 실패');
+      }
+    })();
   };
 
   const handleInsert = () => {

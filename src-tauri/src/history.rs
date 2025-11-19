@@ -298,3 +298,30 @@ pub fn open_history_folder(app: AppHandle, state: State<'_, HistoryState>) -> Re
     let target = state.directory.to_string_lossy().to_string();
     tauri::api::shell::open(&app.shell_scope(), target, None).map_err(|error| error.to_string())
 }
+
+/// 특정 날짜의 마크다운 파일을 읽어옵니다
+#[tauri::command]
+pub fn get_history_markdown(
+    file_path: String,
+    state: State<'_, HistoryState>,
+) -> Result<String, String> {
+    tracing::debug!("get_history_markdown 호출됨: {}", file_path);
+
+    // 보안: 파일이 히스토리 디렉토리 내에 있는지 확인
+    let requested_path = PathBuf::from(&file_path);
+    let canonical_requested = requested_path
+        .canonicalize()
+        .map_err(|e| format!("파일 경로를 확인할 수 없습니다: {}", e))?;
+
+    let history_dir = state
+        .directory
+        .canonicalize()
+        .map_err(|e| format!("히스토리 디렉토리를 확인할 수 없습니다: {}", e))?;
+
+    if !canonical_requested.starts_with(&history_dir) {
+        return Err("히스토리 디렉토리 외부의 파일에는 접근할 수 없습니다".to_string());
+    }
+
+    // 파일 읽기
+    fs::read_to_string(&requested_path).map_err(|error| error.to_string())
+}

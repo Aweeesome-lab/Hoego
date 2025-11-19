@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import * as React from 'react';
 
 export interface SelectOption {
   value: string;

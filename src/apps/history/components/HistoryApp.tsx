@@ -8,6 +8,9 @@ export default function HistoryApp() {
   const { isDarkMode } = useTheme();
   const { overview, isLoading, error, loadHistory, openFolder } = useHistory();
 
+  const handleRefresh = () => void loadHistory();
+  const handleOpenFolder = () => void openFolder();
+
   return (
     <div
       className={`min-h-screen ${
@@ -19,8 +22,8 @@ export default function HistoryApp() {
       <div className="max-w-3xl mx-auto px-7 py-9 flex flex-col gap-6">
         <HistoryHeader
           directory={overview?.directory ?? ''}
-          onRefresh={loadHistory}
-          onOpenFolder={openFolder}
+          onRefresh={handleRefresh}
+          onOpenFolder={handleOpenFolder}
           isDarkMode={isDarkMode}
         />
         <HistoryPanel

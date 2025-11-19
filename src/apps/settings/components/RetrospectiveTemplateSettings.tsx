@@ -127,13 +127,7 @@ export function RetrospectiveTemplateSettings({
   };
 
   const handleDelete = (templateId: string) => {
-    if (
-      !window.confirm(
-        '선택한 템플릿을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.'
-      )
-    ) {
-      return;
-    }
+    // TODO: Add confirmation modal for better UX
     const remaining = templates.filter(
       (template) => template.id !== templateId
     );

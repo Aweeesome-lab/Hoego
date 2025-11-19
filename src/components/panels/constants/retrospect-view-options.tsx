@@ -1,4 +1,4 @@
-import { Pencil, Eye, Columns } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 export const RETROSPECT_VIEW_OPTIONS: Array<{
   value: 'edit' | 'preview' | 'split';

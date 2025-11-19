@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+
 import type { DailyTrend } from '@/types/tauri-commands';
 
 interface DailyTrendChartProps {

@@ -56,14 +56,17 @@ export default function App() {
   const [inputValue, setInputValue] = React.useState('');
   const [currentTime, setCurrentTime] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);
-  const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(true);
+  const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(false);
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
-    React.useState(true);
+    React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
 
   // 현재 보고 있는 히스토리 정보
-  const [currentHistoryDate, setCurrentHistoryDate] = React.useState<string | null>(null);
-  const [isLoadingHistoryContent, setIsLoadingHistoryContent] = React.useState(false);
+  const [currentHistoryDate, setCurrentHistoryDate] = React.useState<
+    string | null
+  >(null);
+  const [isLoadingHistoryContent, setIsLoadingHistoryContent] =
+    React.useState(false);
 
   // Use custom hooks
   const { themeMode, isDarkMode, toggleTheme } = useTheme();
@@ -213,7 +216,7 @@ export default function App() {
   // History update listener
   React.useEffect(() => {
     let unsubscribe: (() => void) | null = null;
-    onHistoryUpdated(() => {
+    void onHistoryUpdated(() => {
       void loadMarkdown();
       void loadAiSummaries();
     }).then((unsub) => {
@@ -244,54 +247,56 @@ export default function App() {
   }, []);
 
   // Submit handler
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const taskText = inputValue.trim();
-    if (!taskText) {
-      return;
-    }
+    void (async () => {
+      const taskText = inputValue.trim();
+      if (!taskText) {
+        return;
+      }
 
-    const now = new Date();
-    const timestamp = now.toISOString();
-    const currentMinute = `${now.getHours().toString().padStart(2, '0')}:${now
-      .getMinutes()
-      .toString()
-      .padStart(2, '0')}`;
-    const isNewMinute = lastMinute !== currentMinute;
+      const now = new Date();
+      const timestamp = now.toISOString();
+      const currentMinute = `${now.getHours().toString().padStart(2, '0')}:${now
+        .getMinutes()
+        .toString()
+        .padStart(2, '0')}`;
+      const isNewMinute = lastMinute !== currentMinute;
 
-    // 입력 필드 즉시 초기화
-    const savedTask = taskText;
-    setInputValue('');
-    setLastMinute(currentMinute);
+      // 입력 필드 즉시 초기화
+      const savedTask = taskText;
+      setInputValue('');
+      setLastMinute(currentMinute);
 
-    try {
-      const payload = {
-        timestamp,
-        task: savedTask,
-        isNewMinute,
-      };
+      try {
+        const payload = {
+          timestamp,
+          task: savedTask,
+          isNewMinute,
+        };
 
-      await appendHistoryEntry(payload);
+        await appendHistoryEntry(payload);
 
-      // 마크다운 즉시 다시 로드
-      await loadMarkdown();
+        // 마크다운 즉시 다시 로드
+        await loadMarkdown();
 
-      // 입력 필드 다시 포커스
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[hoego] 항목 추가 실패:', error);
-      toast.error(
-        `작업 저장 실패: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-      // 실패 시 입력값 복원
-      setInputValue(savedTask);
-    }
+        // 입력 필드 다시 포커스
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 100);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('[hoego] 항목 추가 실패:', error);
+        toast.error(
+          `작업 저장 실패: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+        // 실패 시 입력값 복원
+        setInputValue(savedTask);
+      }
+    })();
   };
 
   // Keyboard shortcuts
@@ -338,7 +343,7 @@ export default function App() {
           const newContent =
             editingContent.slice(0, lineStart) + stampedLine + after;
 
-          (async () => {
+          void (async () => {
             try {
               setIsSaving(true);
               if (newContent !== editingContent) {
@@ -369,7 +374,7 @@ export default function App() {
         if (isEditing) {
           // 편집 종료 시 저장 flush
           if (editingContent !== lastSavedRef.current) {
-            (async () => {
+            void (async () => {
               try {
                 setIsSaving(true);
                 await saveTodayMarkdown(editingContent);
@@ -409,23 +414,27 @@ export default function App() {
     editorRef,
   ]);
 
-  const handleManualSync = React.useCallback(async () => {
-    if (isSyncing) return;
-    try {
-      setIsSyncing(true);
-      await loadMarkdown();
-      await loadAiSummaries();
-    } catch (error) {
-      if (import.meta.env.DEV)
-        console.error('[hoego] 마크다운 동기화 실패', error);
-    } finally {
-      setIsSyncing(false);
-    }
+  const handleManualSync = React.useCallback(() => {
+    void (async () => {
+      if (isSyncing) return;
+      try {
+        setIsSyncing(true);
+        await loadMarkdown();
+        await loadAiSummaries();
+      } catch (error) {
+        if (import.meta.env.DEV)
+          console.error('[hoego] 마크다운 동기화 실패', error);
+      } finally {
+        setIsSyncing(false);
+      }
+    })();
   }, [isSyncing, loadMarkdown, loadAiSummaries]);
 
-  const handlePipelineExecution = React.useCallback(async () => {
-    // Run the pipeline (streaming feedback)
-    await handleRunPipeline();
+  const handlePipelineExecution = React.useCallback(() => {
+    void (async () => {
+      // Run the pipeline (streaming feedback)
+      await handleRunPipeline();
+    })();
   }, [handleRunPipeline]);
 
   // Sidebar handlers
@@ -435,38 +444,42 @@ export default function App() {
     void loadMarkdown();
   }, [loadMarkdown]);
 
-  const handleSettingsClick = React.useCallback(async () => {
-    try {
-      await openSettingsWindow();
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[hoego] Failed to open settings window:', error);
+  const handleSettingsClick = React.useCallback(() => {
+    void (async () => {
+      try {
+        await openSettingsWindow();
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[hoego] Failed to open settings window:', error);
+        }
+        toast.error('설정 창을 여는데 실패했습니다.');
       }
-      toast.error('설정 창을 여는데 실패했습니다.');
-    }
+    })();
   }, []);
 
   const handleHistoryFileClick = React.useCallback(
-    async (file: typeof historyFiles[0]) => {
-      try {
-        setIsLoadingHistoryContent(true);
-        setCurrentHistoryDate(file.date);
+    (file: (typeof historyFiles)[0]) => {
+      void (async () => {
+        try {
+          setIsLoadingHistoryContent(true);
+          setCurrentHistoryDate(file.date);
 
-        // 선택된 날짜의 마크다운 로드
-        const content = await getHistoryMarkdown(file.path);
-        setMarkdownContent(content);
+          // 선택된 날짜의 마크다운 로드
+          const content = await getHistoryMarkdown(file.path);
+          setMarkdownContent(content);
 
-        if (import.meta.env.DEV) {
-          console.log('[hoego] Loaded history:', file.date);
+          if (import.meta.env.DEV) {
+            console.log('[hoego] Loaded history:', file.date);
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('[hoego] Failed to load history:', error);
+          }
+          toast.error('히스토리를 불러오는데 실패했습니다.');
+        } finally {
+          setIsLoadingHistoryContent(false);
         }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('[hoego] Failed to load history:', error);
-        }
-        toast.error('히스토리를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoadingHistoryContent(false);
-      }
+      })();
     },
     []
   );
@@ -505,106 +518,106 @@ export default function App() {
         } transition-all duration-200`}
       >
         <Header
-        currentTime={currentTime}
-        inputRef={inputRef}
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        handleSubmit={handleSubmit}
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
-        setEditingContent={setEditingContent}
-        markdownContent={markdownContent}
-        editorRef={editorRef}
-        editingContent={editingContent}
-        appendTimestampToLine={appendTimestampToLine}
-        saveTodayMarkdown={saveTodayMarkdown}
-        lastSavedRef={lastSavedRef}
-        loadMarkdown={loadMarkdown}
-        isSaving={isSaving}
-        setIsSaving={setIsSaving}
-        isAiPanelExpanded={isAiPanelExpanded}
-        setIsAiPanelExpanded={setIsAiPanelExpanded}
-        isRetrospectPanelExpanded={isRetrospectPanelExpanded}
-        setIsRetrospectPanelExpanded={setIsRetrospectPanelExpanded}
-        handleManualSync={handleManualSync}
-        isSyncing={isSyncing}
-        themeMode={themeMode}
-        toggleTheme={toggleTheme}
-        isDarkMode={isDarkMode}
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-      />
-
-      <div
-        ref={splitRef}
-        className="relative z-20 flex flex-1 items-stretch gap-0 px-0 py-0 overflow-hidden"
-      >
-        <DumpPanel
-          isDarkMode={isDarkMode}
+          currentTime={currentTime}
+          inputRef={inputRef}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          handleSubmit={handleSubmit}
           isEditing={isEditing}
-          markdownRef={markdownRef}
+          setIsEditing={setIsEditing}
+          setEditingContent={setEditingContent}
+          markdownContent={markdownContent}
           editorRef={editorRef}
           editingContent={editingContent}
-          setEditingContent={setEditingContent}
           appendTimestampToLine={appendTimestampToLine}
-          markdownContent={
-            isLoadingHistoryContent
-              ? '로딩 중...'
-              : markdownContent
-          }
-          markdownComponents={markdownComponents}
-          currentDateLabel={currentHistoryDate ?? undefined}
-          onSaveMarkdown={async (content: string) => {
-            setIsSaving(true);
-            try {
-              await saveTodayMarkdown(content);
-              lastSavedRef.current = content;
-              setMarkdownContent(content);
-              await loadMarkdown();
-            } finally {
-              setIsSaving(false);
-            }
-          }}
+          saveTodayMarkdown={saveTodayMarkdown}
+          lastSavedRef={lastSavedRef}
+          loadMarkdown={loadMarkdown}
+          isSaving={isSaving}
+          setIsSaving={setIsSaving}
+          isAiPanelExpanded={isAiPanelExpanded}
+          setIsAiPanelExpanded={setIsAiPanelExpanded}
+          isRetrospectPanelExpanded={isRetrospectPanelExpanded}
+          setIsRetrospectPanelExpanded={setIsRetrospectPanelExpanded}
+          handleManualSync={handleManualSync}
+          isSyncing={isSyncing}
+          themeMode={themeMode}
+          toggleTheme={toggleTheme}
+          isDarkMode={isDarkMode}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
         />
 
-        <React.Suspense fallback={<div className="flex flex-1" />}>
-          <AiPanel
+        <div
+          ref={splitRef}
+          className="relative z-20 flex flex-1 items-stretch gap-0 px-0 py-0 overflow-hidden"
+        >
+          <DumpPanel
             isDarkMode={isDarkMode}
-            isAiPanelExpanded={isAiPanelExpanded}
-            isPipelineRunning={isPipelineRunning}
-            pipelineStage={pipelineStage}
-            streamingAiText={streamingAiText}
-            summariesError={summariesError}
-            aiSummaries={aiSummaries}
-            selectedSummary={selectedSummary}
+            isEditing={isEditing}
+            markdownRef={markdownRef}
+            editorRef={editorRef}
+            editingContent={editingContent}
+            setEditingContent={setEditingContent}
+            appendTimestampToLine={appendTimestampToLine}
+            markdownContent={
+              isLoadingHistoryContent ? '로딩 중...' : markdownContent
+            }
             markdownComponents={markdownComponents}
-            handleRunPipeline={handlePipelineExecution}
+            currentDateLabel={currentHistoryDate ?? undefined}
+            onSaveMarkdown={async (content: string) => {
+              setIsSaving(true);
+              try {
+                await saveTodayMarkdown(content);
+                lastSavedRef.current = content;
+                setMarkdownContent(content);
+                await loadMarkdown();
+              } finally {
+                setIsSaving(false);
+              }
+            }}
           />
-        </React.Suspense>
 
-        <React.Suspense fallback={<div className="flex flex-1" />}>
-          <RetrospectPanel
-            isDarkMode={isDarkMode}
-            isRetrospectPanelExpanded={isRetrospectPanelExpanded}
-            retrospectContent={retrospectContent}
-            setRetrospectContent={setRetrospectContent}
-            retrospectRef={retrospectRef}
-            isSavingRetrospect={isSavingRetrospect}
-            isTemplatePickerOpen={isTemplatePickerOpen}
-            setIsTemplatePickerOpen={setIsTemplatePickerOpen}
-            templateTriggerRef={templateTriggerRef}
-            templateDropdownRef={templateDropdownRef}
-            templateDropdownPosition={templateDropdownPosition}
-            retrospectiveTemplates={retrospectiveTemplates}
-            customRetrospectiveTemplates={customRetrospectiveTemplates}
-            handleApplyRetrospectiveTemplate={handleApplyRetrospectiveTemplate}
-            retrospectViewMode={retrospectViewMode}
-            setRetrospectViewMode={setRetrospectViewMode}
-            activeRetrospectViewOption={activeRetrospectViewOption}
-            markdownComponents={markdownComponents}
-          />
-        </React.Suspense>
-      </div>
+          <React.Suspense fallback={<div className="flex flex-1" />}>
+            <AiPanel
+              isDarkMode={isDarkMode}
+              isAiPanelExpanded={isAiPanelExpanded}
+              isPipelineRunning={isPipelineRunning}
+              pipelineStage={pipelineStage}
+              streamingAiText={streamingAiText}
+              summariesError={summariesError}
+              aiSummaries={aiSummaries}
+              selectedSummary={selectedSummary}
+              markdownComponents={markdownComponents}
+              handleRunPipeline={handlePipelineExecution}
+            />
+          </React.Suspense>
+
+          <React.Suspense fallback={<div className="flex flex-1" />}>
+            <RetrospectPanel
+              isDarkMode={isDarkMode}
+              isRetrospectPanelExpanded={isRetrospectPanelExpanded}
+              retrospectContent={retrospectContent}
+              setRetrospectContent={setRetrospectContent}
+              retrospectRef={retrospectRef}
+              isSavingRetrospect={isSavingRetrospect}
+              isTemplatePickerOpen={isTemplatePickerOpen}
+              setIsTemplatePickerOpen={setIsTemplatePickerOpen}
+              templateTriggerRef={templateTriggerRef}
+              templateDropdownRef={templateDropdownRef}
+              templateDropdownPosition={templateDropdownPosition}
+              retrospectiveTemplates={retrospectiveTemplates}
+              customRetrospectiveTemplates={customRetrospectiveTemplates}
+              handleApplyRetrospectiveTemplate={
+                handleApplyRetrospectiveTemplate
+              }
+              retrospectViewMode={retrospectViewMode}
+              setRetrospectViewMode={setRetrospectViewMode}
+              activeRetrospectViewOption={activeRetrospectViewOption}
+              markdownComponents={markdownComponents}
+            />
+          </React.Suspense>
+        </div>
 
         {/* 드래그 가능한 영역 - 가장자리 (더 넓게) */}
         {/* 상단 가장자리 */}

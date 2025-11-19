@@ -54,9 +54,9 @@ path = "examples/llm_smoke.rs"
 required-features = ["llm-smoke"]
 
 [[bin]]
-name = "hoego-cli"
-path = "src/bin/hoego_cli.rs"
+name = "hoego"
+path = "src/main.rs"
 
 [[bin]]
-name = "hoego"
-path = "src/bin/hoego.rs"
+name = "hoego-cli"
+path = "src/bin/hoego_cli.rs"

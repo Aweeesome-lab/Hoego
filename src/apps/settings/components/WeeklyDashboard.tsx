@@ -1,4 +1,4 @@
-import React from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 import {
   Calendar,
   TrendingUp,
@@ -6,13 +6,15 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { useAppStore } from '@/store/appStore';
-import { invoke } from '@tauri-apps/api/tauri';
-import type { GetWeekDataPayload, WeekData } from '@/types/tauri-commands';
+import React from 'react';
 
 import { CategoryPieChart } from './charts/CategoryPieChart';
 import { DailyTrendChart } from './charts/DailyTrendChart';
 import { ProductivityChart } from './charts/ProductivityChart';
+
+import type { GetWeekDataPayload, WeekData } from '@/types/tauri-commands';
+
+import { useAppStore } from '@/store/appStore';
 
 interface WeeklyDashboardProps {
   isDarkMode: boolean;
@@ -36,7 +38,7 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
 
   // Load week data on mount and when week changes
   React.useEffect(() => {
-    loadWeekData();
+    void loadWeekData();
   }, [currentWeekStart, weekStartDay]);
 
   const loadWeekData = async () => {
@@ -253,7 +255,7 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
             {weekDataError}
           </p>
           <button
-            onClick={loadWeekData}
+            onClick={() => void loadWeekData()}
             className={`mt-3 px-3 py-1.5 text-[12px] rounded-md transition ${
               isDarkMode
                 ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'

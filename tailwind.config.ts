@@ -5,7 +5,6 @@ const config: Config = {
   content: [
     'index.html',
     'src/**/*.{ts,tsx,html}',
-    '.storybook/**/*.{js,jsx,ts,tsx}', // Storybook 파일 포함
   ],
   theme: {
     extend: {

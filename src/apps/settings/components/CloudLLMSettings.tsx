@@ -64,55 +64,61 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
         }
       }
     };
-    checkSavedKey();
+    void checkSavedKey();
   }, [activeProvider, checkApiKey]);
 
-  const handleTest = async () => {
-    if (!apiKey) {
-      setTestResult({ success: false, message: 'API 키를 입력하세요' });
-      return;
-    }
+  const handleTest = () => {
+    void (async () => {
+      if (!apiKey) {
+        setTestResult({ success: false, message: 'API 키를 입력하세요' });
+        return;
+      }
 
-    setTesting(true);
-    setTestResult(null);
-
-    try {
-      const isValid = await testApiKey(activeProvider, apiKey);
-      setTestResult({
-        success: isValid,
-        message: isValid
-          ? '연결 성공! API 키가 유효합니다'
-          : 'API 키가 유효하지 않습니다',
-      });
-    } catch (error) {
-      setTestResult({
-        success: false,
-        message: `연결 실패: ${error}`,
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!apiKey) return;
-
-    const success = await saveApiKey(activeProvider, apiKey);
-    if (success) {
-      setConfigured(true);
-      setApiKey(''); // Clear input for security
-      setShowApiKey(false);
+      setTesting(true);
       setTestResult(null);
-    }
+
+      try {
+        const isValid = await testApiKey(activeProvider, apiKey);
+        setTestResult({
+          success: isValid,
+          message: isValid
+            ? '연결 성공! API 키가 유효합니다'
+            : 'API 키가 유효하지 않습니다',
+        });
+      } catch (error) {
+        setTestResult({
+          success: false,
+          message: `연결 실패: ${error}`,
+        });
+      } finally {
+        setTesting(false);
+      }
+    })();
   };
 
-  const handleDelete = async () => {
-    if (!confirm('정말로 API 키를 삭제하시겠습니까?')) return;
+  const handleSave = () => {
+    void (async () => {
+      if (!apiKey) return;
 
-    await deleteApiKey(activeProvider);
-    setConfigured(false);
-    setApiKey('');
-    setTestResult(null);
+      const success = await saveApiKey(activeProvider, apiKey);
+      if (success) {
+        setConfigured(true);
+        setApiKey(''); // Clear input for security
+        setShowApiKey(false);
+        setTestResult(null);
+      }
+    })();
+  };
+
+  const handleDelete = () => {
+    void (async () => {
+      // TODO: Add confirmation modal for better UX
+      await deleteApiKey(activeProvider);
+      setConfigured(false);
+      setApiKey('');
+      setTestResult(null);
+      toast.success('API 키가 삭제되었습니다.');
+    })();
   };
 
   const providerInfo = {

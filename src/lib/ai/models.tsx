@@ -341,13 +341,8 @@ export function ModelsContent() {
                       } disabled:opacity-60`}
                       onClick={async () => {
                         if (isInstalled) {
-                          // 재다운로드 확인
-                          if (
-                            !confirm(
-                              '이미 설치된 모델입니다. 다시 다운로드하시겠습니까?'
-                            )
-                          )
-                            return;
+                          // TODO: Add confirmation modal for better UX
+                          toast.info('모델을 재다운로드합니다.');
                         }
                         try {
                           setInstalling(p.id);
@@ -589,11 +584,11 @@ export function ModelsContent() {
                       <button
                         className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-300 hover:bg-red-500/20 transition-all"
                         onClick={async () => {
-                          if (!confirm(`${m.filename}을(를) 삭제하시겠습니까?`))
-                            return;
+                          // TODO: Add confirmation modal for better UX
                           try {
                             await aiModelDelete(m.filename);
                             await refreshInstalled();
+                            toast.success(`${m.filename}이(가) 삭제되었습니다.`);
                           } catch (e) {
                             toast.error(
                               `삭제 실패: ${

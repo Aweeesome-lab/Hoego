@@ -13,20 +13,22 @@ export default function HistoryFileItem({
 }: HistoryFileItemProps) {
   const [copyButtonText, setCopyButtonText] = useState('경로 복사');
 
-  const handleCopyPath = async () => {
-    if (!file.path) return;
-    try {
-      await navigator.clipboard.writeText(file.path);
-      setCopyButtonText('복사 완료!');
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[hoego] 클립보드 복사 실패', error);
+  const handleCopyPath = () => {
+    void (async () => {
+      if (!file.path) return;
+      try {
+        await navigator.clipboard.writeText(file.path);
+        setCopyButtonText('복사 완료!');
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[hoego] 클립보드 복사 실패', error);
+        }
+        setCopyButtonText('복사 실패');
       }
-      setCopyButtonText('복사 실패');
-    }
-    setTimeout(() => {
-      setCopyButtonText('경로 복사');
-    }, 1200);
+      setTimeout(() => {
+        setCopyButtonText('경로 복사');
+      }, 1200);
+    })();
   };
 
   return (

@@ -44,7 +44,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
   const [showModelPicker, setShowModelPicker] = useState(false);
 
   useEffect(() => {
-    loadModels();
+    void loadModels();
 
     // Set up event listeners for real-time download progress
     let unsubscribeProgress: (() => void) | null = null;
@@ -66,17 +66,17 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
           next.delete(modelId);
           return next;
         });
-        loadModels(); // Refresh model list after download completes
+        void loadModels(); // Refresh model list after download completes
       });
 
       unsubscribeError = await llmApi.onDownloadError((error) => {
         console.error('Download error:', error);
         setError(`Download failed: ${error}`);
-        loadModels(); // Refresh to clear any stale state
+        void loadModels(); // Refresh to clear any stale state
       });
     };
 
-    setupListeners();
+    void setupListeners();
 
     return () => {
       if (unsubscribeProgress) unsubscribeProgress();
@@ -133,14 +133,13 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
   };
 
   const handleDelete = async (modelId: string) => {
-    if (confirm('정말로 이 모델을 삭제하시겠습니까?')) {
-      try {
-        await llmApi.deleteModel(modelId);
-        await loadModels();
-      } catch (err) {
-        setError('Failed to delete model');
-        console.error('Delete failed:', err);
-      }
+    // TODO: Add confirmation modal for better UX
+    try {
+      await llmApi.deleteModel(modelId);
+      await loadModels();
+    } catch (err) {
+      setError('Failed to delete model');
+      console.error('Delete failed:', err);
     }
   };
 
@@ -403,7 +402,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
                     )}
                     {isDownloaded ? (
                       <button
-                        onClick={() => handleDelete(model.id)}
+                        onClick={() => void handleDelete(model.id)}
                         className={`p-1.5 rounded-md transition ${
                           isDarkMode
                             ? 'text-red-400 hover:bg-red-500/20'
@@ -428,7 +427,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleDownload(model)}
+                        onClick={() => void handleDownload(model)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                           isDarkMode
                             ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
@@ -555,7 +554,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
                     <div className="flex items-center gap-2 ml-3">
                       {!isDefault && (
                         <button
-                          onClick={() => handleSetDefault(model.info.id)}
+                          onClick={() => void handleSetDefault(model.info.id)}
                           className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
                             isDarkMode
                               ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'

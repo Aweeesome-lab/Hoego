@@ -1,8 +1,8 @@
-import * as React from 'react';
 import { Check } from 'lucide-react';
+import * as React from 'react';
 
 export interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
   /**
    * 체크박스 레이블
    */

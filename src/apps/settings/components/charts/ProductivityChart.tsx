@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+
 import type { ProductivityStats } from '@/types/tauri-commands';
 
 interface ProductivityChartProps {

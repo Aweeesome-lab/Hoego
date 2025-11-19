@@ -13,8 +13,8 @@ use tauri::{Manager, WindowEvent};
 
 use ai_summary::{generate_ai_feedback, generate_ai_feedback_stream, list_ai_summaries};
 use history::{
-    append_history_entry, get_today_markdown, list_history, open_history_folder,
-    save_today_markdown, HistoryState,
+    append_history_entry, get_history_markdown, get_today_markdown, list_history,
+    open_history_folder, save_today_markdown, HistoryState,
 };
 use shortcuts::register_shortcuts;
 use tray::{build_tray, handle_tray_event};
@@ -258,6 +258,7 @@ fn main() {
             append_history_entry,
             save_today_markdown,
             get_today_markdown,
+            get_history_markdown,
             list_history,
             generate_ai_feedback,
             generate_ai_feedback_stream,

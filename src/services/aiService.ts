@@ -8,11 +8,12 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
 
 import type { AiSummaryInfo } from '@/types/tauri-commands';
-import { CloudLLMClient } from '@/lib/cloud-llm';
+
 import {
   STRUCTURED_FEEDBACK_PROMPT,
   STRUCTURED_FEEDBACK_SYSTEM_PROMPT,
 } from '@/constants/aiPrompts';
+import { CloudLLMClient } from '@/lib/cloud-llm';
 
 // ============================================================================
 // Types

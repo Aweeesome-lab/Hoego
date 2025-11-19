@@ -64,8 +64,13 @@ export function useAiPipeline(targetDate?: string | null) {
     try {
       setSummariesError(null);
       // Convert date format from YYYYMMDD to YYYY-MM-DD if needed
-      const formattedDate = targetDate ? formatDateForBackend(targetDate) : undefined;
-      const summaries = await listAiSummaries(DEFAULT_AI_SUMMARY_LIMIT, formattedDate);
+      const formattedDate = targetDate
+        ? formatDateForBackend(targetDate)
+        : undefined;
+      const summaries = await listAiSummaries(
+        DEFAULT_AI_SUMMARY_LIMIT,
+        formattedDate
+      );
       setAiSummaries(summaries);
       const currentIndex = useAppStore.getState().selectedSummaryIndex;
       if (!summaries.length) {
@@ -157,7 +162,9 @@ export function useAiPipeline(targetDate?: string | null) {
       unsubs.push(unError);
 
       // Convert date format from YYYYMMDD to YYYY-MM-DD if needed
-      const formattedDate = targetDate ? formatDateForBackend(targetDate) : undefined;
+      const formattedDate = targetDate
+        ? formatDateForBackend(targetDate)
+        : undefined;
 
       // Pass targetDate to the backend (undefined means today)
       await generateAiFeedbackStream(formattedDate);

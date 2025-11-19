@@ -1,5 +1,8 @@
+import { forwardRef } from 'react';
+
+import type { HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
-import { HTMLAttributes, forwardRef } from 'react';
 
 /**
  * Card - 메인 컨테이너

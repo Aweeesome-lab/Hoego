@@ -64,7 +64,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 > 오늘 일지 전체의 사고 리듬에 대한 총평 1~2문장`;
 
   useEffect(() => {
-    loadPrompts();
+    void loadPrompts();
   }, []);
 
   const loadPrompts = async () => {
@@ -90,36 +90,40 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
     }
   };
 
-  const savePrompt = async () => {
-    if (!promptName.trim()) {
-      toast.error('프롬프트 이름을 입력해주세요.');
-      return;
-    }
+  const savePrompt = () => {
+    void (async () => {
+      if (!promptName.trim()) {
+        toast.error('프롬프트 이름을 입력해주세요.');
+        return;
+      }
 
-    setIsSaving(true);
-    try {
-      await invoke('save_prompt_config', {
-        name: promptName,
-        userPrompt: editingPrompt,
-      });
-      await loadPrompts();
-      toast.success('프롬프트가 저장되었습니다.');
-    } catch (error) {
-      console.error('Failed to save prompt:', error);
-      toast.error('프롬프트 저장에 실패했습니다.');
-    } finally {
-      setIsSaving(false);
-    }
+      setIsSaving(true);
+      try {
+        await invoke('save_prompt_config', {
+          name: promptName,
+          userPrompt: editingPrompt,
+        });
+        await loadPrompts();
+        toast.success('프롬프트가 저장되었습니다.');
+      } catch (error) {
+        console.error('Failed to save prompt:', error);
+        toast.error('프롬프트 저장에 실패했습니다.');
+      } finally {
+        setIsSaving(false);
+      }
+    })();
   };
 
-  const activatePrompt = async (promptId: string) => {
-    try {
-      await invoke('activate_prompt_config', { promptId });
-      await loadPrompts();
-    } catch (error) {
-      console.error('Failed to activate prompt:', error);
-      toast.error('프롬프트 활성화에 실패했습니다.');
-    }
+  const activatePrompt = (promptId: string) => {
+    void (async () => {
+      try {
+        await invoke('activate_prompt_config', { promptId });
+        await loadPrompts();
+      } catch (error) {
+        console.error('Failed to activate prompt:', error);
+        toast.error('프롬프트 활성화에 실패했습니다.');
+      }
+    })();
   };
 
   const loadPromptVersion = (prompt: PromptConfig) => {
