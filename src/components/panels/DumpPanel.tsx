@@ -67,7 +67,9 @@ export const DumpPanel = React.memo(function DumpPanel({
       <div className="flex-1 overflow-hidden px-3.5 py-2.5">
         <div
           ref={markdownRef}
-          className="h-full w-full overflow-y-auto overflow-x-hidden"
+          className={`h-full w-full ${
+            isEditing ? '' : 'overflow-y-auto overflow-x-hidden'
+          }`}
           onMouseDown={(e) => e.stopPropagation()}
           style={{ pointerEvents: 'auto' }}
           role="article"
@@ -78,7 +80,7 @@ export const DumpPanel = React.memo(function DumpPanel({
               ref={editorRef}
               value={editingContent}
               onChange={(e) => setEditingContent(e.target.value)}
-              className={`w-full min-h-[260px] resize-none border text-[13px] leading-5 outline-none ${
+              className={`w-full h-full min-h-[260px] resize-none border text-[13px] leading-5 outline-none ${
                 isDarkMode
                   ? 'border-white/10 bg-[#05070c] text-slate-100 placeholder:text-slate-500'
                   : 'border-slate-200 bg-white text-slate-900 placeholder:text-slate-400'
@@ -87,7 +89,6 @@ export const DumpPanel = React.memo(function DumpPanel({
                 fontFamily:
                   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 padding: 12,
-                height: '100%',
               }}
               placeholder="# 오늘\n\n작업을 기록해보세요."
               onKeyDown={(e) => {
