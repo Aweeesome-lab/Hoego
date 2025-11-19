@@ -267,12 +267,14 @@ export function ModelsContent() {
 
         <div className="mt-auto pt-6">
           <button
-            onClick={async () => {
-              try {
-                await openEngineFolder();
-              } catch (_e) {
-                // Ignore folder open errors
-              }
+            onClick={() => {
+              void (async () => {
+                try {
+                  await openEngineFolder();
+                } catch (_e) {
+                  // Ignore folder open errors
+                }
+              })();
             }}
             className="w-full rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300 hover:bg-white/10 transition-all"
           >
@@ -349,54 +351,56 @@ export function ModelsContent() {
                             ? 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
                             : 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30'
                       } disabled:opacity-60`}
-                      onClick={async () => {
-                        if (isInstalled) {
-                          // TODO: Add confirmation modal for better UX
-                          toast('모델을 재다운로드합니다.');
-                        }
-                        try {
-                          setInstalling(p.id);
-
-                          // 1. 엔진 체크 및 자동 설치
-                          const engineStatus = await aiEngineStatus();
-                          if (!engineStatus.installed) {
-                            setInstallingEngine(true);
-                            try {
-                              await aiEngineInstall();
-                            } catch (engineErr) {
-                              console.error(
-                                '[hoego] 엔진 설치 실패:',
-                                engineErr
-                              );
-                              throw new Error(
-                                `엔진 설치 실패: ${
-                                  engineErr instanceof Error
-                                    ? engineErr.message
-                                    : String(engineErr)
-                                }`
-                              );
-                            } finally {
-                              setInstallingEngine(false);
-                              setEngineProgress(null);
-                            }
+                      onClick={() => {
+                        void (async () => {
+                          if (isInstalled) {
+                            // TODO: Add confirmation modal for better UX
+                            toast('모델을 재다운로드합니다.');
                           }
+                          try {
+                            setInstalling(p.id);
 
-                          // 2. 모델 다운로드
-                          await aiModelDownload(p.url, p.filename);
-                          await refreshInstalled();
-                        } catch (e) {
-                          console.error('[hoego] preset install failed', e);
-                          const errorMsg =
-                            e instanceof Error ? e.message : String(e);
-                          toast.error(
-                            `설치 실패: ${errorMsg}\n\n자세한 내용은 콘솔 로그를 확인하세요.`,
-                            { duration: 5000 }
-                          );
-                        } finally {
-                          setInstalling(null);
-                          setInstallingEngine(false);
-                          setEngineProgress(null);
-                        }
+                            // 1. 엔진 체크 및 자동 설치
+                            const engineStatus = await aiEngineStatus();
+                            if (!engineStatus.installed) {
+                              setInstallingEngine(true);
+                              try {
+                                await aiEngineInstall();
+                              } catch (engineErr) {
+                                console.error(
+                                  '[hoego] 엔진 설치 실패:',
+                                  engineErr
+                                );
+                                throw new Error(
+                                  `엔진 설치 실패: ${
+                                    engineErr instanceof Error
+                                      ? engineErr.message
+                                      : String(engineErr)
+                                  }`
+                                );
+                              } finally {
+                                setInstallingEngine(false);
+                                setEngineProgress(null);
+                              }
+                            }
+
+                            // 2. 모델 다운로드
+                            await aiModelDownload(p.url, p.filename);
+                            await refreshInstalled();
+                          } catch (e) {
+                            console.error('[hoego] preset install failed', e);
+                            const errorMsg =
+                              e instanceof Error ? e.message : String(e);
+                            toast.error(
+                              `설치 실패: ${errorMsg}\n\n자세한 내용은 콘솔 로그를 확인하세요.`,
+                              { duration: 5000 }
+                            );
+                          } finally {
+                            setInstalling(null);
+                            setInstallingEngine(false);
+                            setEngineProgress(null);
+                          }
+                        })();
                       }}
                       disabled={isInstalling || installingEngine}
                     >
@@ -562,26 +566,28 @@ export function ModelsContent() {
                     <div className="flex gap-2">
                       <button
                         className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-60 transition-all"
-                        onClick={async () => {
-                          setStarting(m.filename);
-                          try {
-                            await aiLlamaStartServer({
-                              model: m.filename,
-                              port: 11435,
-                              ctx: 8192,
-                              ngl: 33,
-                              threads: 6,
-                            });
-                            await handleCheck();
-                          } catch (e) {
-                            toast.error(
-                              `서버 시작 실패: ${
-                                e instanceof Error ? e.message : String(e)
-                              }`
-                            );
-                          } finally {
-                            setStarting(null);
-                          }
+                        onClick={() => {
+                          void (async () => {
+                            setStarting(m.filename);
+                            try {
+                              await aiLlamaStartServer({
+                                model: m.filename,
+                                port: 11435,
+                                ctx: 8192,
+                                ngl: 33,
+                                threads: 6,
+                              });
+                              await handleCheck();
+                            } catch (e) {
+                              toast.error(
+                                `서버 시작 실패: ${
+                                  e instanceof Error ? e.message : String(e)
+                                }`
+                              );
+                            } finally {
+                              setStarting(null);
+                            }
+                          })();
                         }}
                         disabled={starting === m.filename || running}
                       >
@@ -593,21 +599,23 @@ export function ModelsContent() {
                       </button>
                       <button
                         className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-300 hover:bg-red-500/20 transition-all"
-                        onClick={async () => {
-                          // TODO: Add confirmation modal for better UX
-                          try {
-                            await aiModelDelete(m.filename);
-                            await refreshInstalled();
-                            toast.success(
-                              `${m.filename}이(가) 삭제되었습니다.`
-                            );
-                          } catch (e) {
-                            toast.error(
-                              `삭제 실패: ${
-                                e instanceof Error ? e.message : String(e)
-                              }`
-                            );
-                          }
+                        onClick={() => {
+                          void (async () => {
+                            // TODO: Add confirmation modal for better UX
+                            try {
+                              await aiModelDelete(m.filename);
+                              await refreshInstalled();
+                              toast.success(
+                                `${m.filename}이(가) 삭제되었습니다.`
+                              );
+                            } catch (e) {
+                              toast.error(
+                                `삭제 실패: ${
+                                  e instanceof Error ? e.message : String(e)
+                                }`
+                              );
+                            }
+                          })();
                         }}
                       >
                         삭제
@@ -625,12 +633,14 @@ export function ModelsContent() {
             </div>
             <button
               className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 transition-all"
-              onClick={async () => {
-                try {
-                  await openModelsFolder();
-                } catch (_e) {
-                  // Ignore folder open errors
-                }
+              onClick={() => {
+                void (async () => {
+                  try {
+                    await openModelsFolder();
+                  } catch (_e) {
+                    // Ignore folder open errors
+                  }
+                })();
               }}
             >
               📁 폴더 열기
@@ -661,19 +671,21 @@ export function ModelsContent() {
                       : 'bg-white/5 text-slate-400 border border-white/10 cursor-not-allowed'
                 }`}
                 disabled={!running || summarizing}
-                onClick={async () => {
-                  try {
-                    setSummarizing(true);
-                    setTestResult('요청 전송 중...');
-                    await aiSummarizeV1({
-                      port: 11435,
-                      note: testNote,
-                    });
-                    // 결과는 이벤트로 받음
-                  } catch (e) {
-                    setTestResult(`오류: ${String(e)}`);
-                    setSummarizing(false);
-                  }
+                onClick={() => {
+                  void (async () => {
+                    try {
+                      setSummarizing(true);
+                      setTestResult('요청 전송 중...');
+                      await aiSummarizeV1({
+                        port: 11435,
+                        note: testNote,
+                      });
+                      // 결과는 이벤트로 받음
+                    } catch (e) {
+                      setTestResult(`오류: ${String(e)}`);
+                      setSummarizing(false);
+                    }
+                  })();
                 }}
               >
                 {summarizing
