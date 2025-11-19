@@ -15,6 +15,9 @@ static IP_REGEX: OnceLock<Regex> = OnceLock::new();
 static PATH_REGEX: OnceLock<Regex> = OnceLock::new();
 static KOREAN_NAME_REGEX: OnceLock<Regex> = OnceLock::new();
 static ADDRESS_REGEX: OnceLock<Regex> = OnceLock::new();
+static API_KEY_REGEX: OnceLock<Regex> = OnceLock::new();
+static JWT_TOKEN_REGEX: OnceLock<Regex> = OnceLock::new();
+static BEARER_TOKEN_REGEX: OnceLock<Regex> = OnceLock::new();
 
 /// Initialize regex patterns (call once at startup)
 fn get_email_regex() -> &'static Regex {
@@ -74,6 +77,31 @@ fn get_address_regex() -> &'static Regex {
     })
 }
 
+fn get_api_key_regex() -> &'static Regex {
+    API_KEY_REGEX.get_or_init(|| {
+        // API keys: sk-..., AKIA..., ghp_..., gho_..., api_key_..., apikey_...
+        // OpenAI: sk-[A-Za-z0-9-_]{20,} (includes sk-proj-, sk-...)
+        // AWS: AKIA[A-Z0-9]{16}
+        // GitHub: ghp_[A-Za-z0-9]{20,}, gho_[A-Za-z0-9]{20,}
+        // Generic: api_key_[A-Za-z0-9]+, apikey_[A-Za-z0-9]+
+        Regex::new(r"\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b").unwrap()
+    })
+}
+
+fn get_jwt_token_regex() -> &'static Regex {
+    JWT_TOKEN_REGEX.get_or_init(|| {
+        // JWT tokens: eyJ... (header.payload.signature)
+        Regex::new(r"\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b").unwrap()
+    })
+}
+
+fn get_bearer_token_regex() -> &'static Regex {
+    BEARER_TOKEN_REGEX.get_or_init(|| {
+        // Bearer tokens: Bearer [token]
+        Regex::new(r"\bBearer\s+[A-Za-z0-9_\-\.]+\b").unwrap()
+    })
+}
+
 /// Mask PII in text content
 ///
 /// # Arguments
@@ -84,18 +112,52 @@ fn get_address_regex() -> &'static Regex {
 /// * The masked text with PII replaced by placeholders
 ///
 /// # Masking Order (most specific to least specific)
-/// 1. Korean SSN (주민등록번호) - most specific pattern
-/// 2. Credit card numbers - specific 4-4-4-4 pattern
-/// 3. Phone numbers - more general pattern
-/// 4. Emails
-/// 5. IP addresses
-/// 6. File paths
-/// 7. Korean addresses
-/// 8. Korean names - most conservative, last to avoid false positives
+/// 1. API keys and tokens (sk-, AKIA, ghp_, JWT, Bearer) - most sensitive
+/// 2. Korean SSN (주민등록번호) - most specific pattern
+/// 3. Credit card numbers - specific 4-4-4-4 pattern
+/// 4. Phone numbers - more general pattern
+/// 5. Emails
+/// 6. IP addresses
+/// 7. File paths
+/// 8. Korean addresses
+/// 9. Korean names - most conservative, last to avoid false positives
 pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
     let mut result = text.to_string();
 
-    // 1. Mask Korean SSN (주민등록번호) - FIRST to avoid conflicts with phone patterns
+    // 1. Mask API keys - FIRST as most sensitive
+    result = get_api_key_regex()
+        .replace_all(&result, |caps: &regex::Captures| {
+            if preserve_structure {
+                format!("[API_KEY_{}]", caps[0].len())
+            } else {
+                "[API_KEY]".to_string()
+            }
+        })
+        .to_string();
+
+    // 2. Mask JWT tokens
+    result = get_jwt_token_regex()
+        .replace_all(&result, |caps: &regex::Captures| {
+            if preserve_structure {
+                format!("[JWT_{}]", caps[0].len())
+            } else {
+                "[JWT]".to_string()
+            }
+        })
+        .to_string();
+
+    // 3. Mask Bearer tokens
+    result = get_bearer_token_regex()
+        .replace_all(&result, |caps: &regex::Captures| {
+            if preserve_structure {
+                format!("[BEARER_{}]", caps[0].len())
+            } else {
+                "[BEARER]".to_string()
+            }
+        })
+        .to_string();
+
+    // 4. Mask Korean SSN (주민등록번호)
     result = get_ssn_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -106,7 +168,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 2. Mask credit card numbers - SECOND to avoid conflicts with phone patterns
+    // 5. Mask credit card numbers
     result = get_card_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -117,7 +179,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 3. Mask phone numbers
+    // 6. Mask phone numbers
     result = get_phone_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -128,7 +190,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 4. Mask emails
+    // 7. Mask emails
     result = get_email_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -139,7 +201,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 5. Mask IP addresses
+    // 8. Mask IP addresses
     result = get_ip_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -150,7 +212,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 6. Mask file paths
+    // 9. Mask file paths
     result = get_path_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -161,7 +223,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 7. Mask Korean addresses
+    // 10. Mask Korean addresses
     result = get_address_regex()
         .replace_all(&result, |caps: &regex::Captures| {
             if preserve_structure {
@@ -172,7 +234,7 @@ pub fn mask_pii(text: &str, preserve_structure: bool) -> String {
         })
         .to_string();
 
-    // 8. Mask Korean names (most conservative - do last to avoid false positives)
+    // 11. Mask Korean names (most conservative - do last to avoid false positives)
     // Note: This is a heuristic and may have false positives
     // You may want to disable this or use a whitelist approach
     result = get_korean_name_regex()
@@ -305,5 +367,53 @@ mod tests {
         let masked = mask_pii(text, false);
         // Should not aggressively mask normal numbers
         assert!(masked.contains("10-20"));
+    }
+
+    #[test]
+    fn test_mask_api_keys() {
+        // OpenAI API key
+        let text = "OpenAI API key: sk-proj-1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH";
+        let masked = mask_pii(text, false);
+        assert!(masked.contains("[API_KEY]"));
+        assert!(!masked.contains("sk-proj-"));
+
+        // AWS API key
+        let text2 = "AWS key: AKIAIOSFODNN7EXAMPLE";
+        let masked2 = mask_pii(text2, false);
+        assert!(masked2.contains("[API_KEY]"));
+        assert!(!masked2.contains("AKIA"));
+
+        // GitHub token
+        let text3 = "GitHub token: ghp_1234567890abcdefghijklmnopqrstuvw";
+        let masked3 = mask_pii(text3, false);
+        assert!(masked3.contains("[API_KEY]"));
+        assert!(!masked3.contains("ghp_"));
+    }
+
+    #[test]
+    fn test_mask_jwt_tokens() {
+        let text = "JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        let masked = mask_pii(text, false);
+        assert!(masked.contains("[JWT]"));
+        assert!(!masked.contains("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"));
+    }
+
+    #[test]
+    fn test_mask_bearer_tokens() {
+        let text = "Authorization: Bearer abc123def456ghi789jkl012mno345pqr678stu901vwx234";
+        let masked = mask_pii(text, false);
+        assert!(masked.contains("[BEARER]"));
+        assert!(!masked.contains("Bearer abc123"));
+    }
+
+    #[test]
+    fn test_api_key_priority() {
+        // API keys should be masked before other patterns
+        let text = "API: sk-1234567890123456789012345678901234567890123456 Email: test@example.com";
+        let masked = mask_pii(text, false);
+        assert!(masked.contains("[API_KEY]"));
+        assert!(masked.contains("[EMAIL]"));
+        assert!(!masked.contains("sk-"));
+        assert!(!masked.contains("test@example.com"));
     }
 }

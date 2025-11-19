@@ -56,6 +56,24 @@ const ADDRESS_REGEX =
 const KOREAN_NAME_REGEX = /\b[가-힣]{1,2}\s[가-힣]{2,3}\b/g;
 
 /**
+ * API key 마스킹 패턴
+ * OpenAI: sk-..., AWS: AKIA..., GitHub: ghp_/gho_..., Generic: api_key_...
+ */
+const API_KEY_REGEX = /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/g;
+
+/**
+ * JWT token 마스킹 패턴
+ * eyJ... (header.payload.signature)
+ */
+const JWT_TOKEN_REGEX = /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
+
+/**
+ * Bearer token 마스킹 패턴
+ * Bearer [token]
+ */
+const BEARER_TOKEN_REGEX = /\bBearer\s+[A-Za-z0-9_\-.]+\b/g;
+
+/**
  * PII 마스킹 옵션
  */
 export interface MaskOptions {
@@ -88,14 +106,15 @@ export interface MaskOptions {
  * PII 마스킹 함수
  *
  * 마스킹 순서 (구체적인 것부터 일반적인 것 순):
- * 1. Korean SSN (주민등록번호) - 가장 구체적인 패턴
- * 2. Credit card numbers - 4-4-4-4 특정 패턴
- * 3. Phone numbers - 더 일반적인 패턴
- * 4. Emails
- * 5. IP addresses
- * 6. File paths (optional)
- * 7. Korean addresses
- * 8. Korean names (optional) - 가장 보수적, false positive 방지를 위해 마지막
+ * 1. API keys and tokens (sk-, AKIA, ghp_, JWT, Bearer) - 가장 민감
+ * 2. Korean SSN (주민등록번호) - 가장 구체적인 패턴
+ * 3. Credit card numbers - 4-4-4-4 특정 패턴
+ * 4. Phone numbers - 더 일반적인 패턴
+ * 5. Emails
+ * 6. IP addresses
+ * 7. File paths (optional)
+ * 8. Korean addresses
+ * 9. Korean names (optional) - 가장 보수적, false positive 방지를 위해 마지막
  */
 export function maskPII(text: string, options: MaskOptions = {}): string {
   const { preserveStructure = false, disableNameMasking = false, disablePathMasking = false } = options;
@@ -107,30 +126,39 @@ export function maskPII(text: string, options: MaskOptions = {}): string {
     return preserveStructure ? `[${type}_${originalLength}]` : `[${type}]`;
   };
 
-  // 1. Mask Korean SSN (주민등록번호) - FIRST to avoid conflicts with phone patterns
+  // 1. Mask API keys - FIRST as most sensitive
+  result = result.replace(API_KEY_REGEX, (match) => createMask('API_KEY', match.length));
+
+  // 2. Mask JWT tokens
+  result = result.replace(JWT_TOKEN_REGEX, (match) => createMask('JWT', match.length));
+
+  // 3. Mask Bearer tokens
+  result = result.replace(BEARER_TOKEN_REGEX, (match) => createMask('BEARER', match.length));
+
+  // 4. Mask Korean SSN (주민등록번호)
   result = result.replace(SSN_REGEX, (match) => createMask('SSN', match.length));
 
-  // 2. Mask credit card numbers - SECOND to avoid conflicts with phone patterns
+  // 5. Mask credit card numbers
   result = result.replace(CARD_REGEX, (match) => createMask('CARD', match.length));
 
-  // 3. Mask phone numbers
+  // 6. Mask phone numbers
   result = result.replace(PHONE_REGEX, (match) => createMask('PHONE', match.length));
 
-  // 4. Mask emails
+  // 7. Mask emails
   result = result.replace(EMAIL_REGEX, (match) => createMask('EMAIL', match.length));
 
-  // 5. Mask IP addresses
+  // 8. Mask IP addresses
   result = result.replace(IP_REGEX, (match) => createMask('IP', match.length));
 
-  // 6. Mask file paths (optional)
+  // 9. Mask file paths (optional)
   if (!disablePathMasking) {
     result = result.replace(PATH_REGEX, (match) => createMask('PATH', match.length));
   }
 
-  // 7. Mask Korean addresses
+  // 10. Mask Korean addresses
   result = result.replace(ADDRESS_REGEX, (match) => createMask('ADDRESS', match.length));
 
-  // 8. Mask Korean names (optional, most conservative - do last to avoid false positives)
+  // 11. Mask Korean names (optional, most conservative - do last to avoid false positives)
   if (!disableNameMasking) {
     result = result.replace(KOREAN_NAME_REGEX, (match) => createMask('NAME', match.length));
   }
@@ -145,14 +173,18 @@ export function maskPII(text: string, options: MaskOptions = {}): string {
  * @returns PII 포함 여부
  */
 export function containsPII(text: string): boolean {
+  // Note: We create new regex instances because test() with global flag maintains state
   return (
-    EMAIL_REGEX.test(text) ||
-    PHONE_REGEX.test(text) ||
-    SSN_REGEX.test(text) ||
-    CARD_REGEX.test(text) ||
-    IP_REGEX.test(text) ||
-    ADDRESS_REGEX.test(text) ||
-    KOREAN_NAME_REGEX.test(text)
+    /\b(?:sk-[A-Za-z0-9\-_]{20,}|AKIA[A-Z0-9]{16}|gh[po]_[A-Za-z0-9]{20,}|api_?key_?[A-Za-z0-9]{16,})\b/.test(text) ||
+    /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/.test(text) ||
+    /\bBearer\s+[A-Za-z0-9_\-.]+\b/.test(text) ||
+    /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(text) ||
+    /(\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}|\(\d{2,3}\)\s?\d{3,4}[-\s]?\d{4})/.test(text) ||
+    /\b\d{6}[-]?\d{7}\b/.test(text) ||
+    /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/.test(text) ||
+    /\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(text) ||
+    /[가-힣]+(?:시|도|군|구)\s+[가-힣]+(?:시|군|구|동|읍|면)\s*[\d가-힣\s-]*/.test(text) ||
+    /\b[가-힣]{1,2}\s[가-힣]{2,3}\b/.test(text)
   );
 }
 
@@ -185,7 +217,7 @@ export function maskPIIWithStats(
   const masked = maskPII(text, options);
 
   // Count number of masked items by comparing differences
-  const maskedCount = (masked.match(/\[(EMAIL|PHONE|SSN|CARD|IP|PATH|ADDRESS|NAME)(_\d+)?\]/g) || []).length;
+  const maskedCount = (masked.match(/\[(API_KEY|JWT|BEARER|EMAIL|PHONE|SSN|CARD|IP|PATH|ADDRESS|NAME)(_\d+)?\]/g) || []).length;
 
   return {
     masked,

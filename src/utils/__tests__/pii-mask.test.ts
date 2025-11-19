@@ -213,4 +213,62 @@ describe('PII Masking Utility', () => {
       expect(masked).not.toContain('[PHONE]');
     });
   });
+
+  describe('API keys and tokens masking', () => {
+    it('should mask OpenAI API keys', () => {
+      const text = 'API key: sk-proj-1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[API_KEY]');
+      expect(masked).not.toContain('sk-proj-');
+    });
+
+    it('should mask AWS API keys', () => {
+      const text = 'AWS: AKIAIOSFODNN7EXAMPLE';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[API_KEY]');
+      expect(masked).not.toContain('AKIA');
+    });
+
+    it('should mask GitHub tokens', () => {
+      const text = 'GitHub: ghp_1234567890abcdefghijklmnopqrstuvw';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[API_KEY]');
+      expect(masked).not.toContain('ghp_');
+    });
+
+    it('should mask JWT tokens', () => {
+      const text = 'JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[JWT]');
+      expect(masked).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+    });
+
+    it('should mask Bearer tokens', () => {
+      const text = 'Authorization: Bearer abc123def456ghi789jkl012mno345pqr678stu901vwx234';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[BEARER]');
+      expect(masked).not.toContain('Bearer abc123');
+    });
+
+    it('should mask API keys before other patterns', () => {
+      const text = 'API: sk-1234567890123456789012345678901234567890123456 Email: test@example.com';
+      const masked = maskPII(text);
+
+      expect(masked).toContain('[API_KEY]');
+      expect(masked).toContain('[EMAIL]');
+      expect(masked).not.toContain('sk-');
+      expect(masked).not.toContain('test@example.com');
+    });
+
+    it('should detect API keys with containsPII', () => {
+      expect(containsPII('sk-1234567890123456789012345678901234567890123456')).toBe(true);
+      expect(containsPII('AKIAIOSFODNN7EXAMPLE')).toBe(true);
+      expect(containsPII('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc')).toBe(true);
+    });
+  });
 });
