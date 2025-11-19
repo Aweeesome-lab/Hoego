@@ -1,4 +1,4 @@
-import { Calendar, ChevronDown, ChevronRight, Settings, ChevronLeft } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronRight, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import React from 'react';
 
 import type { HistoryFileInfo } from '@/types/tauri-commands';
@@ -123,64 +123,55 @@ export const Sidebar = React.memo(function Sidebar({
 
   if (!isOpen) {
     return (
-      <div
-        className={`fixed left-0 top-0 h-full w-12 z-40 flex flex-col ${
-          isDarkMode ? 'bg-slate-900/95 border-slate-700/50' : 'bg-white/95 border-slate-200'
-        } border-r backdrop-blur-sm`}
-      >
+      <>
+        <div
+          className={`fixed left-0 top-0 h-full w-12 z-40 flex flex-col ${
+            isDarkMode ? 'bg-slate-900/95 border-slate-700/50' : 'bg-white/95 border-slate-200'
+          } border-r backdrop-blur-sm`}
+        />
+        {/* 고정 위치 토글 버튼 */}
         <button
           type="button"
           onClick={onToggle}
-          className={`p-3 hover:bg-opacity-80 transition-colors ${
-            isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
+          className={`fixed left-2 top-4 z-50 p-2 rounded-md transition-colors ${
+            isDarkMode
+              ? 'hover:bg-slate-800 text-slate-300'
+              : 'hover:bg-slate-100 text-slate-700'
           }`}
           aria-label="사이드바 열기"
         >
-          <ChevronLeft
-            className={`h-5 w-5 transform rotate-180 ${
-              isDarkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}
-          />
+          <PanelLeftOpen className="h-5 w-5" />
         </button>
-      </div>
+      </>
     );
   }
 
   return (
-    <div
-      className={`fixed left-0 top-0 h-full w-64 z-40 flex flex-col ${
-        isDarkMode ? 'bg-slate-900/95 border-slate-700/50' : 'bg-white/95 border-slate-200'
-      } border-r backdrop-blur-sm`}
-    >
-      {/* 헤더 */}
+    <>
       <div
-        className={`flex items-center justify-between p-4 border-b ${
-          isDarkMode ? 'border-slate-700/50' : 'border-slate-200'
-        }`}
+        className={`fixed left-0 top-0 h-full w-64 z-40 flex flex-col ${
+          isDarkMode ? 'bg-slate-900/95 border-slate-700/50' : 'bg-white/95 border-slate-200'
+        } border-r backdrop-blur-sm`}
       >
-        <div className="flex items-center gap-2">
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
-            }`}
-          >
-            <span className="text-sm font-semibold">H</span>
-          </div>
-          <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-            Hoego
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={onToggle}
-          className={`p-1.5 rounded hover:bg-opacity-80 transition-colors ${
-            isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
+        {/* 헤더 */}
+        <div
+          className={`flex items-center justify-center p-4 border-b ${
+            isDarkMode ? 'border-slate-700/50' : 'border-slate-200'
           }`}
-          aria-label="사이드바 닫기"
         >
-          <ChevronLeft className={`h-4 w-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`} />
-        </button>
-      </div>
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
+              }`}
+            >
+              <span className="text-sm font-semibold">H</span>
+            </div>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+              Hoego
+            </span>
+          </div>
+        </div>
 
       {/* 메뉴 섹션 */}
       <div className="flex-1 overflow-y-auto">
@@ -308,5 +299,19 @@ export const Sidebar = React.memo(function Sidebar({
         </button>
       </div>
     </div>
+    {/* 고정 위치 토글 버튼 */}
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`fixed left-2 top-4 z-50 p-2 rounded-md transition-colors ${
+        isDarkMode
+          ? 'hover:bg-slate-800 text-slate-300'
+          : 'hover:bg-slate-100 text-slate-700'
+      }`}
+      aria-label="사이드바 닫기"
+    >
+      <PanelLeftClose className="h-5 w-5" />
+    </button>
+  </>
   );
 });

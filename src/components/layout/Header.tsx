@@ -196,13 +196,6 @@ export function Header({
           : 'border-slate-200/50 bg-slate-50/90'
       }`}
     >
-      <span
-        className={`font-serif text-lg font-medium tracking-wide ${
-          isDarkMode ? 'text-slate-200' : 'text-slate-800'
-        }`}
-      >
-        HOEGO
-      </span>
       <button
         type="button"
         className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
