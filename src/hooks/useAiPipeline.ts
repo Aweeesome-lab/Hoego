@@ -209,7 +209,7 @@ export function useAiPipeline(targetDate?: string | null) {
       await generateFeedback();
 
       // Note: Pipeline completion is handled in the 'ai_feedback_stream_complete' event
-    } catch (error) {
+    } catch (_error) {
       // Error already handled in generateFeedback
       setPipelineStage('idle');
       setIsPipelineRunning(false);

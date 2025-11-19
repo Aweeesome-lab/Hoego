@@ -39,6 +39,7 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
   // Load week data on mount and when week changes
   React.useEffect(() => {
     void loadWeekData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWeekStart, weekStartDay]);
 
   const loadWeekData = async () => {

@@ -69,7 +69,10 @@ try {
   setupSymlinks();
 
   console.log('\n✅ Build completed successfully!\n');
-} catch (_err) {
+} catch (err) {
   console.error('\n❌ Build failed!\n');
+  if (err instanceof Error) {
+    console.error(err.message);
+  }
   process.exit(1);
 }

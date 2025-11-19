@@ -1,10 +1,3 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-
-import { PromptSettings } from './components/PromptSettings';
-// import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
-
-import '@/styles/index.css';
 import {
   Info,
   Moon,
@@ -13,8 +6,13 @@ import {
   FileText,
   NotebookPen,
 } from 'lucide-react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
+import { PromptSettings } from './components/PromptSettings';
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
+// import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
+import '@/styles/index.css';
 
 function LLMSettingsApp() {
   // Theme mode: 'light' | 'dark' | 'system'
@@ -374,8 +372,11 @@ function LLMSettingsApp() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('settings-root')!).render(
-  <React.StrictMode>
-    <LLMSettingsApp />
-  </React.StrictMode>
-);
+const rootElement = document.getElementById('settings-root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <LLMSettingsApp />
+    </React.StrictMode>
+  );
+}

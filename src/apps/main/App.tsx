@@ -194,11 +194,6 @@ export default function App() {
         const hasOpenAIKey = await CloudLLMClient.hasApiKey('openai');
         if (hasOpenAIKey) {
           await CloudLLMClient.initializeProvider('openai');
-          if (import.meta.env.DEV) {
-            console.log(
-              '[Cloud LLM] Auto-initialized OpenAI provider on app start'
-            );
-          }
         }
       } catch (error) {
         if (import.meta.env.DEV) {
@@ -468,10 +463,6 @@ export default function App() {
           // 선택된 날짜의 마크다운 로드
           const content = await getHistoryMarkdown(file.path);
           setMarkdownContent(content);
-
-          if (import.meta.env.DEV) {
-            console.log('[hoego] Loaded history:', file.date);
-          }
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error('[hoego] Failed to load history:', error);
@@ -482,17 +473,19 @@ export default function App() {
         }
       })();
     },
-    []
+    [setMarkdownContent]
   );
 
   // Cleanup streaming on unmount
   React.useEffect(() => {
+    const cleanup = streamingCleanupRef.current;
     return () => {
-      if (streamingCleanupRef.current) {
-        streamingCleanupRef.current();
+      if (cleanup) {
+        cleanup();
       }
     };
-  }, [streamingCleanupRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div

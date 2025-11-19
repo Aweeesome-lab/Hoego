@@ -45,12 +45,20 @@ export function CategoryPieChart({ data, isDarkMode }: CategoryPieChartProps) {
   }, [data]);
 
   // Custom label for the pie chart
-  const renderLabel = (entry: any) => {
+  const renderLabel = (entry: { percentage: string }) => {
     return `${entry.percentage}%`;
   };
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      payload: { name: string; hours: string; percentage: string };
+    }>;
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

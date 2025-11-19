@@ -176,7 +176,10 @@ export function groupHistoryFilesByMonth(
     if (!grouped.has(monthKey)) {
       grouped.set(monthKey, []);
     }
-    grouped.get(monthKey)!.push(file);
+    const monthGroup = grouped.get(monthKey);
+    if (monthGroup) {
+      monthGroup.push(file);
+    }
   });
 
   return grouped;

@@ -84,7 +84,7 @@ export function useMarkdown() {
         }`
       );
     }
-  }, []);
+  }, [setMarkdownContent]);
 
   const appendTimestampToLine = useCallback((line: string) => {
     const trimmedLine = line.replace(/\s+$/, '');
@@ -184,7 +184,7 @@ export function useMarkdown() {
   );
 
   const handleTaskCheckboxToggle = useCallback(
-    async (listItem: any, nextChecked: boolean) => {
+    async (listItem: { position?: Position | null }, nextChecked: boolean) => {
       if (isSaving) {
         return;
       }
@@ -236,7 +236,7 @@ export function useMarkdown() {
         setIsSaving(false);
       }
     },
-    [isSaving, markdownContent, resolveOffsets]
+    [isSaving, markdownContent, resolveOffsets, setMarkdownContent, setIsSaving]
   );
 
   // 편집 모드 진입 시 에디터 포커스
@@ -272,7 +272,7 @@ export function useMarkdown() {
         clearTimeout(debounceIdRef.current);
       }
     };
-  }, [isEditing, editingContent]);
+  }, [isEditing, editingContent, setIsSaving]);
 
   // 수동 동기화 핸들러
   const handleManualSync = useCallback(async () => {

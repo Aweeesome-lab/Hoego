@@ -180,7 +180,10 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
     const [isOpen, setIsOpen] = React.useState(false);
     const containerRef = React.useRef<HTMLDivElement>(null);
 
-    React.useImperativeHandle(ref, () => containerRef.current!);
+    React.useImperativeHandle(
+      ref,
+      () => containerRef.current as HTMLDivElement
+    );
 
     const selectedOption = options.find((opt) => opt.value === value);
 

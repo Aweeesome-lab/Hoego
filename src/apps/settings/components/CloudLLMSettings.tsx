@@ -50,11 +50,6 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
         try {
           const { CloudLLMClient } = await import('@/lib/cloud-llm');
           await CloudLLMClient.initializeProvider(activeProvider);
-          if (import.meta.env.DEV) {
-            console.log(
-              `[Cloud LLM] Auto-initialized ${activeProvider} provider`
-            );
-          }
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error(

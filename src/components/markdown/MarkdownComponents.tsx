@@ -22,7 +22,7 @@ export function useMarkdownComponents({
   return React.useMemo<Components>(
     () => ({
       // 전체적으로 폰트 크기 축소
-      h1: ({ node, children, ...props }) => (
+      h1: ({ children, ...props }) => (
         <h1
           {...props}
           className={`mb-3 text-base font-semibold ${
@@ -32,7 +32,7 @@ export function useMarkdownComponents({
           {children}
         </h1>
       ),
-      h2: ({ node, children, ...props }) => (
+      h2: ({ children, ...props }) => (
         <h2
           {...props}
           className={`mb-2 mt-3 text-sm font-semibold ${
@@ -42,7 +42,7 @@ export function useMarkdownComponents({
           {children}
         </h2>
       ),
-      h3: ({ node, children, ...props }) => (
+      h3: ({ children, ...props }) => (
         <h3
           {...props}
           className={`mb-1.5 mt-2 text-xs font-semibold ${
@@ -52,7 +52,7 @@ export function useMarkdownComponents({
           {children}
         </h3>
       ),
-      ul: ({ node, children, ...props }) => (
+      ul: ({ children, ...props }) => (
         <ul
           {...props}
           className="mb-1.5 ml-4 list-disc space-y-0.5 text-[13px] leading-5"
@@ -60,7 +60,7 @@ export function useMarkdownComponents({
           {children}
         </ul>
       ),
-      ol: ({ node, children, ...props }) => (
+      ol: ({ children, ...props }) => (
         <ol
           {...props}
           className="mb-1.5 ml-4 list-decimal space-y-0.5 text-[13px] leading-5"
@@ -113,12 +113,12 @@ export function useMarkdownComponents({
           </li>
         );
       },
-      p: ({ node, children, ...props }) => (
+      p: ({ children, ...props }) => (
         <p {...props} className="mb-1.5 text-[13px] leading-5">
           {children}
         </p>
       ),
-      a: ({ node, children, href, ...props }) => (
+      a: ({ children, href, ...props }) => (
         <a
           {...props}
           href={href}
@@ -157,7 +157,7 @@ export function useMarkdownComponents({
           </pre>
         );
       },
-      blockquote: ({ node, children, ...props }) => (
+      blockquote: ({ children, ...props }) => (
         <blockquote
           {...props}
           className={`my-3 border-l-2 pl-3 ${
@@ -169,7 +169,7 @@ export function useMarkdownComponents({
           {children}
         </blockquote>
       ),
-      table: ({ node, children, ...props }) => (
+      table: ({ children, ...props }) => (
         <div className="my-3 overflow-x-auto">
           <table
             {...props}
@@ -181,7 +181,7 @@ export function useMarkdownComponents({
           </table>
         </div>
       ),
-      thead: ({ node, children, ...props }) => (
+      thead: ({ children, ...props }) => (
         <thead
           {...props}
           className={isDarkMode ? 'bg-white/5 text-slate-100' : 'bg-slate-100'}
@@ -189,10 +189,8 @@ export function useMarkdownComponents({
           {children}
         </thead>
       ),
-      tbody: ({ node, children, ...props }) => (
-        <tbody {...props}>{children}</tbody>
-      ),
-      th: ({ node, children, ...props }) => (
+      tbody: ({ children, ...props }) => <tbody {...props}>{children}</tbody>,
+      th: ({ children, ...props }) => (
         <th
           {...props}
           className="border border-slate-200/30 px-3 py-2 text-left text-[13px] font-semibold"
@@ -200,7 +198,7 @@ export function useMarkdownComponents({
           {children}
         </th>
       ),
-      td: ({ node, children, ...props }) => (
+      td: ({ children, ...props }) => (
         <td
           {...props}
           className="border border-slate-200/30 px-3 py-2 align-top text-[13px]"
@@ -208,7 +206,7 @@ export function useMarkdownComponents({
           {children}
         </td>
       ),
-      del: ({ node, children, ...props }) => (
+      del: ({ children, ...props }) => (
         <del className="text-slate-400 decoration-2" {...props}>
           {children}
         </del>

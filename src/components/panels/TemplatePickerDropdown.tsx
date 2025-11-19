@@ -31,6 +31,8 @@ export const TemplatePickerDropdown = React.memo(
       <div
         ref={templateDropdownRef}
         onMouseDown={(e) => e.stopPropagation()}
+        role="menu"
+        aria-label="템플릿 선택"
         className={`fixed z-[9999] overflow-hidden rounded-xl border shadow-xl ${
           isDarkMode
             ? 'border-white/10 bg-[#05070c] text-slate-100'

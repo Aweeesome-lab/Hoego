@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 // Mock Tauri API
-(globalThis as any).window = Object.create(window);
+(globalThis as { window: Window }).window = Object.create(window);
 const mockTauri = {
   invoke: vi.fn(),
   listen: vi.fn(),
@@ -60,7 +60,8 @@ const localStorageMock = {
   },
   key: vi.fn((index: number) => Object.keys(storage)[index] || null),
 };
-(globalThis as any).localStorage = localStorageMock as unknown as Storage;
+(globalThis as { localStorage: Storage }).localStorage =
+  localStorageMock as unknown as Storage;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {

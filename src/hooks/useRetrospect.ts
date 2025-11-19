@@ -191,7 +191,11 @@ export function useRetrospect() {
       window.removeEventListener('resize', handleReposition);
       window.removeEventListener('scroll', handleReposition, true);
     };
-  }, [isTemplatePickerOpen, updateTemplateDropdownPosition]);
+  }, [
+    isTemplatePickerOpen,
+    setIsTemplatePickerOpen,
+    updateTemplateDropdownPosition,
+  ]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -217,7 +221,7 @@ export function useRetrospect() {
 
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  }, [setCustomRetrospectiveTemplates]);
 
   const retrospectiveTemplates = [
     ...RETROSPECTIVE_TEMPLATES,

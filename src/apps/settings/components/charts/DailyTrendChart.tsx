@@ -42,7 +42,7 @@ export function DailyTrendChart({ data, isDarkMode }: DailyTrendChartProps) {
   // Transform data for stacked bar chart
   const chartData = React.useMemo(() => {
     return data.map((day) => {
-      const dayData: any = {
+      const dayData: Record<string, string> = {
         date: day.date.substring(5), // Remove year, show MM-DD
       };
 
@@ -56,10 +56,18 @@ export function DailyTrendChart({ data, isDarkMode }: DailyTrendChartProps) {
   }, [data, allCategories]);
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ name: string; value: string; color: string }>;
+    label?: string;
+  }) => {
     if (active && payload && payload.length) {
       const total = payload.reduce(
-        (sum: number, entry: any) => sum + parseFloat(entry.value || 0),
+        (sum: number, entry) => sum + parseFloat(entry.value || '0'),
         0
       );
 
@@ -73,8 +81,8 @@ export function DailyTrendChart({ data, isDarkMode }: DailyTrendChartProps) {
         >
           <p className="font-semibold text-[13px] mb-2">{label}</p>
           {payload
-            .filter((entry: any) => parseFloat(entry.value) > 0)
-            .map((entry: any, index: number) => (
+            .filter((entry) => parseFloat(entry.value) > 0)
+            .map((entry, index: number) => (
               <div key={index} className="flex items-center gap-2 text-[11px]">
                 <div
                   className="w-2 h-2 rounded-full"

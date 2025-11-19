@@ -46,7 +46,15 @@ export function ProductivityChart({
   ).toFixed(1);
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      payload: { name: string; hours: string; percentage: string };
+    }>;
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

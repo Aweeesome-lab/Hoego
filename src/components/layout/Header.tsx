@@ -272,6 +272,8 @@ export function Header({
         <div
           className="flex items-center gap-2"
           onMouseDown={(e) => e.stopPropagation()}
+          role="toolbar"
+          aria-label="편집 도구"
         >
           <button
             type="button"

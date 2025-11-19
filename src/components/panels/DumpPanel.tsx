@@ -70,6 +70,8 @@ export const DumpPanel = React.memo(function DumpPanel({
           className="h-full w-full overflow-y-auto"
           onMouseDown={(e) => e.stopPropagation()}
           style={{ pointerEvents: 'auto' }}
+          role="article"
+          aria-label="마크다운 콘텐츠"
         >
           {isEditing ? (
             <textarea

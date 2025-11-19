@@ -95,38 +95,43 @@ export function ModelsContent() {
   React.useEffect(() => {
     void handleCheck();
     void refreshInstalled();
-    const u1 = listen('ai:model_download_started', (e: any) => {
-      const p = e.payload as { filename: string };
-      const preset = MODEL_PRESETS.find((x) => x.filename === p.filename);
-      if (preset) setInstalling(preset.id);
-    });
-    const u2 = listen('ai:model_download_progress', (e: any) => {
-      const p = e.payload as {
-        filename: string;
-        received: number;
-        total: number;
-      };
-      setProgress((prev) => ({
-        ...prev,
-        [p.filename]: { received: p.received, total: p.total },
-      }));
-    });
-    const u3 = listen('ai:model_download_error', (e: any) => {
-      const p = e.payload as { filename: string; message: string };
-      console.error('[hoego] model download error', p);
-      setInstalling(null);
-      const errorMsg = p.message || 'unknown error';
-      toast.error(
-        `모델 다운로드 실패\n\n파일: ${p.filename}\n오류: ${errorMsg}\n\n터미널에서 더 자세한 로그를 확인하세요.`,
-        { duration: 5000 }
-      );
-    });
-    const u4 = listen('ai:model_download_done', (e: any) => {
+    const u1 = listen<{ filename: string }>(
+      'ai:model_download_started',
+      (e) => {
+        const p = e.payload as { filename: string };
+        const preset = MODEL_PRESETS.find((x) => x.filename === p.filename);
+        if (preset) setInstalling(preset.id);
+      }
+    );
+    const u2 = listen<{ filename: string; received: number; total: number }>(
+      'ai:model_download_progress',
+      (e) => {
+        const p = e.payload;
+        setProgress((prev) => ({
+          ...prev,
+          [p.filename]: { received: p.received, total: p.total },
+        }));
+      }
+    );
+    const u3 = listen<{ filename: string; message: string }>(
+      'ai:model_download_error',
+      (e) => {
+        const p = e.payload;
+        console.error('[hoego] model download error', p);
+        setInstalling(null);
+        const errorMsg = p.message || 'unknown error';
+        toast.error(
+          `모델 다운로드 실패\n\n파일: ${p.filename}\n오류: ${errorMsg}\n\n터미널에서 더 자세한 로그를 확인하세요.`,
+          { duration: 5000 }
+        );
+      }
+    );
+    const u4 = listen<{ filename: string }>('ai:model_download_done', (e) => {
       void (async () => {
         await refreshInstalled();
         setInstalling(null);
         // 진행률 초기화
-        const p = e.payload as { filename: string };
+        const p = e.payload;
         setProgress((prev) => {
           const newProgress = { ...prev };
           delete newProgress[p.filename];
@@ -140,12 +145,15 @@ export function ModelsContent() {
       setInstallingEngine(true);
       setEngineProgress(null);
     });
-    const u6 = listen('ai:engine_install_progress', (e: any) => {
-      const p = e.payload as { received: number; total: number };
-      setEngineProgress(p);
-    });
-    const u7 = listen('ai:engine_install_error', (e: any) => {
-      const p = e.payload as { message: string };
+    const u6 = listen<{ received: number; total: number }>(
+      'ai:engine_install_progress',
+      (e) => {
+        const p = e.payload;
+        setEngineProgress(p);
+      }
+    );
+    const u7 = listen<{ message: string }>('ai:engine_install_error', (e) => {
+      const p = e.payload;
       console.error('[hoego] engine install error', p);
       setInstallingEngine(false);
       setEngineProgress(null);
@@ -174,15 +182,19 @@ export function ModelsContent() {
       setSummarizing(true);
       setTestResult('AI가 분석 중입니다... (30초~1분 소요)');
     });
-    const u10 = listen('ai:summarize_done', (e: any) => {
-      const p = e.payload as { result: any };
-      // 마크다운 형식으로 표시
-      const markdown = p.result?.markdown || JSON.stringify(p.result, null, 2);
-      setTestResult(markdown);
-      setSummarizing(false);
-    });
-    const u11 = listen('ai:summarize_error', (e: any) => {
-      const p = e.payload as { message: string };
+    const u10 = listen<{ result: { markdown?: string } }>(
+      'ai:summarize_done',
+      (e) => {
+        const p = e.payload;
+        // 마크다운 형식으로 표시
+        const markdown =
+          p.result?.markdown || JSON.stringify(p.result, null, 2);
+        setTestResult(markdown);
+        setSummarizing(false);
+      }
+    );
+    const u11 = listen<{ message: string }>('ai:summarize_error', (e) => {
+      const p = e.payload;
       setTestResult(`오류: ${p.message}`);
       setSummarizing(false);
     });
@@ -194,6 +206,7 @@ export function ModelsContent() {
         )
       );
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -727,7 +740,18 @@ export function ModelsContent() {
 export default function ModelsPanel({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' || e.key === 'Enter') {
+            onClose();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="모달 닫기"
+      />
       <div className="relative max-h-[80vh] w-[860px] overflow-hidden rounded-2xl border border-white/10 bg-[#0d1016]/95 p-0 shadow-xl">
         <header className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <h2 className="text-sm font-semibold text-slate-100">Models</h2>

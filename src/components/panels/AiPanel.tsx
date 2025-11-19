@@ -113,8 +113,8 @@ export const AiPanel = React.memo(function AiPanel({
                   isDarkMode ? 'text-slate-200' : 'text-slate-500'
                 }`}
               >
-                오늘 작성된 AI 피드백이 없습니다. "AI 피드백" 버튼을 눌러 요약을
-                생성해보세요.
+                오늘 작성된 AI 피드백이 없습니다. &ldquo;AI 피드백&rdquo; 버튼을
+                눌러 요약을 생성해보세요.
               </p>
             </Response>
           ) : (

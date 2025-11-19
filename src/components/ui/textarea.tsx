@@ -91,7 +91,10 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ) => {
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-    React.useImperativeHandle(ref, () => textareaRef.current!);
+    React.useImperativeHandle(
+      ref,
+      () => textareaRef.current as HTMLTextAreaElement
+    );
 
     // Auto-resize logic
     React.useEffect(() => {

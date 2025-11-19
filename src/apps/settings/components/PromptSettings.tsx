@@ -65,6 +65,7 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
 
   useEffect(() => {
     void loadPrompts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPrompts = async () => {

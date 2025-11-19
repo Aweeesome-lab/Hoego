@@ -35,7 +35,7 @@ export async function aiLlamaStartServer(args: {
   ngl: number;
   threads: number;
 }): Promise<void> {
-  return await invoke('ai_llama_start_server', args as any);
+  return await invoke('ai_llama_start_server', args as Record<string, unknown>);
 }
 
 export async function aiLlamaStopServer(): Promise<void> {
@@ -66,7 +66,10 @@ export async function aiSummarizeV1(args: {
   port: number;
   note: string;
 }): Promise<void> {
-  return await invoke('ai_summarize_v1', { app: undefined, ...args } as any);
+  return await invoke('ai_summarize_v1', { app: undefined, ...args } as Record<
+    string,
+    unknown
+  >);
 }
 
 export async function saveAiSummary(content: string): Promise<string> {

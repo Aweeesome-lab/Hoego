@@ -38,6 +38,7 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
         void handleSummarize();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, hasModel]);
 
   const checkForModels = async () => {
@@ -144,6 +145,14 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
           <div
             className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
             onClick={handleClose}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter') {
+                handleClose();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="모달 닫기"
           />
 
           {/* 모달 - 중앙 배치 */}

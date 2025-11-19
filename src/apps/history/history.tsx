@@ -4,8 +4,11 @@ import ReactDOM from 'react-dom/client';
 import HistoryApp from './components/HistoryApp';
 import '@/styles/index.css';
 
-ReactDOM.createRoot(document.getElementById('history-root')!).render(
-  <React.StrictMode>
-    <HistoryApp />
-  </React.StrictMode>
-);
+const rootElement = document.getElementById('history-root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <HistoryApp />
+    </React.StrictMode>
+  );
+}
