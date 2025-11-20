@@ -449,19 +449,24 @@ fn ui(f: &mut ratatui::Frame, app: &mut TuiApp) {
 
             if lines_taken <= extra_lines_needed {
                 extra_lines_needed -= lines_taken;
+                accumulated_lines += lines_taken;
             } else {
                 break;
             }
         }
 
+        // scroll_offset와 visible_start 모두 업데이트
         app.scroll_offset = new_start;
     }
+
+    // 최종 범위: scroll_offset가 업데이트되었을 수 있으므로 다시 계산
+    let final_start = app.scroll_offset.min(total_logs.saturating_sub(1));
 
     let log_lines: Vec<Line> = app
         .logs
         .iter()
-        .skip(visible_start)
-        .take(visible_end - visible_start)
+        .skip(final_start)
+        .take(visible_end - final_start)
         .map(|line| format_log_line(line))
         .collect();
 
@@ -469,11 +474,11 @@ fn ui(f: &mut ratatui::Frame, app: &mut TuiApp) {
 
     // 스크롤 인디케이터 생성
     let scroll_indicator = if total_logs > log_area_height {
-        let can_scroll_up = visible_start > 0;
+        let can_scroll_up = final_start > 0;
         let can_scroll_down = visible_end < total_logs;
-        let max_offset = total_logs.saturating_sub(log_area_height);
+        let max_offset = total_logs.saturating_sub(1);
         let percentage = if max_offset > 0 {
-            (visible_start * 100) / max_offset
+            (final_start * 100) / max_offset
         } else {
             0
         };
@@ -485,7 +490,7 @@ fn ui(f: &mut ratatui::Frame, app: &mut TuiApp) {
             up_arrow,
             percentage.min(100),
             down_arrow,
-            visible_start + 1,
+            final_start + 1,
             visible_end,
             total_logs
         )
