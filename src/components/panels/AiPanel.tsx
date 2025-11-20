@@ -78,7 +78,7 @@ export const AiPanel = React.memo(function AiPanel({
     >
       <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
             정리하기(feedback)
           </span>
           {/* 개인정보 보호 배지 (개발 모드 전용) */}

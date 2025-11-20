@@ -39,9 +39,11 @@ export const DumpPanel = React.memo(function DumpPanel({
           : 'bg-white text-slate-900 border-slate-200'
       }`}
     >
-      <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6 text-[11px] font-semibold uppercase tracking-[0.2em]">
+      <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6">
         <div className="flex items-center gap-2">
-          <span>쏟아내기(dump)</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
+            쏟아내기(dump)
+          </span>
           {currentDateLabel && (
             <span
               className={`text-[10px] font-normal normal-case tracking-normal ${
