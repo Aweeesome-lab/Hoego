@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers, MouseEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -23,6 +23,8 @@ pub struct TuiApp {
     pub logs: Vec<String>,
     pub date_label: String,
     pub file_path: String,
+    pub scroll_offset: usize,
+    pub should_scroll_to_bottom: bool,
 }
 
 impl TuiApp {
@@ -37,11 +39,14 @@ impl TuiApp {
             logs: initial_logs,
             date_label,
             file_path: file_path_display,
+            scroll_offset: 0,
+            should_scroll_to_bottom: true, // 초기에는 최하단으로
         }
     }
 
     pub fn update_logs(&mut self, new_logs: Vec<String>) {
         self.logs = new_logs;
+        self.should_scroll_to_bottom = true; // 새 로그 추가 시 최하단으로
     }
 
     pub fn move_cursor_left(&mut self) {
@@ -153,6 +158,53 @@ impl TuiApp {
         self.cursor_position = 0;
         Some(message)
     }
+
+    pub fn scroll_up(&mut self, lines: usize) {
+        self.scroll_offset = self.scroll_offset.saturating_sub(lines);
+        self.should_scroll_to_bottom = false; // 수동 스크롤 시 자동 스크롤 해제
+    }
+
+    pub fn scroll_down(&mut self, lines: usize) {
+        self.scroll_offset = self.scroll_offset.saturating_add(lines);
+        self.should_scroll_to_bottom = false; // 수동 스크롤 시 자동 스크롤 해제
+    }
+
+    pub fn scroll_to_top(&mut self) {
+        self.scroll_offset = 0;
+        self.should_scroll_to_bottom = false;
+    }
+
+    pub fn scroll_to_bottom(&mut self, visible_lines: usize) {
+        if self.logs.len() > visible_lines {
+            self.scroll_offset = self.logs.len() - visible_lines;
+        } else {
+            self.scroll_offset = 0;
+        }
+        self.should_scroll_to_bottom = false;
+    }
+
+    pub fn adjust_scroll_if_needed(&mut self, visible_lines: usize) {
+        // 최하단으로 스크롤해야 하는 경우
+        if self.should_scroll_to_bottom {
+            if self.logs.len() > visible_lines {
+                self.scroll_offset = self.logs.len() - visible_lines;
+            } else {
+                self.scroll_offset = 0;
+            }
+            self.should_scroll_to_bottom = false;
+            return;
+        }
+
+        // 일반적인 스크롤 범위 조정
+        if self.logs.len() > visible_lines {
+            let max_offset = self.logs.len() - visible_lines;
+            if self.scroll_offset > max_offset {
+                self.scroll_offset = max_offset;
+            }
+        } else {
+            self.scroll_offset = 0;
+        }
+    }
 }
 
 pub fn setup_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, String> {
@@ -192,12 +244,17 @@ fn run_app<B: ratatui::backend::Backend>(
     app: &mut TuiApp,
 ) -> Result<Option<String>, String> {
     loop {
+        // 터미널 크기에 맞춰 스크롤 조정
+        let terminal_size = terminal.size().map_err(|e| format!("터미널 크기 확인 실패: {}", e))?;
+        let log_area_height = terminal_size.height.saturating_sub(5) as usize; // 입력 영역과 여백 제외
+        app.adjust_scroll_if_needed(log_area_height);
+
         terminal
             .draw(|f| ui(f, app))
             .map_err(|e| format!("그리기 실패: {}", e))?;
 
-        if let Event::Key(key) = event::read().map_err(|e| format!("이벤트 읽기 실패: {}", e))? {
-            match (key.code, key.modifiers) {
+        match event::read().map_err(|e| format!("이벤트 읽기 실패: {}", e))? {
+            Event::Key(key) => match (key.code, key.modifiers) {
                 // Ctrl+C 또는 Ctrl+D로 종료
                 (KeyCode::Char('c'), KeyModifiers::CONTROL)
                 | (KeyCode::Char('d'), KeyModifiers::CONTROL) => {
@@ -277,15 +334,47 @@ fn run_app<B: ratatui::backend::Backend>(
                 (KeyCode::Right, KeyModifiers::NONE | KeyModifiers::SHIFT) => {
                     app.move_cursor_right();
                 }
-                // Home/End
-                (KeyCode::Home, _) => {
+                // 로그 스크롤 (Up/Down)
+                (KeyCode::Up, KeyModifiers::NONE) => {
+                    app.scroll_up(1);
+                }
+                (KeyCode::Down, KeyModifiers::NONE) => {
+                    app.scroll_down(1);
+                }
+                // 페이지 단위 스크롤
+                (KeyCode::PageUp, _) => {
+                    app.scroll_up(10);
+                }
+                (KeyCode::PageDown, _) => {
+                    app.scroll_down(10);
+                }
+                // Home/End - 입력 커서 또는 스크롤
+                (KeyCode::Home, KeyModifiers::NONE) => {
                     app.cursor_position = 0;
                 }
-                (KeyCode::End, _) => {
+                (KeyCode::End, KeyModifiers::NONE) => {
                     app.cursor_position = app.input.len();
                 }
+                // Ctrl+Home/End - 스크롤 최상단/최하단
+                (KeyCode::Home, KeyModifiers::CONTROL) => {
+                    app.scroll_to_top();
+                }
+                (KeyCode::End, KeyModifiers::CONTROL) => {
+                    // 최하단으로 스크롤 (visible_lines는 나중에 UI에서 계산)
+                    app.scroll_to_bottom(100);
+                }
                 _ => {}
-            }
+            },
+            Event::Mouse(mouse) => match mouse.kind {
+                MouseEventKind::ScrollUp => {
+                    app.scroll_up(3); // 마우스 휠 한 번에 3줄씩
+                }
+                MouseEventKind::ScrollDown => {
+                    app.scroll_down(3);
+                }
+                _ => {}
+            },
+            _ => {}
         }
     }
 }
@@ -311,13 +400,46 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
         .split(f.area());
 
     // 상단: 로그 영역
+    // 스크롤 오프셋 적용
+    let log_area_height = chunks[0].height.saturating_sub(2) as usize; // title과 border 제외
+    let total_logs = app.logs.len();
+    let visible_start = app.scroll_offset.min(total_logs.saturating_sub(1));
+    let visible_end = (visible_start + log_area_height).min(total_logs);
+
     let log_lines: Vec<Line> = app
         .logs
         .iter()
+        .skip(visible_start)
+        .take(visible_end - visible_start)
         .map(|line| format_log_line(line))
         .collect();
 
     let logs_text = Text::from(log_lines);
+
+    // 스크롤 인디케이터 생성
+    let scroll_indicator = if total_logs > log_area_height {
+        let can_scroll_up = visible_start > 0;
+        let can_scroll_down = visible_end < total_logs;
+        let percentage = if total_logs > 0 {
+            (visible_start * 100) / total_logs.saturating_sub(log_area_height)
+        } else {
+            0
+        };
+
+        let up_arrow = if can_scroll_up { "↑" } else { " " };
+        let down_arrow = if can_scroll_down { "↓" } else { " " };
+
+        format!(" [{}{}{}] {}-{}/{} ",
+            up_arrow,
+            percentage.min(100),
+            down_arrow,
+            visible_start + 1,
+            visible_end,
+            total_logs
+        )
+    } else {
+        format!(" {}/{} ", total_logs, total_logs)
+    };
 
     let logs_paragraph = Paragraph::new(logs_text)
         .wrap(ratatui::widgets::Wrap { trim: false })
@@ -332,7 +454,7 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
                         .add_modifier(Modifier::BOLD),
                 ))
                 .title_bottom(Span::styled(
-                    format!("  {}", app.file_path),
+                    format!("  {}{}", app.file_path, scroll_indicator),
                     Style::default().fg(Color::DarkGray),
                 )),
         );

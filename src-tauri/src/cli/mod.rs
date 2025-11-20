@@ -4,6 +4,7 @@ pub mod tui;
 /// CLI 인자 구조체
 pub struct LogCliArgs {
     pub session_title: Option<String>,
+    pub show_help: bool,
 }
 
 impl LogCliArgs {
@@ -11,13 +12,19 @@ impl LogCliArgs {
     pub fn from_env() -> Self {
         let args: Vec<String> = std::env::args().collect();
         let mut session_title = None;
+        let mut show_help = false;
 
         // 간단한 인자 파싱
-        // hoego cli
-        // hoego cli --session "세션 제목"
-        let mut i = 2; // "hoego cli" 다음부터 시작
+        // hoego
+        // hoego --session "세션 제목"
+        // hoego --help
+        let mut i = 1; // 프로그램 이름 다음부터 시작
         while i < args.len() {
             match args[i].as_str() {
+                "--help" | "-h" => {
+                    show_help = true;
+                    i += 1;
+                }
                 "--session" => {
                     if i + 1 < args.len() {
                         session_title = Some(args[i + 1].clone());
@@ -33,7 +40,10 @@ impl LogCliArgs {
             }
         }
 
-        Self { session_title }
+        Self {
+            session_title,
+            show_help,
+        }
     }
 }
 
@@ -48,9 +58,10 @@ pub fn run_daily_log(args: LogCliArgs) -> Result<(), String> {
     }
 
     // 3. 초기 로그 읽기
-    let initial_logs = daily_log::read_last_n_lines(&file_path, 100)?;
+    let initial_logs = daily_log::read_last_n_lines(&file_path, 100)
+        .unwrap_or_else(|_| Vec::new());
 
-    // 4. TUI 앱 생성
+    // 4. TUI 앱 생성 (should_scroll_to_bottom이 자동으로 true로 설정됨)
     let mut app = tui::TuiApp::new(&now, file_path.to_string_lossy().to_string(), initial_logs);
 
     // 5. 터미널 설정
@@ -79,9 +90,16 @@ pub fn run_daily_log(args: LogCliArgs) -> Result<(), String> {
                     // 평문 입력 → 로그 항목 추가
                     match daily_log::append_log_entry(&file_path, &input) {
                         Ok(_) => {
-                            // 로그 갱신
-                            let updated_logs = daily_log::read_last_n_lines(&file_path, 100)?;
-                            app.update_logs(updated_logs);
+                            // 로그 갱신 (update_logs가 자동으로 should_scroll_to_bottom을 설정)
+                            match daily_log::read_last_n_lines(&file_path, 100) {
+                                Ok(updated_logs) => {
+                                    app.update_logs(updated_logs);
+                                }
+                                Err(_e) => {
+                                    // 로그 읽기 실패 시 기존 로그 유지
+                                    continue;
+                                }
+                            }
                         }
                         Err(_e) => {
                             // 에러 처리 (TUI에서는 무시)

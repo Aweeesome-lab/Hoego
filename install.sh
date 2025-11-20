@@ -12,7 +12,7 @@ cd "$SCRIPT_DIR"
 # 1. 릴리즈 빌드
 echo "📦 바이너리 빌드 중... (최초 1회, 1-2분 소요)"
 cd src-tauri
-cargo build --release --bin hoego
+cargo build --release --bin hoego-cli
 
 # 2. 설치 위치 결정
 INSTALL_DIR="/usr/local/bin"
@@ -20,7 +20,7 @@ BINARY_NAME="hoego"
 
 # sudo 권한 확인
 if [ ! -w "$INSTALL_DIR" ]; then
-    echo "⚠️  $INSTALL_DIR에 쓰기 권한이 필요합니다."
+    echo "쓰기 권한이 필요합니다."
     USE_SUDO="sudo"
 else
     USE_SUDO=""
@@ -28,7 +28,7 @@ fi
 
 # 3. 바이너리 복사
 echo "📥 $INSTALL_DIR/$BINARY_NAME 에 설치 중..."
-$USE_SUDO cp target/release/hoego "$INSTALL_DIR/$BINARY_NAME"
+$USE_SUDO cp target/release/hoego-cli "$INSTALL_DIR/$BINARY_NAME"
 $USE_SUDO chmod +x "$INSTALL_DIR/$BINARY_NAME"
 
 echo ""
