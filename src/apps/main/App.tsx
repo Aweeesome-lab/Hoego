@@ -66,7 +66,7 @@ const RETROSPECT_VIEW_OPTIONS: Array<{
 ];
 
 export default function App() {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [inputValue, setInputValue] = React.useState('');
   const [currentTime, setCurrentTime] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);

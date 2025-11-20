@@ -7,7 +7,7 @@ interface FloatingMiniBarProps {
   /**
    * 입력 필드 ref
    */
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLTextAreaElement>;
 
   /**
    * 입력 필드의 현재 값
@@ -46,7 +46,7 @@ export function FloatingMiniBar({
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[480px] max-w-[calc(100vw-2rem)]">
       <div
-        className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
+        className={`flex items-start gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
           isDarkMode
             ? 'bg-slate-900/95 border-white/10 shadow-black/30'
             : 'bg-white/95 border-slate-200/50 shadow-slate-300/30'
@@ -58,21 +58,23 @@ export function FloatingMiniBar({
           className="flex-1 min-w-0"
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
             value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-            }}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 e.preventDefault();
                 void hideOverlayWindow();
               }
+              // Submit on Enter without Shift
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e as unknown as React.FormEvent);
+              }
             }}
             placeholder="생각을 쏟아내보세요."
-            className={`h-10 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 px-3 ${
+            className={`h-14 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 px-3 py-3 resize-none ${
               isDarkMode
                 ? 'bg-slate-800/50 text-slate-100 placeholder:text-slate-500 focus:ring-slate-600 focus:bg-slate-800/80'
                 : 'bg-slate-100/50 text-slate-900 placeholder:text-slate-400 focus:ring-slate-400 focus:bg-slate-100/80'
@@ -85,7 +87,7 @@ export function FloatingMiniBar({
         <button
           type="button"
           onClick={onMinimizeClick}
-          className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 ${
+          className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 mt-[0.9rem] ${
             isDarkMode
               ? 'border-white/10 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
               : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
