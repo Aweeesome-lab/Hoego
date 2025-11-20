@@ -1,3 +1,4 @@
+import { Pencil, Check } from 'lucide-react';
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 
@@ -17,6 +18,15 @@ interface DumpPanelProps {
   markdownComponents: Components;
   onSaveMarkdown: (content: string) => Promise<void>;
   currentDateLabel?: string; // 현재 보고 있는 날짜 라벨
+
+  // 편집 버튼 관련 props
+  setIsEditing: (value: boolean) => void;
+  saveTodayMarkdown: (content: string) => Promise<void>;
+  lastSavedRef: React.MutableRefObject<string>;
+  loadMarkdown: () => Promise<void>;
+  isSaving: boolean;
+  setIsSaving: (value: boolean) => void;
+  isHistoryMode?: boolean;
 }
 
 export const DumpPanel = React.memo(function DumpPanel({
@@ -30,6 +40,13 @@ export const DumpPanel = React.memo(function DumpPanel({
   markdownContent,
   markdownComponents,
   currentDateLabel,
+  setIsEditing,
+  saveTodayMarkdown,
+  lastSavedRef,
+  loadMarkdown,
+  isSaving: _isSaving,
+  setIsSaving,
+  isHistoryMode = false,
 }: DumpPanelProps) {
   return (
     <section
@@ -54,17 +71,80 @@ export const DumpPanel = React.memo(function DumpPanel({
             </span>
           )}
         </div>
-        {isEditing ? (
-          <span
-            className={`rounded-full px-3 py-1 text-[10px] ${
-              isDarkMode
-                ? 'bg-white/10 text-slate-200'
-                : 'bg-slate-200 text-slate-700'
-            }`}
-          >
-            편집 중
-          </span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <button
+              type="button"
+              onClick={() => {
+                void (async () => {
+                  // 편집 종료: 현재 줄에 타임스탬프 부착 후 저장/종료
+                  let contentToSave = editingContent;
+                  const el = editorRef.current;
+                  if (el) {
+                    const start = el.selectionStart;
+                    const end = el.selectionEnd;
+                    const before = editingContent.slice(0, start);
+                    const after = editingContent.slice(end);
+                    const lineStart = before.lastIndexOf('\n') + 1;
+                    const currentLine = before.slice(lineStart);
+                    const stampedLine = appendTimestampToLine(currentLine);
+                    const newContent =
+                      editingContent.slice(0, lineStart) + stampedLine + after;
+                    if (newContent !== editingContent) {
+                      setEditingContent(newContent);
+                      contentToSave = newContent;
+                    }
+                  }
+                  try {
+                    setIsSaving(true);
+                    if (contentToSave !== lastSavedRef.current) {
+                      await saveTodayMarkdown(contentToSave);
+                      lastSavedRef.current = contentToSave;
+                    }
+                    await loadMarkdown();
+                  } catch (error) {
+                    if (import.meta.env.DEV)
+                      console.error('[hoego] 저장 실패:', error);
+                  } finally {
+                    setIsSaving(false);
+                    setIsEditing(false);
+                  }
+                })();
+              }}
+              className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
+                isDarkMode
+                  ? 'border-white/10 bg-[#0a0d13]/80 text-slate-200'
+                  : 'border-slate-200 bg-white text-slate-700'
+              }`}
+            >
+              <Check className="mr-1.5 h-3.5 w-3.5" /> 완료
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (isHistoryMode) return;
+                setEditingContent(markdownContent);
+                setIsEditing(true);
+              }}
+              disabled={isHistoryMode}
+              className={`flex h-8 w-8 items-center justify-center rounded-full border ${
+                isHistoryMode
+                  ? isDarkMode
+                    ? 'border-white/5 bg-[#0a0d13]/50 text-slate-600 cursor-not-allowed'
+                    : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                  : isDarkMode
+                    ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300 hover:bg-white/10'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+              }`}
+              onMouseDown={(e) => e.stopPropagation()}
+              title={isHistoryMode ? '히스토리는 읽기 전용입니다' : '편집 모드 열기'}
+              aria-label={isHistoryMode ? '히스토리는 읽기 전용입니다' : '편집 모드 열기'}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex-1 overflow-hidden px-6 py-4">
         <div

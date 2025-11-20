@@ -603,18 +603,6 @@ export default function App() {
         } transition-all duration-200`}
       >
         <Header
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          setEditingContent={setEditingContent}
-          markdownContent={markdownContent}
-          editorRef={editorRef}
-          editingContent={editingContent}
-          appendTimestampToLine={appendTimestampToLine}
-          saveTodayMarkdown={saveTodayMarkdown}
-          lastSavedRef={lastSavedRef}
-          loadMarkdown={loadMarkdown}
-          isSaving={isSaving}
-          setIsSaving={setIsSaving}
           isAiPanelExpanded={isAiPanelExpanded}
           setIsAiPanelExpanded={setIsAiPanelExpanded}
           isRetrospectPanelExpanded={isRetrospectPanelExpanded}
@@ -627,7 +615,6 @@ export default function App() {
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
           switchToMini={switchToMini}
-          isHistoryMode={!!currentHistoryDate}
         />
 
         <div
@@ -663,6 +650,13 @@ export default function App() {
                 setIsSaving(false);
               }
             }}
+            setIsEditing={setIsEditing}
+            saveTodayMarkdown={saveTodayMarkdown}
+            lastSavedRef={lastSavedRef}
+            loadMarkdown={loadMarkdown}
+            isSaving={isSaving}
+            setIsSaving={setIsSaving}
+            isHistoryMode={!!currentHistoryDate}
           />
 
           <React.Suspense fallback={<div className="flex flex-1" />}>
