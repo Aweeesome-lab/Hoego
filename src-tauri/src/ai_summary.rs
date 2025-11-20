@@ -160,15 +160,12 @@ pub async fn generate_ai_feedback(
 
     let summary_body = summary.summary.trim();
 
-    let markdown = format!(
-        "# 정리하기 ({})\n\n## 오늘 정리\n{}",
-        format_date_label(&now),
-        if summary_body.is_empty() {
-            "(생성된 요약이 비어 있습니다)".to_string()
-        } else {
-            summary_body.to_string()
-        }
-    );
+    // LLM이 생성한 내용을 그대로 사용 (메타 헤더 제거)
+    let markdown = if summary_body.is_empty() {
+        "(생성된 요약이 비어 있습니다)".to_string()
+    } else {
+        summary_body.to_string()
+    };
 
     write_ai_summary_file(&now, &markdown, pii_detected)
 }
@@ -398,15 +395,12 @@ pub async fn generate_ai_feedback_stream(
 
     match result {
         Ok(full_text) => {
-            let markdown = format!(
-                "# 정리하기 ({})\n\n## 오늘 정리\n{}",
-                format_date_label(&target_time),
-                if full_text.trim().is_empty() {
-                    "(생성된 요약이 비어 있습니다)".to_string()
-                } else {
-                    full_text.trim().to_string()
-                }
-            );
+            // LLM이 생성한 내용을 그대로 사용 (메타 헤더 제거)
+            let markdown = if full_text.trim().is_empty() {
+                "(생성된 요약이 비어 있습니다)".to_string()
+            } else {
+                full_text.trim().to_string()
+            };
 
             match write_ai_summary_file(&target_time, &markdown, pii_detected) {
                 Ok(saved) => {
