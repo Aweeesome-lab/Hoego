@@ -101,16 +101,17 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
             ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-300 border border-white/10'
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 border border-slate-200'
         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        title={currentOption?.displayName || '모델 선택'}
       >
         {currentOption?.type === 'local' ? (
-          <Brain className="h-3 w-3" />
+          <Brain className="h-3 w-3 flex-shrink-0" />
         ) : (
-          <Cloud className="h-3 w-3" />
+          <Cloud className="h-3 w-3 flex-shrink-0" />
         )}
-        <span className="max-w-[100px] truncate">
+        <span className="hidden xl:inline max-w-[150px] truncate">
           {currentOption?.displayName || '모델 선택'}
         </span>
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-3 w-3 flex-shrink-0" />
       </button>
 
       {/* Dropdown Menu */}

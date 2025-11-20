@@ -41,7 +41,7 @@ export const DumpContentArea = React.memo(function DumpContentArea({
           ref={editorRef}
           value={dumpContent}
           onChange={(e) => setDumpContent(e.target.value)}
-          className={`absolute inset-0 resize-none border-0 text-[13px] leading-5 outline-none ${
+          className={`absolute inset-0 resize-none border-0 text-[13px] leading-5 outline-none px-4 py-4 ${
             isDarkMode
               ? 'bg-[#05070c] text-slate-100 placeholder:text-slate-500'
               : 'bg-white text-slate-900 placeholder:text-slate-400'
@@ -49,7 +49,6 @@ export const DumpContentArea = React.memo(function DumpContentArea({
           style={{
             fontFamily:
               'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            padding: 12,
             paddingBottom: '120px',
           }}
           placeholder="# 오늘\n\n작업을 기록해보세요."
@@ -95,7 +94,7 @@ export const DumpContentArea = React.memo(function DumpContentArea({
 
         {/* 미리보기 모드 - markdown */}
         <div
-          className={`absolute inset-0 overflow-y-auto overflow-x-hidden px-3 py-2 text-[13px] prose prose-sm max-w-none ${
+          className={`absolute inset-0 overflow-y-auto overflow-x-hidden px-4 py-4 text-[13px] prose prose-sm max-w-none ${
             isDarkMode ? 'prose-invert text-slate-200' : 'text-slate-700'
           } ${isEditing ? 'hidden' : ''}`}
           style={{ paddingBottom: '120px' }}

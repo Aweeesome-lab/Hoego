@@ -78,8 +78,8 @@ export const AiPanel = React.memo(function AiPanel({
       }`}
     >
       <div className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] flex-shrink-0">
             정리하기(feedback)
           </span>
           {/* 개인정보 보호 배지 (개발 모드 전용) */}
@@ -100,8 +100,8 @@ export const AiPanel = React.memo(function AiPanel({
                   : `이 피드백은 개인정보 ${showPiiInfo.piiDetected ? '보호 처리됨' : '보호 없이 생성됨'}`
               }
             >
-              <Shield className="h-2.5 w-2.5" />
-              <span>
+              <Shield className="h-2.5 w-2.5 flex-shrink-0" />
+              <span className="hidden xl:inline whitespace-nowrap">
                 {showPiiInfo.piiDetected ? '개인정보 보호됨' : '개인정보 없음'}
               </span>
             </div>

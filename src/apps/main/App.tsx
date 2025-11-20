@@ -647,9 +647,13 @@ export default function App() {
             isDarkMode={isDarkMode}
             isEditing={isEditing}
             dumpContent={
-              isLoadingHistoryContent ? '로딩 중...' : markdownContent
+              isLoadingHistoryContent
+                ? '로딩 중...'
+                : isEditing
+                  ? editingContent
+                  : markdownContent
             }
-            setDumpContent={setMarkdownContent}
+            setDumpContent={isEditing ? setEditingContent : setMarkdownContent}
             markdownRef={markdownRef}
             editorRef={editorRef}
             appendTimestampToLine={appendTimestampToLine}

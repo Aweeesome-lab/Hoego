@@ -239,12 +239,22 @@ export function useMarkdown() {
     [isSaving, markdownContent, resolveOffsets, setMarkdownContent, setIsSaving]
   );
 
-  // 편집 모드 진입 시 에디터 포커스
+  // 편집 모드 진입/종료 시 내용 동기화
+  const prevIsEditingRef = useRef(isEditing);
   useEffect(() => {
-    if (isEditing) {
+    // 편집 모드로 전환되는 순간 (false → true)
+    if (isEditing && !prevIsEditingRef.current) {
+      // 편집 모드 진입 시 markdownContent를 editingContent로 복사
+      setEditingContent(markdownContent);
       setTimeout(() => editorRef.current?.focus(), 50);
     }
-  }, [isEditing]);
+    // 편집 모드에서 벗어나는 순간 (true → false)
+    else if (!isEditing && prevIsEditingRef.current) {
+      // 편집 모드 종료 시 editingContent를 markdownContent로 동기화
+      setMarkdownContent(editingContent);
+    }
+    prevIsEditingRef.current = isEditing;
+  }, [isEditing, markdownContent, editingContent, setEditingContent, setMarkdownContent]);
 
   // 편집 중 자동 저장 (디바운스)
   useEffect(() => {

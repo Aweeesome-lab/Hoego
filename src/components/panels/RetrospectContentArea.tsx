@@ -30,7 +30,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
           ref={retrospectRef}
           value={retrospectContent}
           onChange={(e) => setRetrospectContent(e.target.value)}
-          className={`absolute inset-0 resize-none border-0 text-[13px] leading-5 outline-none ${
+          className={`absolute inset-0 resize-none border-0 text-[13px] leading-5 outline-none px-4 py-4 ${
             isDarkMode
               ? 'bg-[#05070c] text-slate-100 placeholder:text-slate-500'
               : 'bg-white text-slate-900 placeholder:text-slate-400'
@@ -38,7 +38,6 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
           style={{
             fontFamily:
               'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            padding: 12,
             paddingBottom: '120px',
           }}
           placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
@@ -46,8 +45,8 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
 
         {/* 미리보기 모드 - markdown */}
         <div
-          className={`absolute inset-0 overflow-y-auto overflow-x-hidden px-3 py-2 text-[13px] ${
-            isDarkMode ? 'text-slate-100' : 'text-slate-900'
+          className={`absolute inset-0 overflow-y-auto overflow-x-hidden px-4 py-4 text-[13px] prose prose-sm max-w-none ${
+            isDarkMode ? 'prose-invert text-slate-100' : 'text-slate-900'
           } ${isEditing ? 'hidden' : ''}`}
           style={{ paddingBottom: '120px' }}
         >
