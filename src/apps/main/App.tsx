@@ -343,6 +343,13 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         event.stopPropagation();
+
+        // 히스토리를 보고 있으면 편집 불가
+        if (currentHistoryDate) {
+          toast.error('히스토리는 읽기 전용입니다.');
+          return;
+        }
+
         if (isEditing) {
           const el = editorRef.current;
           const start = el ? el.selectionStart : editingContent.length;
@@ -425,6 +432,7 @@ export default function App() {
     lastSavedRef,
     saveTodayMarkdown,
     editorRef,
+    currentHistoryDate,
   ]);
 
   const handleManualSync = React.useCallback(() => {
@@ -461,8 +469,14 @@ export default function App() {
   const handleHomeClick = React.useCallback(() => {
     // 오늘 날짜로 돌아가기
     setCurrentHistoryDate(null);
+
+    // 편집 모드 종료
+    if (isEditing) {
+      setIsEditing(false);
+    }
+
     void loadMarkdown();
-  }, [loadMarkdown]);
+  }, [loadMarkdown, isEditing, setIsEditing]);
 
   const handleSettingsClick = React.useCallback(() => {
     void (async () => {
@@ -484,9 +498,15 @@ export default function App() {
           setIsLoadingHistoryContent(true);
           setCurrentHistoryDate(file.date);
 
+          // 편집 모드 종료
+          if (isEditing) {
+            setIsEditing(false);
+          }
+
           // 선택된 날짜의 마크다운 로드
           const content = await getHistoryMarkdown(file.path);
           setMarkdownContent(content);
+          setEditingContent(content); // 편집 콘텐츠도 함께 업데이트
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error('[hoego] Failed to load history:', error);
@@ -497,7 +517,7 @@ export default function App() {
         }
       })();
     },
-    [setMarkdownContent]
+    [setMarkdownContent, setEditingContent, isEditing, setIsEditing]
   );
 
   // Cleanup streaming on unmount
@@ -609,6 +629,7 @@ export default function App() {
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
           switchToMini={switchToMini}
+          isHistoryMode={!!currentHistoryDate}
         />
 
         <div
@@ -617,7 +638,7 @@ export default function App() {
         >
           <DumpPanel
             isDarkMode={isDarkMode}
-            isEditing={isEditing}
+            isEditing={isEditing && !currentHistoryDate} // 히스토리 보는 중엔 편집 불가
             markdownRef={markdownRef}
             editorRef={editorRef}
             editingContent={editingContent}
@@ -629,6 +650,11 @@ export default function App() {
             markdownComponents={markdownComponents}
             currentDateLabel={currentHistoryDate ?? undefined}
             onSaveMarkdown={async (content: string) => {
+              // 히스토리 보는 중이면 저장 불가
+              if (currentHistoryDate) {
+                toast.error('히스토리는 읽기 전용입니다.');
+                return;
+              }
               setIsSaving(true);
               try {
                 await saveTodayMarkdown(content);

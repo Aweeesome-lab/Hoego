@@ -154,6 +154,13 @@ interface HeaderProps {
    * Mini 모드로 축소 함수 (선택사항)
    */
   switchToMini?: () => void;
+
+  /**
+   * 히스토리 보기 모드 여부
+   * - true: 과거 히스토리를 보는 중 (읽기 전용)
+   * - false: 오늘 날짜 편집 가능
+   */
+  isHistoryMode?: boolean;
 }
 
 export function Header({
@@ -182,6 +189,7 @@ export function Header({
   isSidebarOpen,
   toggleSidebar,
   switchToMini,
+  isHistoryMode = false,
 }: HeaderProps) {
   return (
     <div
@@ -268,17 +276,23 @@ export function Header({
         <button
           type="button"
           onClick={() => {
+            if (isHistoryMode) return;
             setEditingContent(markdownContent);
             setIsEditing(true);
           }}
+          disabled={isHistoryMode}
           className={`flex h-8 w-8 items-center justify-center rounded-full border ${
-            isDarkMode
-              ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300 hover:bg-white/10'
-              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+            isHistoryMode
+              ? isDarkMode
+                ? 'border-white/5 bg-[#0a0d13]/50 text-slate-600 cursor-not-allowed'
+                : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+              : isDarkMode
+                ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300 hover:bg-white/10'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
           }`}
           onMouseDown={(e) => e.stopPropagation()}
-          title="편집 모드 열기"
-          aria-label="편집 모드 열기"
+          title={isHistoryMode ? '히스토리는 읽기 전용입니다' : '편집 모드 열기'}
+          aria-label={isHistoryMode ? '히스토리는 읽기 전용입니다' : '편집 모드 열기'}
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
