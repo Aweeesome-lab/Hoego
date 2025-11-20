@@ -1,4 +1,4 @@
-import { Minimize2 } from 'lucide-react';
+import { Minimize2, Copy, Check } from 'lucide-react';
 import React from 'react';
 
 import { hideOverlayWindow } from '@/lib/tauri';
@@ -48,6 +48,20 @@ export function FloatingMiniBar({
   onMinimizeClick,
   isDarkMode,
 }: FloatingMiniBarProps) {
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    if (!inputValue.trim()) return;
+
+    try {
+      await navigator.clipboard.writeText(inputValue);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+    }
+  };
+
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[480px] max-w-[calc(100vw-2rem)]">
       <div
@@ -60,7 +74,7 @@ export function FloatingMiniBar({
         {/* 입력창 */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 min-w-0"
+          className="flex-1 min-w-0 relative"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <textarea
@@ -79,13 +93,36 @@ export function FloatingMiniBar({
               }
             }}
             placeholder="생각을 쏟아내보세요."
-            className={`h-16 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-0 px-3 py-4 resize-none bg-transparent ${
+            className={`h-16 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-0 px-3 py-4 pr-8 resize-none bg-transparent scrollbar-hide ${
               isDarkMode
                 ? 'text-slate-100 placeholder:text-slate-500'
                 : 'text-slate-900 placeholder:text-slate-400'
             }`}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             autoFocus
           />
+
+          {/* 복사 버튼 - 입력창 내부 우측 상단 */}
+          {inputValue.trim() && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              className={`absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded transition-all ${
+                isDarkMode
+                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
+              }`}
+              onMouseDown={(e) => e.stopPropagation()}
+              title="입력 내용 복사"
+              aria-label="입력 내용 복사"
+            >
+              {isCopied ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </button>
+          )}
         </form>
 
         {/* 축소 버튼 */}
