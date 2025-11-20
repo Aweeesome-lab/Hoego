@@ -39,7 +39,7 @@ export const DumpPanel = React.memo(function DumpPanel({
           : 'bg-white text-slate-900 border-slate-200'
       }`}
     >
-      <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5 text-[11px] font-semibold uppercase tracking-[0.2em]">
+      <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6 text-[11px] font-semibold uppercase tracking-[0.2em]">
         <div className="flex items-center gap-2">
           <span>쏟아내기(dump)</span>
           {currentDateLabel && (
@@ -64,7 +64,7 @@ export const DumpPanel = React.memo(function DumpPanel({
           </span>
         ) : null}
       </div>
-      <div className="flex-1 overflow-hidden px-3.5 py-2.5">
+      <div className="flex-1 overflow-hidden px-6 py-4">
         <div
           ref={markdownRef}
           className={`h-full w-full ${

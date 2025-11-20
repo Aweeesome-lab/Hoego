@@ -39,7 +39,7 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
   activeRetrospectViewOption,
 }: RetrospectPanelHeaderProps) {
   return (
-    <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
+    <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6">
       <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
         회고하기(retrospect)
       </span>

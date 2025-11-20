@@ -137,7 +137,7 @@ export const Sidebar = React.memo(function Sidebar({
       } border-r border-slate-200/60 dark:border-slate-700/60`}
     >
       {/* 헤더 */}
-      <div className="flex items-center gap-2 px-3 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
+      <div className="flex items-center gap-2 px-6 py-3.5 border-b border-slate-200/60 dark:border-slate-700/60">
         <div
           className={`w-6 h-6 rounded-md flex items-center justify-center ${
             isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
@@ -162,7 +162,7 @@ export const Sidebar = React.memo(function Sidebar({
         <button
           type="button"
           onClick={onHomeClick}
-          className={`w-full flex items-center gap-2 px-3 py-1.5 mb-1 text-left transition-all duration-150 ${
+          className={`w-full flex items-center gap-2 px-6 py-2 mb-1 text-left transition-all duration-150 ${
             isDarkMode
               ? 'hover:bg-slate-800/60 text-slate-300 hover:text-slate-100'
               : 'hover:bg-slate-100/80 text-slate-700 hover:text-slate-900'
@@ -174,7 +174,7 @@ export const Sidebar = React.memo(function Sidebar({
 
         {/* History 섹션 헤더 */}
         <div
-          className={`px-3 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider ${
+          className={`px-6 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider ${
             isDarkMode ? 'text-slate-500' : 'text-slate-400'
           }`}
         >
@@ -185,13 +185,13 @@ export const Sidebar = React.memo(function Sidebar({
         <div>
           {isLoadingHistory ? (
             <div
-              className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+              className={`px-6 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
               Loading...
             </div>
           ) : historyFiles.length === 0 ? (
             <div
-              className={`px-3 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+              className={`px-6 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
               No history yet
             </div>
@@ -203,7 +203,7 @@ export const Sidebar = React.memo(function Sidebar({
                   <button
                     type="button"
                     onClick={() => toggleYear(yearKey)}
-                    className={`w-full flex items-center gap-1.5 px-3 py-1.5 text-left transition-all duration-150 ${
+                    className={`w-full flex items-center gap-1.5 px-6 py-2 text-left transition-all duration-150 ${
                       isDarkMode
                         ? 'hover:bg-slate-800/60 text-slate-300'
                         : 'hover:bg-slate-100/80 text-slate-700'
@@ -236,7 +236,7 @@ export const Sidebar = React.memo(function Sidebar({
                           <button
                             type="button"
                             onClick={() => toggleMonth(monthKey)}
-                            className={`w-full flex items-center gap-1.5 px-3 py-1 text-left transition-all duration-150 ${
+                            className={`w-full flex items-center gap-1.5 px-6 py-1.5 text-left transition-all duration-150 ${
                               isDarkMode
                                 ? 'hover:bg-slate-800/60 text-slate-400'
                                 : 'hover:bg-slate-100/80 text-slate-600'
@@ -291,11 +291,11 @@ export const Sidebar = React.memo(function Sidebar({
       </div>
 
       {/* Settings 버튼 (하단 고정) */}
-      <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-2 pb-2">
+      <div className="border-t border-slate-200/60 dark:border-slate-700/60 pt-3 pb-3">
         <button
           type="button"
           onClick={onSettingsClick}
-          className={`w-full flex items-center gap-2 px-3 py-1.5 transition-all duration-150 ${
+          className={`w-full flex items-center gap-2 px-6 py-2 transition-all duration-150 ${
             isDarkMode
               ? 'hover:bg-slate-800/60 text-slate-400 hover:text-slate-200'
               : 'hover:bg-slate-100/80 text-slate-600 hover:text-slate-800'

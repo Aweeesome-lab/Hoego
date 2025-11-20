@@ -23,7 +23,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
   markdownComponents,
 }: RetrospectContentAreaProps) {
   return (
-    <div className="flex-1 overflow-hidden px-3.5 py-2.5">
+    <div className="flex-1 overflow-hidden px-6 py-4">
       <div
         className={`h-full w-full ${
           retrospectViewMode === 'split'

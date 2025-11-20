@@ -76,7 +76,7 @@ export const AiPanel = React.memo(function AiPanel({
           : 'bg-white text-slate-900 border-slate-200'
       }`}
     >
-      <div className="flex h-12 items-center justify-between border-b border-slate-200/20 px-3.5">
+      <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6">
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">
             정리하기(feedback)
@@ -140,7 +140,7 @@ export const AiPanel = React.memo(function AiPanel({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4">
         <div className="space-y-4 max-w-full">
           {isPipelineRunning ? (
             <Response isDarkMode={isDarkMode}>
