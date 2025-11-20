@@ -73,10 +73,10 @@ export const AiPanel = React.memo(function AiPanel({
       className={`flex flex-1 flex-col overflow-hidden border-r ${
         isDarkMode
           ? 'bg-[#111625] text-slate-100 border-white/10'
-          : 'bg-white text-slate-900 border-slate-200'
+          : 'bg-white text-slate-900 border-slate-200/50'
       }`}
     >
-      <div className="flex h-14 items-center justify-between border-b border-slate-200/20 px-6">
+      <div className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
             정리하기(feedback)
