@@ -4,6 +4,7 @@ import React from 'react';
 
 import type { ListItem, Code, InlineCode } from 'mdast';
 import type { Components } from 'react-markdown';
+import { LinkPreviewCard } from './LinkPreviewCard';
 
 interface UseMarkdownComponentsProps {
   isDarkMode: boolean;
@@ -21,11 +22,11 @@ export function useMarkdownComponents({
 }: UseMarkdownComponentsProps): Components {
   return React.useMemo<Components>(
     () => ({
-      // 전체적으로 폰트 크기 축소
+      // Improved typography with consistent vertical rhythm
       h1: ({ children, ...props }) => (
         <h1
           {...props}
-          className={`mb-3 text-base font-semibold ${
+          className={`mb-4 mt-6 first:mt-0 text-base font-semibold leading-tight ${
             isDarkMode ? 'text-slate-100' : 'text-slate-900'
           }`}
         >
@@ -35,7 +36,7 @@ export function useMarkdownComponents({
       h2: ({ children, ...props }) => (
         <h2
           {...props}
-          className={`mb-2 mt-3 text-sm font-semibold ${
+          className={`mb-3 mt-5 first:mt-0 text-sm font-semibold leading-snug ${
             isDarkMode ? 'text-slate-200' : 'text-slate-800'
           }`}
         >
@@ -45,7 +46,7 @@ export function useMarkdownComponents({
       h3: ({ children, ...props }) => (
         <h3
           {...props}
-          className={`mb-1.5 mt-2 text-xs font-semibold ${
+          className={`mb-2 mt-4 first:mt-0 text-xs font-semibold leading-normal ${
             isDarkMode ? 'text-slate-200' : 'text-slate-800'
           }`}
         >
@@ -55,7 +56,7 @@ export function useMarkdownComponents({
       ul: ({ children, ...props }) => (
         <ul
           {...props}
-          className="mb-1.5 ml-4 list-disc space-y-0.5 text-[13px] leading-5 break-words"
+          className="mb-3 ml-5 list-disc space-y-1 text-[13px] leading-relaxed break-words marker:text-slate-400"
         >
           {children}
         </ul>
@@ -63,7 +64,7 @@ export function useMarkdownComponents({
       ol: ({ children, ...props }) => (
         <ol
           {...props}
-          className="mb-1.5 ml-4 list-decimal space-y-0.5 text-[13px] leading-5 break-words"
+          className="mb-3 ml-5 list-decimal space-y-1 text-[13px] leading-relaxed break-words marker:text-slate-400"
         >
           {children}
         </ol>
@@ -74,12 +75,12 @@ export function useMarkdownComponents({
           return (
             <li
               {...props}
-              className="flex items-start gap-2 leading-5 text-[13px] break-words"
-              style={{ listStyle: 'none' }}
+              className="flex items-start gap-2.5 leading-relaxed text-[13px] break-words"
+              style={{ listStyle: 'none', marginLeft: '-1.25rem' }}
               onMouseDown={(e) => e.stopPropagation()}
             >
               <Checkbox.Root
-                className={`mt-1 flex h-4 w-4 items-center justify-center rounded border text-xs transition ${
+                className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border text-xs transition ${
                   isDarkMode
                     ? 'border-white/20 bg-white/5 data-[state=checked]:border-emerald-300 data-[state=checked]:bg-emerald-500/20'
                     : 'border-slate-300 bg-white data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500/15'
@@ -108,27 +109,45 @@ export function useMarkdownComponents({
           );
         }
         return (
-          <li {...props} className="leading-5 text-[13px] break-words">
+          <li {...props} className="leading-relaxed text-[13px] break-words pl-1">
             {children}
           </li>
         );
       },
       p: ({ children, ...props }) => (
-        <p {...props} className="mb-1.5 text-[13px] leading-5 break-words">
+        <p {...props} className="mb-3 text-[13px] leading-relaxed break-words">
           {children}
         </p>
       ),
-      a: ({ children, href, ...props }) => (
-        <a
-          {...props}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sky-500 underline decoration-sky-500/50 underline-offset-2 hover:text-sky-400 break-all"
-        >
-          {children}
-        </a>
-      ),
+      a: ({ children, href, ...props }) => {
+        // Check if it's a standalone link (should show preview card)
+        const isStandaloneLink =
+          href &&
+          typeof children === 'string' &&
+          children === href &&
+          href.match(/^https?:\/\//);
+
+        if (isStandaloneLink) {
+          return (
+            <LinkPreviewCard href={href} isDarkMode={isDarkMode}>
+              {children}
+            </LinkPreviewCard>
+          );
+        }
+
+        // Regular inline link
+        return (
+          <a
+            {...props}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-500 underline decoration-sky-500/50 underline-offset-2 hover:text-sky-400 break-all"
+          >
+            {children}
+          </a>
+        );
+      },
       code: ({ node, className, children, ...props }) => {
         const codeNode = node as unknown as Code | InlineCode | undefined;
         const isInline = codeNode?.type === 'inlineCode';
@@ -136,8 +155,10 @@ export function useMarkdownComponents({
           return (
             <code
               {...props}
-              className={`rounded bg-slate-900/10 px-1.5 py-0.5 text-[11px] break-words ${
-                isDarkMode ? 'bg-slate-50/10 text-slate-100' : ''
+              className={`rounded px-1.5 py-0.5 text-[11px] font-mono break-words ${
+                isDarkMode
+                  ? 'bg-slate-50/10 text-slate-100'
+                  : 'bg-slate-900/10 text-slate-900'
               }`}
             >
               {children}
@@ -147,12 +168,12 @@ export function useMarkdownComponents({
         const language = className || '';
         return (
           <pre
-            className={`my-3 overflow-x-auto rounded-md bg-slate-900/80 p-3 text-xs text-slate-100 max-w-full ${
-              !isDarkMode ? 'bg-slate-900/90' : ''
+            className={`my-4 overflow-x-auto rounded-lg p-4 text-xs text-slate-100 max-w-full shadow-sm ${
+              isDarkMode ? 'bg-slate-900/80' : 'bg-slate-900/90'
             }`}
           >
             <code
-              className={`${language} break-words whitespace-pre-wrap`}
+              className={`${language} font-mono break-words whitespace-pre-wrap leading-relaxed`}
               {...props}
             >
               {children}
@@ -163,20 +184,20 @@ export function useMarkdownComponents({
       blockquote: ({ children, ...props }) => (
         <blockquote
           {...props}
-          className={`my-3 border-l-2 pl-3 break-words ${
+          className={`my-4 border-l-4 pl-4 py-1 italic break-words ${
             isDarkMode
-              ? 'border-slate-500 text-slate-200'
-              : 'border-slate-300 text-slate-700'
+              ? 'border-slate-600 text-slate-300 bg-slate-800/20'
+              : 'border-slate-300 text-slate-700 bg-slate-50'
           }`}
         >
           {children}
         </blockquote>
       ),
       table: ({ children, ...props }) => (
-        <div className="my-3 overflow-x-auto max-w-full">
+        <div className="my-4 overflow-x-auto max-w-full rounded-lg border border-slate-200/30">
           <table
             {...props}
-            className={`w-full border-collapse text-[13px] leading-5 break-words ${
+            className={`w-full border-collapse text-[13px] leading-relaxed break-words ${
               isDarkMode ? 'text-slate-200' : 'text-slate-800'
             }`}
           >
@@ -187,7 +208,11 @@ export function useMarkdownComponents({
       thead: ({ children, ...props }) => (
         <thead
           {...props}
-          className={isDarkMode ? 'bg-white/5 text-slate-100' : 'bg-slate-100'}
+          className={
+            isDarkMode
+              ? 'bg-white/5 text-slate-100'
+              : 'bg-slate-100 text-slate-900'
+          }
         >
           {children}
         </thead>
@@ -196,7 +221,7 @@ export function useMarkdownComponents({
       th: ({ children, ...props }) => (
         <th
           {...props}
-          className="border border-slate-200/30 px-3 py-2 text-left text-[13px] font-semibold break-words"
+          className="border-b border-slate-200/30 px-4 py-3 text-left text-[13px] font-semibold break-words"
         >
           {children}
         </th>
@@ -204,7 +229,7 @@ export function useMarkdownComponents({
       td: ({ children, ...props }) => (
         <td
           {...props}
-          className="border border-slate-200/30 px-3 py-2 align-top text-[13px] break-words"
+          className="border-b border-slate-200/20 px-4 py-3 align-top text-[13px] break-words"
         >
           {children}
         </td>

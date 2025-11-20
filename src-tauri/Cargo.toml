@@ -43,6 +43,8 @@ ratatui = "0.28"
 crossterm = "0.28"
 unicode-width = "0.1"
 regex = "1"
+url = "2"
+scraper = "0.17"
 
 [features]
 default = ["custom-protocol"]

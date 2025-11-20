@@ -225,6 +225,19 @@ export interface WeeklyActionsData {
 }
 
 // ============================================================================
+// Link Preview Types (src-tauri/src/link_preview.rs)
+// ============================================================================
+
+export interface LinkMetadata {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  favicon?: string;
+  site_name?: string;
+}
+
+// ============================================================================
 // Tauri Command Function Types
 // ============================================================================
 
@@ -285,4 +298,7 @@ export type TauriCommands = {
     actions: WeeklyActionItem[]
   ) => Promise<void>;
   get_weekly_actions: (weekId: string) => Promise<WeeklyActionsData | null>;
+
+  // Link preview commands
+  fetch_link_metadata: (url: string) => Promise<LinkMetadata>;
 };

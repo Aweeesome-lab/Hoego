@@ -1,6 +1,7 @@
 mod ai_summary;
 mod app_settings;
 mod history;
+mod link_preview;
 mod llm;
 mod model_selection;
 mod pii_masker;
@@ -237,6 +238,12 @@ async fn delete_prompt_config(prompt_id: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+// Link Preview Command Handler
+#[tauri::command]
+async fn fetch_link_metadata(url: String) -> Result<link_preview::LinkMetadata, String> {
+    link_preview::fetch_link_metadata(&url).await
+}
+
 fn main() {
     // Initialize tracing subscriber
     tracing_subscriber::fmt()
@@ -320,6 +327,8 @@ fn main() {
             save_prompt_config,
             activate_prompt_config,
             delete_prompt_config,
+            // Link preview commands
+            fetch_link_metadata,
             // Cloud LLM commands
             llm::commands::set_cloud_api_key,
             llm::commands::test_cloud_api_key,
