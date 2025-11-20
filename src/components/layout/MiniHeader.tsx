@@ -72,7 +72,7 @@ export function MiniHeader({
             }
           }}
           placeholder="생각을 쏟아내보세요."
-          className={`h-8 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 px-3 ${
+          className={`h-10 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 px-3 ${
             isDarkMode
               ? 'bg-slate-800/50 text-slate-100 placeholder:text-slate-500 focus:ring-slate-600 focus:bg-slate-800/80'
               : 'bg-slate-100/50 text-slate-900 placeholder:text-slate-400 focus:ring-slate-400 focus:bg-slate-100/80'
