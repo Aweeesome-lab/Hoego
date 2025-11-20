@@ -1,4 +1,5 @@
 mod ai_summary;
+mod app_settings;
 mod history;
 mod llm;
 mod model_selection;
@@ -20,7 +21,7 @@ use history::{
     append_history_entry, get_history_markdown, get_today_markdown, list_history,
     open_history_folder, save_today_markdown, HistoryState,
 };
-use shortcuts::register_shortcuts;
+use shortcuts::{register_shortcuts, test_shortcut_available};
 use tray::{build_tray, handle_tray_event};
 use weekly_data::get_week_data;
 use window_manager::{
@@ -255,12 +256,24 @@ fn main() {
     // Initialize Stream Cancellation State
     let stream_cancellation_state = StreamCancellationState::default();
 
+    // Initialize App Settings State
+    let app_settings_state = app_settings::AppSettingsState::new();
+
+    // 설정 로드 시도
+    if let Ok(loaded_settings) = app_settings::load_settings() {
+        if let Ok(mut settings) = app_settings_state.settings.lock() {
+            *settings = loaded_settings;
+            tracing::info!("앱 설정 로드 완료");
+        }
+    }
+
     tauri::Builder::default()
         .manage(HistoryState::default())
         .manage(llm_manager.clone())
         .manage(cloud_llm_state)
         .manage(model_selection_state)
         .manage(stream_cancellation_state)
+        .manage(app_settings_state)
         .system_tray(build_tray())
         .on_system_tray_event(handle_tray_event)
         .invoke_handler(tauri::generate_handler![
@@ -313,7 +326,15 @@ fn main() {
             llm::commands::initialize_cloud_provider,
             // Model selection commands
             model_selection::set_selected_model,
-            model_selection::get_selected_model
+            model_selection::get_selected_model,
+            // App settings commands
+            app_settings::get_app_settings,
+            app_settings::update_app_settings,
+            app_settings::update_quick_note_shortcut,
+            app_settings::update_documents_path,
+            app_settings::reset_app_settings,
+            // Shortcut test command
+            test_shortcut_available
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();

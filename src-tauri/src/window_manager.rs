@@ -126,7 +126,7 @@ fn cursor_position() -> Option<PhysicalPosition<f64>> {
     None
 }
 
-/// 오버레이 윈도우를 토글합니다
+/// 빠른 메모 윈도우를 토글합니다
 pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
     if window.is_visible()? {
         window.hide()?;

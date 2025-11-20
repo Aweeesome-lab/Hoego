@@ -11,40 +11,29 @@ import {
 import React, { useState, useEffect } from 'react';
 
 import type { ModelInfo, LocalModel, DownloadProgress } from '@/lib/llm';
-import type { ModelOption, SelectedModel } from '@/types/model-selection';
 
 import { llmApi } from '@/lib/llm';
-import {
-  getAllModelOptions,
-  getSelectedModel,
-  setSelectedModel,
-} from '@/lib/model-selection';
 
 interface LLMSettingsProps {
   isDarkMode?: boolean;
 }
 
+// 고정 모델 ID
+const FIXED_MODEL_ID = 'qwen2.5-3b-q4';
+
 export const LLMSettings: React.FC<LLMSettingsProps> = ({
   isDarkMode = false,
 }) => {
-  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
-  const [localModels, setLocalModels] = useState<LocalModel[]>([]);
-  const [downloadProgress, setDownloadProgress] = useState<
-    Map<string, DownloadProgress>
-  >(new Map());
+  const [fixedModel, setFixedModel] = useState<ModelInfo | null>(null);
+  const [localModel, setLocalModel] = useState<LocalModel | null>(null);
+  const [downloadProgress, setDownloadProgress] =
+    useState<DownloadProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [storageUsed, setStorageUsed] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
-  const [defaultModelId, setDefaultModelId] = useState<string | null>(null);
-
-  // Unified model selection
-  const [allModelOptions, setAllModelOptions] = useState<ModelOption[]>([]);
-  const [selectedModel, setSelectedModelState] =
-    useState<SelectedModel>(getSelectedModel());
-  const [showModelPicker, setShowModelPicker] = useState(false);
 
   useEffect(() => {
-    void loadModels();
+    void loadModel();
 
     // Set up event listeners for real-time download progress
     let unsubscribeProgress: (() => void) | null = null;
@@ -53,26 +42,23 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
 
     const setupListeners = async () => {
       unsubscribeProgress = await llmApi.onDownloadProgress((progress) => {
-        setDownloadProgress((prev) => {
-          const next = new Map(prev);
-          next.set(progress.model_id, progress);
-          return next;
-        });
+        if (progress.model_id === FIXED_MODEL_ID) {
+          setDownloadProgress(progress);
+        }
       });
 
       unsubscribeComplete = await llmApi.onDownloadComplete((modelId) => {
-        setDownloadProgress((prev) => {
-          const next = new Map(prev);
-          next.delete(modelId);
-          return next;
-        });
-        void loadModels(); // Refresh model list after download completes
+        if (modelId === FIXED_MODEL_ID) {
+          setDownloadProgress(null);
+          void loadModel(); // Refresh model after download completes
+        }
       });
 
       unsubscribeError = await llmApi.onDownloadError((error) => {
         console.error('Download error:', error);
-        setError(`Download failed: ${error}`);
-        void loadModels(); // Refresh to clear any stale state
+        setError(`다운로드 실패: ${error}`);
+        setDownloadProgress(null);
+        void loadModel(); // Refresh to clear any stale state
       });
     };
 
@@ -85,71 +71,51 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     };
   }, []);
 
-  const loadModels = async () => {
+  const loadModel = async () => {
     try {
-      const [available, local, storage, defaultId, modelOptions] =
-        await Promise.all([
-          llmApi.getAvailableModels(),
-          llmApi.getLocalModels(),
-          llmApi.getStorageUsage(),
-          llmApi.getDefaultModelId(),
-          getAllModelOptions(),
-        ]);
+      const [available, local, storage] = await Promise.all([
+        llmApi.getAvailableModels(),
+        llmApi.getLocalModels(),
+        llmApi.getStorageUsage(),
+      ]);
 
-      setAvailableModels(available);
-      setLocalModels(local);
+      // Find our fixed model
+      const model = available.find((m) => m.id === FIXED_MODEL_ID);
+      setFixedModel(model || null);
+
+      // Check if it's downloaded
+      const downloaded = local.find((m) => m.info.id === FIXED_MODEL_ID);
+      setLocalModel(downloaded || null);
+
       setStorageUsed(storage);
-      setDefaultModelId(defaultId);
-      setAllModelOptions(modelOptions);
       setError(null);
     } catch (err) {
-      setError('Failed to load models');
-      console.error('Failed to load models:', err);
+      setError('모델 정보를 불러올 수 없습니다');
+      console.error('Failed to load model:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectModel = (option: ModelOption) => {
-    const newSelection: SelectedModel = {
-      type: option.type,
-      modelId: option.id,
-      provider: option.provider,
-      displayName: option.displayName,
-    };
-    void setSelectedModel(newSelection);
-    setSelectedModelState(newSelection);
-    setShowModelPicker(false);
-  };
+  const handleDownload = async () => {
+    if (!fixedModel) return;
 
-  const handleDownload = async (model: ModelInfo) => {
     try {
       // Event listeners will handle progress updates
-      await llmApi.downloadModel(model.id);
+      await llmApi.downloadModel(fixedModel.id);
     } catch (err) {
-      setError(`Failed to download ${model.name}`);
+      setError(`다운로드 실패: ${fixedModel.name}`);
       console.error('Download failed:', err);
     }
   };
 
-  const handleDelete = async (modelId: string) => {
-    // TODO: Add confirmation modal for better UX
+  const handleDelete = async () => {
     try {
-      await llmApi.deleteModel(modelId);
-      await loadModels();
+      await llmApi.deleteModel(FIXED_MODEL_ID);
+      await loadModel();
     } catch (err) {
-      setError('Failed to delete model');
+      setError('모델 삭제 실패');
       console.error('Delete failed:', err);
-    }
-  };
-
-  const handleSetDefault = async (modelId: string) => {
-    try {
-      await llmApi.setDefaultModel(modelId);
-      await loadModels();
-    } catch (err) {
-      setError('Failed to set default model');
-      console.error('Set default failed:', err);
     }
   };
 
@@ -159,10 +125,6 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-  };
-
-  const isModelDownloaded = (modelId: string) => {
-    return localModels.some((m) => m.info.id === modelId);
   };
 
   if (loading) {
@@ -175,16 +137,34 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     );
   }
 
-  const currentModelOption = allModelOptions.find(
-    (opt) =>
-      opt.id === selectedModel.modelId &&
-      opt.type === selectedModel.type &&
-      opt.provider === selectedModel.provider
-  );
+  if (!fixedModel) {
+    return (
+      <div
+        className={`p-6 rounded-xl border ${
+          isDarkMode
+            ? 'bg-red-500/10 border-red-500/20'
+            : 'bg-red-50 border-red-200'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <AlertCircle
+            className={`h-5 w-5 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}
+          />
+          <p
+            className={`text-sm ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}
+          >
+            모델 정보를 찾을 수 없습니다
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const isDownloading = downloadProgress && downloadProgress.status === 'downloading';
 
   return (
     <div className="space-y-6">
-      {/* Selected Model */}
+      {/* Model Status */}
       <div
         className={`p-5 rounded-xl border ${
           isDarkMode
@@ -202,99 +182,161 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
                 isDarkMode ? 'text-blue-400' : 'text-blue-600'
               }`}
             >
-              선택된 모델
+              로컬 AI 모델
             </span>
           </div>
-          <button
-            onClick={() => setShowModelPicker(!showModelPicker)}
-            className={`text-[12px] px-3 py-1.5 rounded-md transition ${
-              isDarkMode
-                ? 'bg-white/10 text-slate-300 hover:bg-white/15'
-                : 'bg-white/50 text-slate-700 hover:bg-white'
-            }`}
-          >
-            변경
-          </button>
+          {localModel && (
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${
+                isDarkMode
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'bg-green-100 text-green-700'
+              }`}
+            >
+              <Check className="h-3 w-3" />
+              다운로드 완료
+            </div>
+          )}
         </div>
 
-        {currentModelOption ? (
-          <div className="space-y-1">
-            <div
-              className={`text-[14px] font-semibold ${
+        <div className="space-y-3">
+          <div>
+            <h3
+              className={`text-[15px] font-semibold mb-1 ${
                 isDarkMode ? 'text-slate-100' : 'text-slate-900'
               }`}
             >
-              {currentModelOption.displayName}
-            </div>
-            <div
+              {fixedModel.name}
+            </h3>
+            <p
               className={`text-[12px] ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-600'
               }`}
             >
-              {currentModelOption.type === 'local'
-                ? '로컬 모델'
-                : `클라우드 • ${currentModelOption.provider}`}
-              {currentModelOption.description &&
-                ` • ${currentModelOption.description}`}
-            </div>
+              {fixedModel.description}
+            </p>
           </div>
-        ) : (
-          <div
-            className={`text-[13px] ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-600'
-            }`}
-          >
-            모델이 선택되지 않았습니다
-          </div>
-        )}
 
-        {/* Model Picker Modal */}
-        {showModelPicker && (
           <div
-            className={`mt-4 p-4 rounded-lg border max-h-64 overflow-y-auto ${
-              isDarkMode
-                ? 'bg-slate-900/50 border-white/10'
-                : 'bg-white border-slate-200'
+            className={`flex items-center gap-4 text-[11px] ${
+              isDarkMode ? 'text-slate-500' : 'text-slate-400'
             }`}
           >
-            <div className="space-y-2">
-              {allModelOptions.map((option) => (
-                <button
-                  key={`${option.type}-${option.id}-${option.provider || ''}`}
-                  onClick={() =>
-                    option.isAvailable && handleSelectModel(option)
-                  }
-                  disabled={!option.isAvailable}
-                  className={`w-full text-left p-3 rounded-md transition ${
-                    option.id === selectedModel.modelId &&
-                    option.type === selectedModel.type
-                      ? isDarkMode
-                        ? 'bg-blue-500/20 border border-blue-500/50'
-                        : 'bg-blue-50 border border-blue-200'
-                      : isDarkMode
-                        ? 'bg-white/5 hover:bg-white/10 border border-transparent'
-                        : 'bg-slate-50 hover:bg-slate-100 border border-transparent'
-                  } ${!option.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div
-                    className={`text-[13px] font-medium ${
-                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                    }`}
-                  >
-                    {option.displayName}
-                  </div>
-                  <div
-                    className={`text-[11px] ${
-                      isDarkMode ? 'text-slate-500' : 'text-slate-600'
-                    }`}
-                  >
-                    {option.description}
-                  </div>
-                </button>
-              ))}
-            </div>
+            <span>크기: {formatBytes(fixedModel.size)}</span>
+            <span>양자화: {fixedModel.quantization}</span>
+            <span>
+              최소 RAM:{' '}
+              {formatBytes(fixedModel.requirements.min_ram * 1024 * 1024)}
+            </span>
           </div>
-        )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-2">
+            {localModel ? (
+              <button
+                onClick={handleDelete}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition ${
+                  isDarkMode
+                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                    : 'bg-red-50 text-red-600 hover:bg-red-100'
+                }`}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                모델 삭제
+              </button>
+            ) : isDownloading ? (
+              <div className="flex items-center gap-2">
+                <Loader2
+                  className={`h-4 w-4 animate-spin ${
+                    isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                  }`}
+                />
+                <span
+                  className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                >
+                  다운로드 중... {downloadProgress?.percentage.toFixed(0)}%
+                </span>
+              </div>
+            ) : (
+              <button
+                onClick={handleDownload}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition ${
+                  isDarkMode
+                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                <Download className="h-3.5 w-3.5" />
+                모델 다운로드
+              </button>
+            )}
+          </div>
+
+          {/* Download Progress */}
+          {isDownloading && downloadProgress && (
+            <div className="pt-2">
+              <div
+                className={`h-2 rounded-full overflow-hidden ${
+                  isDarkMode ? 'bg-white/10' : 'bg-slate-200'
+                }`}
+              >
+                <div
+                  className={`h-full transition-all ${
+                    isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${downloadProgress.percentage}%` }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5">
+                <span
+                  className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                >
+                  {formatBytes(downloadProgress.bytes_downloaded)} /{' '}
+                  {formatBytes(downloadProgress.total_bytes)}
+                </span>
+                {downloadProgress.speed > 0 && (
+                  <span
+                    className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                  >
+                    {downloadProgress.speed.toFixed(2)} MB/s
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Local Model Info */}
+          {localModel && (
+            <div
+              className={`p-3 rounded-lg border ${
+                isDarkMode
+                  ? 'bg-white/5 border-white/10'
+                  : 'bg-white border-slate-200'
+              }`}
+            >
+              <div
+                className={`text-[11px] ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                }`}
+              >
+                <div className="flex justify-between">
+                  <span>디스크 사용량</span>
+                  <span className="font-medium">
+                    {formatBytes(localModel.size_on_disk)}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span>다운로드 날짜</span>
+                  <span className="font-medium">
+                    {new Date(localModel.downloaded_at).toLocaleDateString(
+                      'ko-KR'
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Storage Info */}
@@ -345,236 +387,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
         </p>
       </div>
 
-      {/* Available Models */}
-      <div>
-        <h3
-          className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-500'
-          }`}
-        >
-          사용 가능한 모델
-        </h3>
-
-        <div className="space-y-3">
-          {availableModels.map((model) => {
-            const isDownloaded = isModelDownloaded(model.id);
-            const progress = downloadProgress.get(model.id);
-            const isDownloading = progress && progress.status === 'downloading';
-
-            return (
-              <div
-                key={model.id}
-                className={`p-4 rounded-xl border transition ${
-                  isDarkMode
-                    ? 'bg-white/5 border-white/10 hover:bg-white/[0.07]'
-                    : 'bg-white border-slate-200 hover:shadow-lg'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4
-                      className={`text-[13px] font-semibold ${
-                        isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                      }`}
-                    >
-                      {model.name}
-                    </h4>
-                    <p
-                      className={`text-xs mt-0.5 ${
-                        isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      {model.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isDownloaded && (
-                      <div
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          isDarkMode
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-green-100 text-green-700'
-                        }`}
-                      >
-                        <Check className="h-3 w-3" />
-                        다운로드됨
-                      </div>
-                    )}
-                    {isDownloaded ? (
-                      <button
-                        onClick={() => void handleDelete(model.id)}
-                        className={`p-1.5 rounded-md transition ${
-                          isDarkMode
-                            ? 'text-red-400 hover:bg-red-500/20'
-                            : 'text-red-500 hover:bg-red-50'
-                        }`}
-                        title="모델 삭제"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    ) : isDownloading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2
-                          className={`h-4 w-4 animate-spin ${
-                            isDarkMode ? 'text-blue-400' : 'text-blue-500'
-                          }`}
-                        />
-                        <span
-                          className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                        >
-                          {progress.percentage.toFixed(0)}%
-                        </span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => void handleDownload(model)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                          isDarkMode
-                            ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
-                        }`}
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        다운로드
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div
-                  className={`flex items-center gap-4 text-[11px] ${
-                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                  }`}
-                >
-                  <span>크기: {formatBytes(model.size)}</span>
-                  <span>양자화: {model.quantization}</span>
-                  <span>
-                    최소 RAM:{' '}
-                    {formatBytes(model.requirements.min_ram * 1024 * 1024)}
-                  </span>
-                </div>
-
-                {isDownloading && progress && (
-                  <div className="mt-3">
-                    <div
-                      className={`h-1.5 rounded-full overflow-hidden ${
-                        isDarkMode ? 'bg-white/10' : 'bg-slate-200'
-                      }`}
-                    >
-                      <div
-                        className={`h-full transition-all ${
-                          isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
-                        }`}
-                        style={{ width: `${progress.percentage}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span
-                        className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                      >
-                        {formatBytes(progress.bytes_downloaded)} /{' '}
-                        {formatBytes(progress.total_bytes)}
-                      </span>
-                      {progress.speed > 0 && (
-                        <span
-                          className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          {progress.speed.toFixed(2)} MB/s
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Downloaded Models */}
-      {localModels.length > 0 && (
-        <div>
-          <h3
-            className={`text-[11px] font-semibold uppercase tracking-[0.2em] mb-3 ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}
-          >
-            다운로드된 모델
-          </h3>
-
-          <div className="space-y-3">
-            {localModels.map((model) => {
-              const isDefault = defaultModelId === model.info.id;
-              return (
-                <div
-                  key={model.info.id}
-                  className={`p-4 rounded-xl border ${
-                    isDefault
-                      ? isDarkMode
-                        ? 'bg-blue-500/10 border-blue-500/30'
-                        : 'bg-blue-50 border-blue-200'
-                      : isDarkMode
-                        ? 'bg-white/5 border-white/10'
-                        : 'bg-white border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4
-                          className={`text-[13px] font-semibold ${
-                            isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                          }`}
-                        >
-                          {model.info.name}
-                        </h4>
-                        {isDefault && (
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                              isDarkMode
-                                ? 'bg-blue-500/20 text-blue-400'
-                                : 'bg-blue-100 text-blue-700'
-                            }`}
-                          >
-                            기본 모델
-                          </span>
-                        )}
-                      </div>
-                      <p
-                        className={`text-[11px] mt-0.5 ${
-                          isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                        }`}
-                      >
-                        {formatBytes(model.size_on_disk)} • 다운로드:{' '}
-                        {new Date(model.downloaded_at).toLocaleDateString(
-                          'ko-KR'
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-3">
-                      {!isDefault && (
-                        <button
-                          onClick={() => void handleSetDefault(model.info.id)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                            isDarkMode
-                              ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
-                          }`}
-                          title="기본 모델로 설정"
-                        >
-                          기본 설정
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Tips */}
+      {/* Info Tips */}
       <div
         className={`p-4 rounded-xl border ${
           isDarkMode
@@ -584,21 +397,22 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
       >
         <div className="flex items-start gap-3">
           <Info
-            className={`h-4 w-4 mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+            className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
           />
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p
               className={`text-xs font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}
             >
-              사용 팁
+              Qwen 2.5 3B 모델 정보
             </p>
             <ul
-              className={`text-[11px] space-y-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}
+              className={`text-[11px] space-y-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}
             >
-              <li>• 한국어 요약은 Qwen 2.5 3B 모델을 추천합니다</li>
-              <li>• 모델은 로컬에 저장되어 오프라인에서도 사용 가능합니다</li>
+              <li>• 한국어 요약 및 회고 작성에 최적화된 모델입니다</li>
+              <li>• 완전 오프라인으로 작동하여 개인정보가 보호됩니다</li>
               <li>• 다운로드가 중단되어도 자동으로 이어받기됩니다</li>
               <li>• GPU가 있으면 더 빠른 속도로 작동합니다</li>
+              <li>• 최소 4GB RAM 권장, 8GB 이상에서 최적 성능</li>
             </ul>
           </div>
         </div>

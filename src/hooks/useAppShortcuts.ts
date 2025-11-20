@@ -104,7 +104,7 @@ export const useAppShortcuts = ({
         return;
       }
 
-      // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
+      // ESC: 편집 중이면 편집 종료, 아니면 빠른 메모 창 숨김
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();

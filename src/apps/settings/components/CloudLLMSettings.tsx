@@ -120,21 +120,15 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
   const providerInfo = {
     openai: {
       name: 'OpenAI',
-      description: 'GPT-4, GPT-3.5 등 OpenAI 모델',
+      description: 'GPT-4o, GPT-4 Turbo, GPT-3.5 등',
       setupUrl: 'https://platform.openai.com/api-keys',
-      models: ['GPT-4 Turbo', 'GPT-4', 'GPT-4o', 'GPT-3.5 Turbo'],
-    },
-    claude: {
-      name: 'Anthropic Claude',
-      description: 'Claude 3 Opus, Sonnet, Haiku',
-      setupUrl: 'https://console.anthropic.com/settings/keys',
-      models: ['Claude 3 Opus', 'Claude 3 Sonnet', 'Claude 3 Haiku'],
+      models: ['GPT-4o', 'GPT-4o Mini', 'GPT-4 Turbo', 'GPT-3.5 Turbo'],
     },
     gemini: {
       name: 'Google Gemini',
-      description: 'Gemini Pro, Gemini Ultra',
-      setupUrl: 'https://makersuite.google.com/app/apikey',
-      models: ['Gemini Pro', 'Gemini Ultra'],
+      description: 'Gemini Pro, Gemini 1.5 Pro/Flash',
+      setupUrl: 'https://aistudio.google.com/app/apikey',
+      models: ['Gemini Pro', 'Gemini 1.5 Pro', 'Gemini 1.5 Flash'],
     },
   };
 
@@ -170,9 +164,9 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
         >
           Provider 선택
         </h4>
-        {/* MVP Phase 0: OpenAI만 표시 */}
-        <div className="grid grid-cols-1 gap-3">
-          {(['openai'] as CloudProvider[]).map((provider) => (
+        {/* GPT + Gemini */}
+        <div className="grid grid-cols-2 gap-3">
+          {(['openai', 'gemini'] as CloudProvider[]).map((provider) => (
             <button
               key={provider}
               onClick={() => {
@@ -208,11 +202,7 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
                   isDarkMode ? 'text-slate-500' : 'text-slate-500'
                 }`}
               >
-                {provider === 'claude' || provider === 'gemini' ? (
-                  <span className="text-orange-500">곧 출시</span>
-                ) : (
-                  '사용 가능'
-                )}
+                사용 가능
               </div>
             </button>
           ))}

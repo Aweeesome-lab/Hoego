@@ -42,22 +42,28 @@ const MIN_WINDOW_WIDTH = 320;
 const MIN_WINDOW_HEIGHT = 200;
 const DEFAULT_WINDOW_PADDING = 24;
 
+/**
+ * 빠른 메모 윈도우를 숨깁니다
+ */
 export const hideOverlayWindow = async () => {
   try {
     await appWindow.hide();
   } catch (error) {
     if (import.meta.env.DEV)
-      console.error('[hoego] overlay hide failed', error);
+      console.error('[hoego] 빠른 메모 hide failed', error);
     await tauriInvoke<void>('hide_main_window');
   }
 };
 
+/**
+ * 빠른 메모 윈도우를 토글합니다
+ */
 export const toggleOverlayWindow = async () => {
   try {
     await tauriInvoke<void>('toggle_overlay_window');
   } catch (error) {
     if (import.meta.env.DEV)
-      console.error('[hoego] overlay toggle failed', error);
+      console.error('[hoego] 빠른 메모 toggle failed', error);
     // 토글 실패 시 기본 hide 시도로 폴백
     await hideOverlayWindow();
   }

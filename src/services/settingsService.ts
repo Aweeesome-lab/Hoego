@@ -104,28 +104,28 @@ export function isDarkModeActive(mode: ThemeMode): boolean {
 // ============================================================================
 
 /**
- * 오버레이 윈도우를 숨깁니다
+ * 빠른 메모 윈도우를 숨깁니다
  */
 export async function hideOverlayWindow(): Promise<void> {
   try {
     await appWindow.hide();
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error('[settingsService] overlay hide failed:', error);
+      console.error('[settingsService] 빠른 메모 hide failed:', error);
     }
     await tauriInvoke<void>('hide_main_window');
   }
 }
 
 /**
- * 오버레이 윈도우를 토글합니다
+ * 빠른 메모 윈도우를 토글합니다
  */
 export async function toggleOverlayWindow(): Promise<void> {
   try {
     await tauriInvoke<void>('toggle_overlay_window');
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error('[settingsService] overlay toggle failed:', error);
+      console.error('[settingsService] 빠른 메모 toggle failed:', error);
     }
     await hideOverlayWindow();
   }

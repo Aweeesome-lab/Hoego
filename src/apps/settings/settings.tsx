@@ -4,11 +4,17 @@ import {
   Sun,
   MonitorSmartphone,
   NotebookPen,
+  Settings,
+  Brain,
+  Cloud,
 } from 'lucide-react';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
+import { GeneralSettings } from './components/GeneralSettings';
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
+import { LLMSettings } from './components/LLMSettings';
+import { CloudLLMSettings } from './components/CloudLLMSettings';
 // import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
 import '@/styles/index.css';
 
@@ -96,12 +102,12 @@ function LLMSettingsApp() {
 
   const sidebarItems = [
     // { id: 'weekly', label: '주간 회고', icon: BarChart3 }, // MVP Phase 0: 숨김
-    // { id: 'models', label: '모델', icon: Brain }, // MVP Phase 0: 로컬 LLM 지원 제거
-    // { id: 'cloud', label: '클라우드 LLM', icon: Cloud }, // MVP Phase 0: API 키 설정 제거 (내장)
+    { id: 'models', label: '로컬 모델', icon: Brain },
+    { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
     // { id: 'prompts', label: '프롬프트', icon: FileText }, // MVP Phase 0: 프롬프트는 코드에 내장 (설정 UI 제거)
+    { id: 'general', label: '일반', icon: Settings },
     { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
     // { id: 'downloads', label: '다운로드', icon: Download }, // MVP Phase 0: 사용하지 않는 메뉴 제거
-    // { id: 'settings', label: '일반 설정', icon: Settings }, // MVP Phase 0: 로컬 모델 설정 불필요
     { id: 'about', label: '정보', icon: Info },
   ];
 
@@ -251,13 +257,11 @@ function LLMSettingsApp() {
               <WeeklyDashboard isDarkMode={isDarkMode} />
             )} */}
 
-            {/* MVP Phase 0: 로컬 LLM 지원 제거 */}
-            {/* {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />} */}
+            {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />}
 
-            {/* MVP Phase 0: 클라우드 LLM 설정 제거 (내장) */}
-            {/* {activeTab === 'cloud' && (
+            {activeTab === 'cloud' && (
               <CloudLLMSettings isDarkMode={isDarkMode} />
-            )} */}
+            )}
 
             {/* MVP Phase 0: 프롬프트 설정 제거 (코드에 내장) */}
             {/* {activeTab === 'prompts' && (
@@ -294,6 +298,10 @@ function LLMSettingsApp() {
                 (로컬 모델 경로, GPU 설정 등 제거)
               </div>
             )} */}
+
+            {activeTab === 'general' && (
+              <GeneralSettings isDarkMode={isDarkMode} />
+            )}
 
             {activeTab === 'retros' && (
               <RetrospectiveTemplateSettings isDarkMode={isDarkMode} />

@@ -45,6 +45,15 @@ export interface WindowPositionPayload {
 }
 
 // ============================================================================
+// App Settings Types (src-tauri/src/app_settings.rs)
+// ============================================================================
+
+export interface AppSettings {
+  quickNoteShortcut: string;
+  documentsPath: string;
+}
+
+// ============================================================================
 // LLM Types (src-tauri/src/llm/)
 // ============================================================================
 

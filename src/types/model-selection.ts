@@ -7,8 +7,8 @@ export type ModelType = 'local' | 'cloud';
 
 export interface SelectedModel {
   type: ModelType;
-  modelId: string; // local: model file ID, cloud: "gpt-4-turbo", "claude-3-opus", etc.
-  provider?: string; // Only for cloud: "openai", "claude", "gemini"
+  modelId: string; // local: model file ID, cloud: "gpt-4-turbo", "gemini-pro", etc.
+  provider?: string; // Only for cloud: "openai", "gemini"
   displayName?: string; // Human-readable name for UI
 }
 
@@ -31,19 +31,9 @@ export const DEFAULT_MODEL: SelectedModel = {
   displayName: 'No model selected',
 };
 
-// Cloud model presets
+// Cloud model presets (GPT + Gemini only)
 export const CLOUD_MODELS = {
   openai: [
-    {
-      id: 'gpt-4-turbo',
-      displayName: 'GPT-4 Turbo',
-      description: '가장 강력한 OpenAI 모델',
-    },
-    {
-      id: 'gpt-4',
-      displayName: 'GPT-4',
-      description: '고품질 추론 모델',
-    },
     {
       id: 'gpt-4o',
       displayName: 'GPT-4o',
@@ -55,26 +45,14 @@ export const CLOUD_MODELS = {
       description: '빠르고 저렴한 모델',
     },
     {
+      id: 'gpt-4-turbo',
+      displayName: 'GPT-4 Turbo',
+      description: '강력한 추론 모델',
+    },
+    {
       id: 'gpt-3.5-turbo',
       displayName: 'GPT-3.5 Turbo',
       description: '빠르고 효율적인 모델',
-    },
-  ],
-  claude: [
-    {
-      id: 'claude-3-opus',
-      displayName: 'Claude 3 Opus',
-      description: '가장 강력한 Claude 모델',
-    },
-    {
-      id: 'claude-3-sonnet',
-      displayName: 'Claude 3 Sonnet',
-      description: '균형잡힌 성능',
-    },
-    {
-      id: 'claude-3-haiku',
-      displayName: 'Claude 3 Haiku',
-      description: '빠른 응답',
     },
   ],
   gemini: [
@@ -84,9 +62,14 @@ export const CLOUD_MODELS = {
       description: '다목적 모델',
     },
     {
-      id: 'gemini-ultra',
-      displayName: 'Gemini Ultra',
-      description: '최고 성능 모델',
+      id: 'gemini-1.5-pro',
+      displayName: 'Gemini 1.5 Pro',
+      description: '향상된 성능',
+    },
+    {
+      id: 'gemini-1.5-flash',
+      displayName: 'Gemini 1.5 Flash',
+      description: '빠른 응답',
     },
   ],
 } as const;

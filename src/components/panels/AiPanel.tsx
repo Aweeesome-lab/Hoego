@@ -9,6 +9,7 @@ import type { Components } from 'react-markdown';
 import { Response } from '@/components/ai/response';
 import { ThinkingIndicator } from '@/components/ai/thinking';
 import { MemoizedReactMarkdown } from '@/components/markdown';
+import { ModelSelector } from '@/components/ModelSelector';
 import { useAppStore } from '@/store';
 
 interface AiPanelProps {
@@ -106,7 +107,9 @@ export const AiPanel = React.memo(function AiPanel({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* Model Selector */}
+          <ModelSelector isDarkMode={isDarkMode} />
           {/* Unified AI Pipeline Button */}
           <button
             onClick={handleRunPipeline}

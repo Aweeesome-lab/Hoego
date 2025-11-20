@@ -35,6 +35,11 @@ interface FloatingMiniBarProps {
   isDarkMode: boolean;
 }
 
+/**
+ * FloatingMiniBar - 빠른 메모 입력을 위한 플로팅 바 컴포넌트
+ * 화면 하단 중앙에 떠있는 형태로 표시되어 빠르게 생각을 기록할 수 있습니다.
+ */
+
 export function FloatingMiniBar({
   inputRef,
   inputValue,

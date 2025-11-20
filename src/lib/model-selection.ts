@@ -71,8 +71,8 @@ export async function getAllModelOptions(): Promise<ModelOption[]> {
       });
     }
 
-    // Get cloud models
-    const providers = ['openai', 'claude', 'gemini'] as const;
+    // Get cloud models (GPT + Gemini only)
+    const providers = ['openai', 'gemini'] as const;
 
     for (const provider of providers) {
       const hasApiKey = await CloudLLMClient.hasApiKey(provider);
