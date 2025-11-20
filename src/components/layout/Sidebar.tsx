@@ -56,11 +56,22 @@ export const Sidebar = React.memo(function Sidebar({
   onSettingsClick,
   onHistoryFileClick,
 }: SidebarProps) {
+  // Get current year and month (YYYY and YYYYMM format)
+  const currentYearMonth = React.useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear().toString();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    return {
+      year,
+      month: `${year}${month}`,
+    };
+  }, []);
+
   const [expandedYears, setExpandedYears] = React.useState<Set<string>>(
-    new Set()
+    () => new Set([currentYearMonth.year])
   );
   const [expandedMonths, setExpandedMonths] = React.useState<Set<string>>(
-    new Set()
+    () => new Set([currentYearMonth.month])
   );
 
   // Group files by year and month
