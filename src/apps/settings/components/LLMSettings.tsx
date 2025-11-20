@@ -18,8 +18,8 @@ interface LLMSettingsProps {
   isDarkMode?: boolean;
 }
 
-// 고정 모델 ID
-const FIXED_MODEL_ID = 'qwen2.5-3b-q4';
+// 고정 모델 ID - Gemma 3 4B QAT (Google Latest)
+const FIXED_MODEL_ID = 'gemma-3-4b-qat';
 
 export const LLMSettings: React.FC<LLMSettingsProps> = ({
   isDarkMode = false,

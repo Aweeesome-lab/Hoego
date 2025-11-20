@@ -96,6 +96,7 @@ fn write_ai_summary_file(date: &OffsetDateTime, content: &str, pii_masked: bool)
 pub async fn generate_ai_feedback(
     history: State<'_, HistoryState>,
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
+    model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
 ) -> Result<AiSummaryFile, String> {
     let now = current_local_time()?;
     let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
@@ -105,24 +106,46 @@ pub async fn generate_ai_feedback(
         return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
     }
 
-    // 🔒 개인정보 마스킹 처리 (AI 전송 전)
-    let masked_content = pii_masker::mask_pii(&today_content, false);
-    let pii_detected = today_content != masked_content;
+    // 선택된 모델 확인
+    let selected_model_lock = model_selection_state.selected.read().await;
+    let selected_model = selected_model_lock.clone();
+    drop(selected_model_lock);
 
-    eprintln!("[AI Feedback] Original length: {} chars", today_content.len());
-    eprintln!("[AI Feedback] Masked length: {} chars", masked_content.len());
-    if pii_detected {
-        eprintln!("[PII Masking] ⚠️ PII detected and masked");
+    // 모델 타입 결정
+    let use_cloud_llm = if let Some(ref model) = selected_model {
+        model.model_type == "cloud"
     } else {
-        eprintln!("[PII Masking] ✅ No PII detected");
-    }
+        // 선택된 모델이 없으면 로컬 모델만 사용
+        false
+    };
+
+    // 🔒 개인정보 마스킹 처리 (클라우드 LLM 사용 시에만)
+    let (masked_content, pii_detected) = if use_cloud_llm {
+        eprintln!("[PII Masking] Cloud LLM detected - applying PII masking");
+        let masked = pii_masker::mask_pii(&today_content, false);
+        let detected = today_content != masked;
+
+        eprintln!("[AI Feedback] Original length: {} chars", today_content.len());
+        eprintln!("[AI Feedback] Masked length: {} chars", masked.len());
+        if detected {
+            eprintln!("[PII Masking] ⚠️ PII detected and masked");
+        } else {
+            eprintln!("[PII Masking] ✅ No PII detected");
+        }
+
+        (masked, detected)
+    } else {
+        eprintln!("[PII Masking] Local model detected - skipping PII masking");
+        (today_content.clone(), false)
+    };
 
     // 길이 조정: 코치형 피드백(Paragraph)로 500단어 내외 요청 → 충분한 밀도의 결과
     let request = llm::summarize::SummaryRequest {
         content: masked_content,
-        style: None, // business_journal_coach 사용
+        style: None, // 프롬프트는 use_local_prompt로 결정됨
         max_length: Some(500),
         model_id: None,
+        use_local_prompt: Some(!use_cloud_llm), // 로컬 모델이면 true, 클라우드면 false
     };
 
     let summary = match tokio::time::timeout(
@@ -191,34 +214,6 @@ pub async fn generate_ai_feedback_stream(
         return Err("오늘 기록된 내용이 없어 요약을 생성할 수 없습니다.".into());
     }
 
-    // 🔒 개인정보 마스킹 처리 (AI 전송 전)
-    let masked_content = pii_masker::mask_pii(&today_content, false);
-    let pii_detected = today_content != masked_content;
-
-    eprintln!("[PII Masking] Original length: {} chars", today_content.len());
-    eprintln!("[PII Masking] Masked length: {} chars", masked_content.len());
-    if pii_detected {
-        eprintln!("[PII Masking] ⚠️ PII detected and masked");
-    } else {
-        eprintln!("[PII Masking] ✅ No PII detected");
-    }
-
-    // 마스킹 통계를 프론트엔드로 전송 (개발 모드 검증용)
-    if let Err(e) = app.emit_all(
-        "ai_feedback_masking_stats",
-        serde_json::json!({
-            "originalLength": today_content.len(),
-            "maskedLength": masked_content.len(),
-            "piiDetected": pii_detected,
-        }),
-    ) {
-        eprintln!("[PII Masking] Failed to emit masking stats: {}", e);
-    }
-
-    // 프롬프트 구성 (business journal coach) - 마스킹된 내용 사용
-    let prompt = llm::prompts::PromptTemplate::for_business_journal_coach(&masked_content);
-    let chat_messages = prompt.to_chat_format();
-
     // 선택된 모델 확인
     let selected_model_lock = model_selection_state.selected.read().await;
     let selected_model = selected_model_lock.clone();
@@ -232,6 +227,48 @@ pub async fn generate_ai_feedback_stream(
         let engine = llm_state.engine.lock().await;
         !engine.is_running()
     };
+
+    // 🔒 개인정보 마스킹 처리 (클라우드 LLM 사용 시에만)
+    let (masked_content, pii_detected) = if use_cloud_llm {
+        eprintln!("[PII Masking] Cloud LLM detected - applying PII masking");
+        let masked = pii_masker::mask_pii(&today_content, false);
+        let detected = today_content != masked;
+
+        eprintln!("[PII Masking] Original length: {} chars", today_content.len());
+        eprintln!("[PII Masking] Masked length: {} chars", masked.len());
+        if detected {
+            eprintln!("[PII Masking] ⚠️ PII detected and masked");
+        } else {
+            eprintln!("[PII Masking] ✅ No PII detected");
+        }
+
+        (masked, detected)
+    } else {
+        eprintln!("[PII Masking] Local model detected - skipping PII masking");
+        (today_content.clone(), false)
+    };
+
+    // 마스킹 통계를 프론트엔드로 전송 (개발 모드 검증용)
+    if let Err(e) = app.emit_all(
+        "ai_feedback_masking_stats",
+        serde_json::json!({
+            "originalLength": today_content.len(),
+            "maskedLength": masked_content.len(),
+            "piiDetected": pii_detected,
+        }),
+    ) {
+        eprintln!("[PII Masking] Failed to emit masking stats: {}", e);
+    }
+
+    // 프롬프트 구성 (모델 타입에 따라 선택)
+    let prompt = if use_cloud_llm {
+        eprintln!("[Prompt Selection] Using cloud prompt (deep cognitive analysis)");
+        llm::prompts::PromptTemplate::for_business_journal_coach(&masked_content)
+    } else {
+        eprintln!("[Prompt Selection] Using local prompt (simplified 3-section)");
+        llm::prompts::PromptTemplate::for_local_model(&masked_content)
+    };
+    let chat_messages = prompt.to_chat_format();
 
     // 모델별 처리 및 결과 반환
     let result = if use_cloud_llm {

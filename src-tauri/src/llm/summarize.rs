@@ -11,6 +11,7 @@ pub struct SummaryRequest {
     pub style: Option<SummarizationStyle>,
     pub max_length: Option<usize>,
     pub model_id: Option<String>,
+    pub use_local_prompt: Option<bool>, // true for local model, false for cloud model
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -106,13 +107,18 @@ pub async fn summarize_note(
         }
     }
 
-    // Use business journal coach format for daily summaries
+    // Select prompt template based on model type
     let (prompt, style) = if request.style.is_none() || matches!(request.style, Some(SummarizationStyle::Paragraph)) {
-        // Default to business journal coach format for general summaries
-        (
-            PromptTemplate::for_business_journal_coach(&request.content),
-            SummarizationStyle::Paragraph
-        )
+        // Determine which prompt template to use
+        let use_local = request.use_local_prompt.unwrap_or(false);
+        let prompt = if use_local {
+            eprintln!("[Summarize] Using local model prompt (simplified 3-section)");
+            PromptTemplate::for_local_model(&request.content)
+        } else {
+            eprintln!("[Summarize] Using cloud prompt (deep cognitive analysis)");
+            PromptTemplate::for_business_journal_coach(&request.content)
+        };
+        (prompt, SummarizationStyle::Paragraph)
     } else {
         // Use specific style if requested
         let style = request.style.unwrap();
@@ -165,6 +171,7 @@ pub async fn batch_summarize(
             style: Some(style.clone()),
             max_length: Some(100), // Brief for batch processing
             model_id: None,
+            use_local_prompt: None, // 배치 처리는 기본값 사용
         };
 
         match summarize_note(state.clone(), summary_request).await {
@@ -197,6 +204,7 @@ pub async fn batch_summarize(
             style: Some(SummarizationStyle::Paragraph),
             max_length: Some(200),
             model_id: None,
+            use_local_prompt: None, // 배치 처리는 기본값 사용
         };
 
         summarize_note(state.clone(), combined_request)

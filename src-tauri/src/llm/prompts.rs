@@ -82,6 +82,51 @@ NEVER:
 **CRITICAL**: All your output MUST be in Korean (한국어), but think through the analysis in English for clarity.
 </output_language>"#;
 
+/// System Prompt for Local Models: Simplified version for smaller models like Gemma 3 4B
+/// Optimized for direct, clear instructions without complex abstractions
+pub const LOCAL_MODEL_SYSTEM_PROMPT: &str = r#"당신은 사용자의 일상 기록을 분석하고 피드백을 제공하는 AI 코치입니다.
+
+목표:
+- 오늘 하루 기록에서 중요한 내용 파악
+- 구체적이고 실천 가능한 조언 제공
+- 사용자가 개선할 수 있는 점 제시
+
+규칙:
+- 반드시 한국어로만 응답
+- 짧고 명확하게 작성
+- 추상적이거나 일반적인 조언 금지
+- 사용자의 실제 표현을 인용"#;
+
+/// User Prompt Template for Local Models: Simplified 3-section format
+/// {content} will be replaced with the user's actual journal content
+pub const LOCAL_MODEL_USER_PROMPT_TEMPLATE: &str = r#"아래는 사용자의 오늘 하루 기록입니다. 3개 섹션으로 피드백을 작성하세요.
+
+## 📝 핵심 내용
+오늘 기록에서 가장 중요한 2-3가지를 요약하세요.
+사용자의 실제 표현을 인용하여 구체적으로 작성하세요.
+
+## ✅ 실천 사항
+바로 실행할 수 있는 구체적인 행동 3-5개를 체크리스트로:
+- [ ] [구체적 행동] - 이유 한 줄
+- [ ] [구체적 행동] - 이유 한 줄
+- [ ] [구체적 행동] - 이유 한 줄
+
+## 💭 생각해볼 질문
+스스로 생각해볼 1-2개 질문
+
+---
+
+사용자 기록:
+{content}
+
+---
+
+주의사항:
+- 위 3개 섹션 형식을 반드시 따르세요
+- 실제 기록 내용을 인용하세요
+- "더 열심히", "꾸준히" 같은 추상적 조언 금지
+- 각 섹션은 간결하고 명확하게"#;
+
 /// User Prompt Template: Specific instructions for analyzing each journal dump
 /// {content} will be replaced with the user's actual journal content
 pub const BUSINESS_JOURNAL_COACH_USER_PROMPT_TEMPLATE: &str = r#"<task>
@@ -284,6 +329,19 @@ impl PromptTemplate {
 
         Self {
             system: BUSINESS_JOURNAL_COACH_SYSTEM_PROMPT.to_string(),
+            user,
+        }
+    }
+
+    pub fn for_local_model(content: &str) -> Self {
+        // 로컬 모델용 간소화된 프롬프트
+        let user = LOCAL_MODEL_USER_PROMPT_TEMPLATE.replace("{content}", content);
+
+        eprintln!("[Prompt] Content length: {} chars", content.len());
+        eprintln!("[Prompt] Using simplified prompt for local model");
+
+        Self {
+            system: LOCAL_MODEL_SYSTEM_PROMPT.to_string(),
             user,
         }
     }

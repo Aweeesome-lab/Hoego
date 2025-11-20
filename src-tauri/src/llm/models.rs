@@ -105,14 +105,14 @@ impl ModelManager {
                 },
             },
             ModelInfo {
-                id: "qwen2.5-3b-q4".to_string(),
-                name: "Qwen 2.5 3B (Q4_K_M) - Korean Optimized".to_string(),
-                size: 2 * 1024 * 1024 * 1024, // 2GB
-                url: "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf".to_string(),
-                quantization: "Q4_K_M".to_string(),
-                description: "Larger model with excellent Korean language support and multilingual capabilities".to_string(),
+                id: "gemma-3-4b-qat".to_string(),
+                name: "Gemma 3 4B QAT (Q4_K_M) - Google Latest".to_string(),
+                size: 2791728384, // ~2.6GB
+                url: "https://huggingface.co/bartowski/google_gemma-3-4b-it-qat-GGUF/resolve/main/google_gemma-3-4b-it-qat-Q4_K_M.gguf".to_string(),
+                quantization: "Q4_K_M QAT".to_string(),
+                description: "Google's latest with QAT for quality preservation, 128K context, excellent Korean/multilingual support".to_string(),
                 requirements: ModelRequirements {
-                    min_ram: 4096,
+                    min_ram: 6144,
                     recommended_ram: 8192,
                     supports_gpu: true,
                 },
