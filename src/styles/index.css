@@ -40,10 +40,6 @@
     --foreground: 222 47% 11%;
   }
 
-  * {
-    @apply border-border;
-  }
-
   html,
   body,
   #root {
