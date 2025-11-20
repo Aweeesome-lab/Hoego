@@ -45,10 +45,10 @@ export function MiniHeader({
 }: MiniHeaderProps) {
   return (
     <div
-      className={`flex items-start gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
+      className={`flex items-center gap-2.5 px-3 h-full backdrop-blur-md border-0 transition-all ${
         isDarkMode
-          ? 'bg-slate-900/95 border-white/10 shadow-black/30'
-          : 'bg-white/95 border-slate-200/50 shadow-slate-300/30'
+          ? 'bg-slate-900/95'
+          : 'bg-white/95'
       }`}
       data-tauri-drag-region
     >
@@ -87,7 +87,7 @@ export function MiniHeader({
       <button
         type="button"
         onClick={onExpandClick}
-        className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 mt-[0.9rem] ${
+        className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 ${
           isDarkMode
             ? 'border-white/10 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
             : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'

@@ -557,11 +557,11 @@ export default function App() {
   if (viewMode === 'mini') {
     return (
       <div
-        className={`relative flex h-full w-full items-center justify-center px-3 ${
+        className={`relative flex h-full w-full items-center justify-center ${
           isDarkMode ? 'bg-transparent' : 'bg-transparent'
         }`}
       >
-        <div className="w-full">
+        <div className="w-full h-full">
           <MiniHeader
             inputRef={inputRef}
             inputValue={inputValue}
