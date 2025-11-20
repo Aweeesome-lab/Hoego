@@ -26,7 +26,7 @@ use weekly_data::get_week_data;
 use window_manager::{
     ensure_accessibility_permission, get_window_position, hide_main_window, open_llm_settings,
     open_settings_window_command, set_window_corner_radius, set_window_position,
-    toggle_overlay_window,
+    set_window_visible_on_all_workspaces, toggle_overlay_window,
 };
 
 // LLM Command Handlers
@@ -351,7 +351,11 @@ fn main() {
 
             if let Some(window) = app.get_window("main") {
                 #[cfg(target_os = "macos")]
-                set_window_corner_radius(&window);
+                {
+                    set_window_corner_radius(&window);
+                    // 모든 데스크톱에서 보이도록 설정 (macOS Spaces)
+                    set_window_visible_on_all_workspaces(&window);
+                }
                 window.hide()?;
             }
 

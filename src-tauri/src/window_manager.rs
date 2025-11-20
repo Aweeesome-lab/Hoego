@@ -42,6 +42,37 @@ pub fn ensure_accessibility_permission() {
 #[cfg(not(target_os = "macos"))]
 pub fn ensure_accessibility_permission() {}
 
+/// 윈도우를 모든 워크스페이스에서 보이도록 설정합니다 (macOS 전용)
+#[cfg(target_os = "macos")]
+#[allow(unexpected_cfgs)]
+pub fn set_window_visible_on_all_workspaces(window: &Window) {
+    unsafe {
+        use objc::runtime::Object;
+
+        if let Ok(ns_window_ptr) = window.ns_window() {
+            let ns_window: *mut Object = ns_window_ptr as *mut Object;
+            if ns_window.is_null() {
+                return;
+            }
+
+            // NSWindowCollectionBehaviorCanJoinAllSpaces = 1 << 0
+            const NS_WINDOW_COLLECTION_BEHAVIOR_CAN_JOIN_ALL_SPACES: u64 = 1 << 0;
+
+            // 기존 collection behavior 가져오기
+            let current_behavior: u64 = msg_send![ns_window, collectionBehavior];
+
+            // 새 behavior 설정 (기존 설정 + CanJoinAllSpaces)
+            let new_behavior = current_behavior | NS_WINDOW_COLLECTION_BEHAVIOR_CAN_JOIN_ALL_SPACES;
+            let _: () = msg_send![ns_window, setCollectionBehavior: new_behavior];
+
+            tracing::debug!("윈도우를 모든 워크스페이스에서 보이도록 설정");
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn set_window_visible_on_all_workspaces(_window: &Window) {}
+
 /// 윈도우 모서리를 둥글게 설정합니다 (macOS 전용)
 #[cfg(target_os = "macos")]
 #[allow(unexpected_cfgs)] // Allow false positives caused by objc's msg_send! macro under clippy
@@ -228,6 +259,10 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         window_width_logical.round(),
         window_height_logical.round()
     );
+
+    // 모든 데스크톱에서 보이도록 설정 (macOS Spaces)
+    set_window_visible_on_all_workspaces(window);
+
     window.set_always_on_top(true)?;
     window.show()?;
     window.set_focus()?;
