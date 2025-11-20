@@ -555,7 +555,7 @@ export default function App() {
   // Expanded 모드: 전체 UI 표시
   return (
     <div
-      className={`relative flex h-full w-full flex-row overflow-hidden ${
+      className={`relative flex h-full w-full flex-row overflow-hidden animate-in fade-in duration-300 ${
         isDarkMode ? 'bg-[#0d1016]' : 'bg-white'
       }`}
     >
