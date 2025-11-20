@@ -32,7 +32,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
         }`}
       >
         {retrospectViewMode !== 'preview' && (
-          <div className="h-full w-full overflow-y-auto overflow-x-hidden">
+          <div className="h-full w-full overflow-y-auto overflow-x-hidden" style={{ paddingBottom: '120px' }}>
             <textarea
               ref={retrospectRef}
               value={retrospectContent}
@@ -46,6 +46,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
                 fontFamily:
                   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 padding: 12,
+                paddingBottom: '120px',
               }}
               placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
             />
@@ -58,6 +59,7 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
                 ? 'border-white/10 bg-[#05070c] text-slate-100'
                 : 'border-slate-200 bg-slate-50 text-slate-900'
             }`}
+            style={{ paddingBottom: '120px' }}
           >
             <MemoizedReactMarkdown
               remarkPlugins={[remarkGfm]}

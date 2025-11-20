@@ -140,7 +140,7 @@ export const AiPanel = React.memo(function AiPanel({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4" style={{ paddingBottom: '120px' }}>
         <div className="space-y-4 max-w-full">
           {isPipelineRunning ? (
             <Response isDarkMode={isDarkMode}>

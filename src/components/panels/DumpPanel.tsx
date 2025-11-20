@@ -73,7 +73,7 @@ export const DumpPanel = React.memo(function DumpPanel({
             isEditing ? '' : 'overflow-y-auto overflow-x-hidden'
           }`}
           onMouseDown={(e) => e.stopPropagation()}
-          style={{ pointerEvents: 'auto' }}
+          style={{ pointerEvents: 'auto', paddingBottom: '120px' }}
           role="article"
           aria-label="마크다운 콘텐츠"
         >
@@ -91,6 +91,7 @@ export const DumpPanel = React.memo(function DumpPanel({
                 fontFamily:
                   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 padding: 12,
+                paddingBottom: '120px',
               }}
               placeholder="# 오늘\n\n작업을 기록해보세요."
               onKeyDown={(e) => {
