@@ -46,10 +46,10 @@ export function FloatingMiniBar({
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[480px] max-w-[calc(100vw-2rem)]">
       <div
-        className={`flex items-start gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
+        className={`flex items-start gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border transition-all ${
           isDarkMode
-            ? 'bg-slate-900/95 border-white/10 shadow-black/30'
-            : 'bg-white/95 border-slate-200/50 shadow-slate-300/30'
+            ? 'bg-slate-900/95 border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)]'
+            : 'bg-white/95 border-slate-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
         }`}
       >
         {/* 입력창 */}
