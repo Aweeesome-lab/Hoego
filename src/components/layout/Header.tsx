@@ -1,5 +1,4 @@
 import {
-  Clock,
   Moon,
   Sun,
   MonitorSmartphone,
@@ -22,27 +21,6 @@ interface HeaderProps {
    * @example "14:30"
    */
   currentTime: string;
-
-  /**
-   * 입력 필드 ref
-   * 외부에서 입력 필드 포커스 제어에 사용
-   */
-  inputRef: React.RefObject<HTMLInputElement>;
-
-  /**
-   * 입력 필드의 현재 값
-   */
-  inputValue: string;
-
-  /**
-   * 입력 값 변경 핸들러
-   */
-  setInputValue: (value: string) => void;
-
-  /**
-   * 폼 제출 핸들러 (항목 추가)
-   */
-  handleSubmit: (e: React.FormEvent) => void;
 
   /**
    * 편집 모드 활성화 여부
@@ -180,10 +158,6 @@ interface HeaderProps {
 
 export function Header({
   currentTime,
-  inputRef,
-  inputValue,
-  setInputValue,
-  handleSubmit,
   isEditing,
   setIsEditing,
   setEditingContent,
@@ -235,46 +209,7 @@ export function Header({
         )}
       </button>
 
-      <button
-        type="button"
-        className={`flex h-8 items-center rounded-full border px-3 text-xs font-semibold ${
-          isDarkMode
-            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300'
-            : 'border-slate-200 bg-white text-slate-700'
-        }`}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <Clock className="mr-1.5 h-3.5 w-3.5" />
-        {currentTime}
-      </button>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-1 min-w-0"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(e) => {
-            setInputValue(e.target.value);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              void hideOverlayWindow();
-            }
-          }}
-          placeholder="생각을 쏟아내보세요."
-          className={`h-9 flex-1 min-w-0 rounded-md border-0 text-[13px] focus:outline-none focus:ring-2 focus:ring-offset-0 ${
-            isDarkMode
-              ? 'bg-slate-800/50 text-slate-100 placeholder:text-slate-500 focus:ring-slate-600 focus:bg-slate-800/80'
-              : 'bg-slate-100/50 text-slate-900 placeholder:text-slate-400 focus:ring-slate-400 focus:bg-slate-100/80'
-          }`}
-          style={{ padding: '0 12px' }}
-          autoFocus
-        />
-      </form>
+      <div className="flex-1" />
       {isEditing ? (
         <div
           className="flex items-center gap-2"

@@ -3,7 +3,13 @@ import { Pencil, Eye, Columns } from 'lucide-react';
 import React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
-import { Header, MiniHeader, Footer, Sidebar } from '@/components/layout';
+import {
+  Header,
+  MiniHeader,
+  FloatingMiniBar,
+  Footer,
+  Sidebar,
+} from '@/components/layout';
 import { useMarkdownComponents } from '@/components/markdown';
 import { DumpPanel } from '@/components/panels';
 import {
@@ -579,10 +585,6 @@ export default function App() {
       >
         <Header
           currentTime={currentTime}
-          inputRef={inputRef}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          handleSubmit={handleSubmit}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
           setEditingContent={setEditingContent}
@@ -706,6 +708,19 @@ export default function App() {
           }}
         />
       </div>
+
+      {/* Floating Mini Bar - positioned at bottom */}
+      <FloatingMiniBar
+        currentTime={currentTime}
+        inputRef={inputRef}
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        handleSubmit={handleSubmit}
+        onMinimizeClick={() => {
+          void switchToMini();
+        }}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 }
