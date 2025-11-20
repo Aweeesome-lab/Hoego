@@ -1,8 +1,19 @@
 import { RetrospectContentArea } from './RetrospectContentArea';
 import { RetrospectPanelHeader } from './RetrospectPanelHeader';
-import { TemplatePickerDropdown } from './TemplatePickerDropdown';
 
-import type { RetrospectPanelProps } from './types/RetrospectPanelProps';
+import type { Components } from 'react-markdown';
+
+interface RetrospectPanelProps {
+  isDarkMode: boolean;
+  isRetrospectPanelExpanded: boolean;
+  retrospectContent: string;
+  setRetrospectContent: (content: string) => void;
+  retrospectRef: React.RefObject<HTMLTextAreaElement>;
+  isSavingRetrospect: boolean;
+  isEditingRetrospect: boolean;
+  setIsEditingRetrospect: (isEditing: boolean) => void;
+  markdownComponents: Components;
+}
 
 export function RetrospectPanel({
   isDarkMode,
@@ -11,17 +22,8 @@ export function RetrospectPanel({
   setRetrospectContent,
   retrospectRef,
   isSavingRetrospect,
-  isTemplatePickerOpen,
-  setIsTemplatePickerOpen,
-  templateTriggerRef,
-  templateDropdownRef,
-  templateDropdownPosition,
-  retrospectiveTemplates,
-  customRetrospectiveTemplates,
-  handleApplyRetrospectiveTemplate,
-  retrospectViewMode,
-  setRetrospectViewMode,
-  activeRetrospectViewOption,
+  isEditingRetrospect,
+  setIsEditingRetrospect,
   markdownComponents,
 }: RetrospectPanelProps) {
   if (!isRetrospectPanelExpanded) return null;
@@ -35,25 +37,12 @@ export function RetrospectPanel({
       <RetrospectPanelHeader
         isDarkMode={isDarkMode}
         isSavingRetrospect={isSavingRetrospect}
-        isTemplatePickerOpen={isTemplatePickerOpen}
-        setIsTemplatePickerOpen={setIsTemplatePickerOpen}
-        templateTriggerRef={templateTriggerRef}
-        retrospectViewMode={retrospectViewMode}
-        setRetrospectViewMode={setRetrospectViewMode}
-        activeRetrospectViewOption={activeRetrospectViewOption}
-      />
-      <TemplatePickerDropdown
-        isDarkMode={isDarkMode}
-        isTemplatePickerOpen={isTemplatePickerOpen}
-        templateDropdownRef={templateDropdownRef}
-        templateDropdownPosition={templateDropdownPosition}
-        retrospectiveTemplates={retrospectiveTemplates}
-        customRetrospectiveTemplates={customRetrospectiveTemplates}
-        handleApplyRetrospectiveTemplate={handleApplyRetrospectiveTemplate}
+        isEditing={isEditingRetrospect}
+        setIsEditing={setIsEditingRetrospect}
       />
       <RetrospectContentArea
         isDarkMode={isDarkMode}
-        retrospectViewMode={retrospectViewMode}
+        isEditing={isEditingRetrospect}
         retrospectContent={retrospectContent}
         setRetrospectContent={setRetrospectContent}
         retrospectRef={retrospectRef}
