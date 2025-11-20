@@ -531,11 +531,11 @@ export default function App() {
   if (viewMode === 'mini') {
     return (
       <div
-        className={`relative flex h-full w-full items-center justify-center px-3 transition-all duration-300 ease-in-out ${
+        className={`relative flex h-full w-full items-center justify-center px-3 ${
           isDarkMode ? 'bg-transparent' : 'bg-transparent'
         }`}
       >
-        <div className="w-full animate-in fade-in duration-300">
+        <div className="w-full">
           <MiniHeader
             currentTime={currentTime}
             inputRef={inputRef}
@@ -555,7 +555,7 @@ export default function App() {
   // Expanded 모드: 전체 UI 표시
   return (
     <div
-      className={`relative flex h-full w-full flex-row overflow-hidden animate-in fade-in duration-300 ${
+      className={`relative flex h-full w-full flex-row overflow-hidden ${
         isDarkMode ? 'bg-[#0d1016]' : 'bg-white'
       }`}
     >
