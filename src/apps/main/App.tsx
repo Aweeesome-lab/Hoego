@@ -1,5 +1,4 @@
 import { appWindow } from '@tauri-apps/api/window';
-import { Pencil, Eye, Columns } from 'lucide-react';
 import React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -25,6 +24,7 @@ import {
   appendHistoryEntry,
   onHistoryUpdated,
   getHistoryMarkdown,
+  saveHistoryMarkdown,
   saveMiniModePosition,
 } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
@@ -39,32 +39,6 @@ const RetrospectPanel = React.lazy(() =>
   }))
 );
 
-const RETROSPECT_VIEW_OPTIONS: Array<{
-  value: 'edit' | 'preview' | 'split';
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-}> = [
-  {
-    value: 'edit',
-    label: '편집',
-    description: '텍스트 입력 전용',
-    icon: <Pencil className="h-3.5 w-3.5" />,
-  },
-  {
-    value: 'preview',
-    label: '미리보기',
-    description: '렌더된 마크다운만 보기',
-    icon: <Eye className="h-3.5 w-3.5" />,
-  },
-  {
-    value: 'split',
-    label: '듀얼',
-    description: '편집·미리보기 나란히',
-    icon: <Columns className="h-3.5 w-3.5" />,
-  },
-];
-
 export default function App() {
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [inputValue, setInputValue] = React.useState('');
@@ -74,6 +48,7 @@ export default function App() {
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
     React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
+  const historyDebounceIdRef = React.useRef<number | null>(null);
 
   // 현재 보고 있는 히스토리 정보
   const [currentHistoryDate, setCurrentHistoryDate] = React.useState<
@@ -122,17 +97,9 @@ export default function App() {
     setRetrospectContent,
     retrospectRef,
     isSavingRetrospect,
-    isTemplatePickerOpen,
-    setIsTemplatePickerOpen,
-    templateDropdownRef,
-    templateTriggerRef,
-    templateDropdownPosition,
-    retrospectViewMode,
-    setRetrospectViewMode,
-    retrospectiveTemplates,
-    customRetrospectiveTemplates,
-    handleApplyRetrospectiveTemplate,
-  } = useRetrospect();
+    isEditingRetrospect,
+    setIsEditingRetrospect,
+  } = useRetrospect({ currentHistoryDate });
 
   const {
     isSidebarOpen,
@@ -155,20 +122,6 @@ export default function App() {
     [aiSummaries, selectedSummaryIndex]
   );
 
-  const activeRetrospectViewOption = React.useMemo(
-    () =>
-      RETROSPECT_VIEW_OPTIONS.find(
-        (option) => option.value === retrospectViewMode
-      ),
-    [retrospectViewMode]
-  );
-
-  // Close template picker when retrospect panel collapses
-  React.useEffect(() => {
-    if (!isRetrospectPanelExpanded) {
-      setIsTemplatePickerOpen(false);
-    }
-  }, [isRetrospectPanelExpanded, setIsTemplatePickerOpen]);
 
   // Update current time
   React.useEffect(() => {
@@ -200,6 +153,41 @@ export default function App() {
       void loadHistoryFiles();
     }
   }, [isSidebarOpen, loadHistoryFiles]);
+
+  // 히스토리 편집 시 자동 저장
+  React.useEffect(() => {
+    if (!currentHistoryDate || !markdownContent) return;
+
+    // 해당 날짜의 파일 경로 찾기
+    const historyFile = historyFiles.find(f => f.date === currentHistoryDate);
+    if (!historyFile) return;
+
+    if (historyDebounceIdRef.current) {
+      clearTimeout(historyDebounceIdRef.current);
+    }
+
+    historyDebounceIdRef.current = window.setTimeout(() => {
+      void (async () => {
+        try {
+          setIsSaving(true);
+          await saveHistoryMarkdown(historyFile.path, markdownContent);
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('[hoego] 히스토리 저장 실패:', error);
+          }
+          toast.error('히스토리 저장에 실패했습니다.');
+        } finally {
+          setIsSaving(false);
+        }
+      })();
+    }, 600);
+
+    return () => {
+      if (historyDebounceIdRef.current) {
+        clearTimeout(historyDebounceIdRef.current);
+      }
+    };
+  }, [currentHistoryDate, markdownContent, historyFiles, setIsSaving]);
 
   // Initialize Cloud LLM provider on mount
   React.useEffect(() => {
@@ -467,16 +455,34 @@ export default function App() {
 
   // Sidebar handlers
   const handleHomeClick = React.useCallback(() => {
-    // 오늘 날짜로 돌아가기
-    setCurrentHistoryDate(null);
+    void (async () => {
+      // 편집 중이면 먼저 저장
+      if (isEditing && markdownContent !== lastSavedRef.current) {
+        try {
+          setIsSaving(true);
+          await saveTodayMarkdown(markdownContent);
+          lastSavedRef.current = markdownContent;
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('[hoego] 저장 실패:', error);
+          }
+          toast.error('저장에 실패했습니다.');
+        } finally {
+          setIsSaving(false);
+        }
+      }
 
-    // 편집 모드 종료
-    if (isEditing) {
-      setIsEditing(false);
-    }
+      // 오늘 날짜로 돌아가기
+      setCurrentHistoryDate(null);
 
-    void loadMarkdown();
-  }, [loadMarkdown, isEditing, setIsEditing]);
+      // 편집 모드 종료
+      if (isEditing) {
+        setIsEditing(false);
+      }
+
+      await loadMarkdown();
+    })();
+  }, [loadMarkdown, isEditing, setIsEditing, markdownContent, lastSavedRef, saveTodayMarkdown, setIsSaving]);
 
   const handleSettingsClick = React.useCallback(() => {
     void (async () => {
@@ -495,6 +501,22 @@ export default function App() {
     (file: (typeof historyFiles)[0]) => {
       void (async () => {
         try {
+          // 편집 중이면 먼저 저장
+          if (isEditing && markdownContent !== lastSavedRef.current) {
+            try {
+              setIsSaving(true);
+              await saveTodayMarkdown(markdownContent);
+              lastSavedRef.current = markdownContent;
+            } catch (error) {
+              if (import.meta.env.DEV) {
+                console.error('[hoego] 저장 실패:', error);
+              }
+              toast.error('저장에 실패했습니다.');
+            } finally {
+              setIsSaving(false);
+            }
+          }
+
           setIsLoadingHistoryContent(true);
           setCurrentHistoryDate(file.date);
 
@@ -517,7 +539,7 @@ export default function App() {
         }
       })();
     },
-    [setMarkdownContent, setEditingContent, isEditing, setIsEditing]
+    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, markdownContent, lastSavedRef, saveTodayMarkdown, setIsSaving]
   );
 
   // Cleanup streaming on unmount
@@ -623,39 +645,18 @@ export default function App() {
         >
           <DumpPanel
             isDarkMode={isDarkMode}
-            isEditing={isEditing && !currentHistoryDate} // 히스토리 보는 중엔 편집 불가
-            markdownRef={markdownRef}
-            editorRef={editorRef}
-            editingContent={editingContent}
-            setEditingContent={setEditingContent}
-            appendTimestampToLine={appendTimestampToLine}
-            markdownContent={
+            isEditing={isEditing}
+            dumpContent={
               isLoadingHistoryContent ? '로딩 중...' : markdownContent
             }
+            setDumpContent={setMarkdownContent}
+            markdownRef={markdownRef}
+            editorRef={editorRef}
+            appendTimestampToLine={appendTimestampToLine}
             markdownComponents={markdownComponents}
             currentDateLabel={currentHistoryDate ?? undefined}
-            onSaveMarkdown={async (content: string) => {
-              // 히스토리 보는 중이면 저장 불가
-              if (currentHistoryDate) {
-                toast.error('히스토리는 읽기 전용입니다.');
-                return;
-              }
-              setIsSaving(true);
-              try {
-                await saveTodayMarkdown(content);
-                lastSavedRef.current = content;
-                setMarkdownContent(content);
-                await loadMarkdown();
-              } finally {
-                setIsSaving(false);
-              }
-            }}
             setIsEditing={setIsEditing}
-            saveTodayMarkdown={saveTodayMarkdown}
-            lastSavedRef={lastSavedRef}
-            loadMarkdown={loadMarkdown}
             isSaving={isSaving}
-            setIsSaving={setIsSaving}
             isHistoryMode={!!currentHistoryDate}
           />
 
@@ -683,19 +684,8 @@ export default function App() {
               setRetrospectContent={setRetrospectContent}
               retrospectRef={retrospectRef}
               isSavingRetrospect={isSavingRetrospect}
-              isTemplatePickerOpen={isTemplatePickerOpen}
-              setIsTemplatePickerOpen={setIsTemplatePickerOpen}
-              templateTriggerRef={templateTriggerRef}
-              templateDropdownRef={templateDropdownRef}
-              templateDropdownPosition={templateDropdownPosition}
-              retrospectiveTemplates={retrospectiveTemplates}
-              customRetrospectiveTemplates={customRetrospectiveTemplates}
-              handleApplyRetrospectiveTemplate={
-                handleApplyRetrospectiveTemplate
-              }
-              retrospectViewMode={retrospectViewMode}
-              setRetrospectViewMode={setRetrospectViewMode}
-              activeRetrospectViewOption={activeRetrospectViewOption}
+              isEditingRetrospect={isEditingRetrospect}
+              setIsEditingRetrospect={setIsEditingRetrospect}
               markdownComponents={markdownComponents}
             />
           </React.Suspense>

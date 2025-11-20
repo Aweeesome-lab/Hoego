@@ -7,7 +7,7 @@ import { MemoizedReactMarkdown } from '@/components/markdown';
 
 interface RetrospectContentAreaProps {
   isDarkMode: boolean;
-  retrospectViewMode: 'edit' | 'preview' | 'split';
+  isEditing: boolean;
   retrospectContent: string;
   setRetrospectContent: (content: string) => void;
   retrospectRef: React.RefObject<HTMLTextAreaElement>;
@@ -16,7 +16,7 @@ interface RetrospectContentAreaProps {
 
 export const RetrospectContentArea = React.memo(function RetrospectContentArea({
   isDarkMode,
-  retrospectViewMode,
+  isEditing,
   retrospectContent,
   setRetrospectContent,
   retrospectRef,
@@ -24,53 +24,42 @@ export const RetrospectContentArea = React.memo(function RetrospectContentArea({
 }: RetrospectContentAreaProps) {
   return (
     <div className="flex-1 overflow-hidden px-6 py-4">
-      <div
-        className={`h-full w-full ${
-          retrospectViewMode === 'split'
-            ? 'grid gap-3 lg:grid-cols-2'
-            : 'flex flex-col'
-        }`}
-      >
-        {retrospectViewMode !== 'preview' && (
-          <div className="h-full w-full overflow-y-auto overflow-x-hidden" style={{ paddingBottom: '120px' }}>
-            <textarea
-              ref={retrospectRef}
-              value={retrospectContent}
-              onChange={(e) => setRetrospectContent(e.target.value)}
-              className={`h-full w-full min-h-[260px] resize-none border-0 text-[13px] leading-5 outline-none ${
-                isDarkMode
-                  ? 'bg-[#05070c] text-slate-100 placeholder:text-slate-500'
-                  : 'bg-white text-slate-900 placeholder:text-slate-400'
-              }`}
-              style={{
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                padding: 12,
-                paddingBottom: '120px',
-              }}
-              placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
-            />
-          </div>
-        )}
-        {retrospectViewMode !== 'edit' && (
-          <div
-            className={`h-full w-full overflow-y-auto overflow-x-hidden rounded-xl border px-4 py-3 text-[13px] ${
-              isDarkMode
-                ? 'border-white/10 bg-[#05070c] text-slate-100'
-                : 'border-slate-200 bg-slate-50 text-slate-900'
-            }`}
-            style={{ paddingBottom: '120px' }}
+      <div className="relative h-full w-full">
+        {/* 편집 모드 - textarea */}
+        <textarea
+          ref={retrospectRef}
+          value={retrospectContent}
+          onChange={(e) => setRetrospectContent(e.target.value)}
+          className={`absolute inset-0 resize-none border-0 text-[13px] leading-5 outline-none ${
+            isDarkMode
+              ? 'bg-[#05070c] text-slate-100 placeholder:text-slate-500'
+              : 'bg-white text-slate-900 placeholder:text-slate-400'
+          } ${isEditing ? '' : 'hidden'}`}
+          style={{
+            fontFamily:
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            padding: 12,
+            paddingBottom: '120px',
+          }}
+          placeholder="AI의 피드백을 보고 떠오르는 생각을 자유롭게 적어보세요..."
+        />
+
+        {/* 미리보기 모드 - markdown */}
+        <div
+          className={`absolute inset-0 overflow-y-auto overflow-x-hidden px-3 py-2 text-[13px] ${
+            isDarkMode ? 'text-slate-100' : 'text-slate-900'
+          } ${isEditing ? 'hidden' : ''}`}
+          style={{ paddingBottom: '120px' }}
+        >
+          <MemoizedReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
           >
-            <MemoizedReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={markdownComponents}
-            >
-              {retrospectContent.trim()
-                ? retrospectContent
-                : '## ✍️ 회고 미리보기\n\n템플릿을 삽입하거나 내용을 작성하면 이 영역에서 마크다운이 적용된 회고를 실시간으로 확인할 수 있어요.'}
-            </MemoizedReactMarkdown>
-          </div>
-        )}
+            {retrospectContent.trim()
+              ? retrospectContent
+              : '## ✍️ 회고 미리보기\n\n내용을 작성하면 이 영역에서 마크다운이 적용된 회고를 실시간으로 확인할 수 있어요.'}
+          </MemoizedReactMarkdown>
+        </div>
       </div>
     </div>
   );
