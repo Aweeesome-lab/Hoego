@@ -313,6 +313,53 @@ export const saveTodayMarkdown = async (content: string): Promise<void> => {
   }
 };
 
+export const saveHistoryMarkdown = async (
+  filePath: string,
+  content: string
+): Promise<void> => {
+  try {
+    await tauriInvoke<void>('save_history_markdown', { filePath, content });
+  } catch (error) {
+    if (import.meta.env.DEV)
+      console.error('[hoego] saveHistoryMarkdown 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 특정 날짜의 회고를 가져옵니다
+ * @param dateKey - 날짜 키 (예: "20251120")
+ */
+export const getRetrospectMarkdown = async (
+  dateKey: string
+): Promise<string> => {
+  try {
+    return await tauriInvoke<string>('get_retrospect_markdown', { dateKey });
+  } catch (error) {
+    if (import.meta.env.DEV)
+      console.error('[hoego] getRetrospectMarkdown 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 특정 날짜의 회고를 저장합니다
+ * @param dateKey - 날짜 키 (예: "20251120")
+ * @param content - 회고 내용
+ */
+export const saveRetrospectMarkdown = async (
+  dateKey: string,
+  content: string
+): Promise<void> => {
+  try {
+    await tauriInvoke<void>('save_retrospect_markdown', { dateKey, content });
+  } catch (error) {
+    if (import.meta.env.DEV)
+      console.error('[hoego] saveRetrospectMarkdown 실패:', error);
+    throw error;
+  }
+};
+
 export const appendHistoryEntry = async (
   payload: AppendHistoryEntryPayload
 ): Promise<void> => {

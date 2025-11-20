@@ -18,8 +18,10 @@ use ai_summary::{
     list_ai_summaries, StreamCancellationState,
 };
 use history::{
-    append_history_entry, get_history_markdown, get_today_markdown, list_history,
-    open_history_folder, save_today_markdown, HistoryState,
+    append_history_entry, get_history_markdown, get_retrospect_markdown, get_today_markdown,
+    list_history, open_history_folder, save_history_markdown, save_retrospect_markdown,
+    save_today_markdown,
+    HistoryState,
 };
 use shortcuts::{register_shortcuts, test_shortcut_available};
 use tray::{build_tray, handle_tray_event};
@@ -279,8 +281,11 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             append_history_entry,
             save_today_markdown,
+            save_history_markdown,
             get_today_markdown,
             get_history_markdown,
+            get_retrospect_markdown,
+            save_retrospect_markdown,
             list_history,
             generate_ai_feedback,
             generate_ai_feedback_stream,

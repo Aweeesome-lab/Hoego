@@ -42,7 +42,7 @@ function LLMSettingsApp() {
     );
   });
 
-  const [activeTab, setActiveTab] = React.useState('retros'); // MVP Phase 0: 기본 탭을 회고 템플릿으로 변경
+  const [activeTab, setActiveTab] = React.useState('models'); // Beta: 기본 탭을 로컬 모델로 변경
 
   // Apply theme to document
   React.useEffect(() => {
@@ -106,7 +106,7 @@ function LLMSettingsApp() {
     { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
     // { id: 'prompts', label: '프롬프트', icon: FileText }, // MVP Phase 0: 프롬프트는 코드에 내장 (설정 UI 제거)
     { id: 'general', label: '일반', icon: Settings },
-    { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
+    // { id: 'retros', label: '회고 템플릿', icon: NotebookPen }, // Beta: 회고 템플릿 숨김
     // { id: 'downloads', label: '다운로드', icon: Download }, // MVP Phase 0: 사용하지 않는 메뉴 제거
     { id: 'about', label: '정보', icon: Info },
   ];
@@ -303,9 +303,10 @@ function LLMSettingsApp() {
               <GeneralSettings isDarkMode={isDarkMode} />
             )}
 
-            {activeTab === 'retros' && (
+            {/* Beta: 회고 템플릿 설정 숨김 */}
+            {/* {activeTab === 'retros' && (
               <RetrospectiveTemplateSettings isDarkMode={isDarkMode} />
-            )}
+            )} */}
 
             {activeTab === 'about' && (
               <div

@@ -288,6 +288,17 @@ pub fn save_today_markdown(
 }
 
 #[tauri::command]
+pub fn save_history_markdown(
+    file_path: String,
+    content: String,
+    app: AppHandle,
+) -> Result<(), String> {
+    fs::write(&file_path, content).map_err(|error| error.to_string())?;
+    emit_history_update(&app)?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn list_history(state: State<'_, HistoryState>) -> Result<HistoryOverview, String> {
     collect_history(state.inner())
 }
@@ -324,4 +335,49 @@ pub fn get_history_markdown(
 
     // 파일 읽기
     fs::read_to_string(&requested_path).map_err(|error| error.to_string())
+}
+
+/// 특정 날짜의 회고 파일을 읽어옵니다
+#[tauri::command]
+pub fn get_retrospect_markdown(
+    date_key: String,
+    state: State<'_, HistoryState>,
+) -> Result<String, String> {
+    tracing::debug!("get_retrospect_markdown 호출됨: {}", date_key);
+
+    ensure_history_dir(&state.directory)?;
+
+    let filename = format!("{}.retro.md", date_key);
+    let file_path = state.directory.join(&filename);
+
+    if !file_path.exists() {
+        tracing::debug!("회고 파일이 없음: {:?}", file_path);
+        return Ok(String::new());
+    }
+
+    fs::read_to_string(&file_path).map_err(|error| {
+        format!("회고 파일 읽기 실패: {}, 경로: {:?}", error, file_path)
+    })
+}
+
+/// 특정 날짜의 회고를 저장합니다
+#[tauri::command]
+pub fn save_retrospect_markdown(
+    date_key: String,
+    content: String,
+    state: State<'_, HistoryState>,
+) -> Result<(), String> {
+    tracing::debug!("save_retrospect_markdown 호출됨: {}", date_key);
+
+    ensure_history_dir(&state.directory)?;
+
+    let filename = format!("{}.retro.md", date_key);
+    let file_path = state.directory.join(&filename);
+
+    fs::write(&file_path, content).map_err(|error| {
+        format!("회고 파일 저장 실패: {}, 경로: {:?}", error, file_path)
+    })?;
+
+    tracing::debug!("회고 저장 완료: {:?}", file_path);
+    Ok(())
 }

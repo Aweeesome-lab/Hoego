@@ -23,6 +23,7 @@ pub fn summaries_directory_path() -> Result<PathBuf, String> {
     Ok(base)
 }
 
+
 /// 현재 로컬 시간을 반환합니다
 pub fn current_local_time() -> Result<OffsetDateTime, String> {
     OffsetDateTime::now_local().map_err(|error| error.to_string())
