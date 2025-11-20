@@ -137,24 +137,14 @@ pub async fn generate_ai_feedback(
 
     let summary_body = summary.summary.trim();
 
-    // 개인정보 보호 메타데이터 생성
-    let privacy_info = if pii_detected {
-        " · 개인정보 보호: 적용됨"
-    } else {
-        ""
-    };
-
     let markdown = format!(
-        "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms{}*",
+        "# 정리하기 ({})\n\n## 오늘 정리\n{}",
         format_date_label(&now),
         if summary_body.is_empty() {
             "(생성된 요약이 비어 있습니다)".to_string()
         } else {
             summary_body.to_string()
-        },
-        summary.model_used,
-        summary.processing_time_ms,
-        privacy_info
+        }
     );
 
     write_ai_summary_file(&now, &markdown, pii_detected)
@@ -243,10 +233,8 @@ pub async fn generate_ai_feedback_stream(
         !engine.is_running()
     };
 
-    let start_time = std::time::Instant::now();
-
     // 모델별 처리 및 결과 반환
-    let (result, model_used) = if use_cloud_llm {
+    let result = if use_cloud_llm {
         // Cloud LLM 사용
         eprintln!("[AI Feedback] Using Cloud LLM");
 
@@ -288,7 +276,6 @@ pub async fn generate_ai_feedback_stream(
             // 스트리밍 방식으로 호출
             match provider.stream(request).await {
                 Ok(mut rx) => {
-                    let model_name = cloud_model_id.clone();
                     let mut full_text = String::new();
                     let emit_handle = app.clone();
                     let mut cancelled = false;
@@ -320,29 +307,18 @@ pub async fn generate_ai_feedback_stream(
                         return Ok(());
                     }
 
-                    (Ok(full_text), model_name)
+                    Ok(full_text)
                 }
                 Err(e) => {
-                    (
-                        Err(format!("Cloud LLM 오류: {}", e)),
-                        "Cloud LLM (failed)".to_string(),
-                    )
+                    Err(format!("Cloud LLM 오류: {}", e))
                 }
             }
         } else {
-            (
-                Err("Cloud LLM이 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.".to_string()),
-                "Cloud LLM (not configured)".to_string(),
-            )
+            Err("Cloud LLM이 설정되지 않았습니다. 설정에서 API 키를 등록해주세요.".to_string())
         }
     } else {
         // 로컬 LLM 사용
         let mut engine = llm_state.engine.lock().await;
-
-        let model_name = engine
-            .get_model_info()
-            .map(|m| m.name)
-            .unwrap_or_else(|| "unknown".to_string());
 
         let mut last_emit_ok = true;
         let emit_handle = app.clone();
@@ -380,31 +356,19 @@ pub async fn generate_ai_feedback_stream(
             return Ok(());
         }
 
-        (result, model_name)
+        result
     };
 
     match result {
         Ok(full_text) => {
-            let processing_time_ms = start_time.elapsed().as_millis() as u64;
-
-            // 개인정보 보호 메타데이터 생성
-            let privacy_info = if pii_detected {
-                " · 개인정보 보호: 적용됨"
-            } else {
-                ""
-            };
-
             let markdown = format!(
-                "# 정리하기 ({})\n\n## 오늘 정리\n{}\n\n---\n*모델: {} · 처리시간: {}ms{}*",
+                "# 정리하기 ({})\n\n## 오늘 정리\n{}",
                 format_date_label(&target_time),
                 if full_text.trim().is_empty() {
                     "(생성된 요약이 비어 있습니다)".to_string()
                 } else {
                     full_text.trim().to_string()
-                },
-                model_used,
-                processing_time_ms,
-                privacy_info
+                }
             );
 
             match write_ai_summary_file(&target_time, &markdown, pii_detected) {

@@ -3,13 +3,11 @@ import {
   Moon,
   Sun,
   MonitorSmartphone,
-  FileText,
   NotebookPen,
 } from 'lucide-react';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import { PromptSettings } from './components/PromptSettings';
 import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
 // import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
 import '@/styles/index.css';
@@ -38,7 +36,7 @@ function LLMSettingsApp() {
     );
   });
 
-  const [activeTab, setActiveTab] = React.useState('prompts'); // MVP Phase 0: 기본 탭을 프롬프트로 변경
+  const [activeTab, setActiveTab] = React.useState('retros'); // MVP Phase 0: 기본 탭을 회고 템플릿으로 변경
 
   // Apply theme to document
   React.useEffect(() => {
@@ -100,7 +98,7 @@ function LLMSettingsApp() {
     // { id: 'weekly', label: '주간 회고', icon: BarChart3 }, // MVP Phase 0: 숨김
     // { id: 'models', label: '모델', icon: Brain }, // MVP Phase 0: 로컬 LLM 지원 제거
     // { id: 'cloud', label: '클라우드 LLM', icon: Cloud }, // MVP Phase 0: API 키 설정 제거 (내장)
-    { id: 'prompts', label: '프롬프트', icon: FileText },
+    // { id: 'prompts', label: '프롬프트', icon: FileText }, // MVP Phase 0: 프롬프트는 코드에 내장 (설정 UI 제거)
     { id: 'retros', label: '회고 템플릿', icon: NotebookPen },
     // { id: 'downloads', label: '다운로드', icon: Download }, // MVP Phase 0: 사용하지 않는 메뉴 제거
     // { id: 'settings', label: '일반 설정', icon: Settings }, // MVP Phase 0: 로컬 모델 설정 불필요
@@ -261,9 +259,10 @@ function LLMSettingsApp() {
               <CloudLLMSettings isDarkMode={isDarkMode} />
             )} */}
 
-            {activeTab === 'prompts' && (
+            {/* MVP Phase 0: 프롬프트 설정 제거 (코드에 내장) */}
+            {/* {activeTab === 'prompts' && (
               <PromptSettings isDarkMode={isDarkMode} />
-            )}
+            )} */}
 
             {/* MVP Phase 0: 다운로드 메뉴 제거 */}
             {/* {activeTab === 'downloads' && (
