@@ -17,12 +17,6 @@ import { hideOverlayWindow } from '@/lib/tauri';
 
 interface HeaderProps {
   /**
-   * 현재 시간 (HH:MM 형식)
-   * @example "14:30"
-   */
-  currentTime: string;
-
-  /**
    * 편집 모드 활성화 여부
    * - true: 편집 모드 (textarea 표시)
    * - false: 뷰 모드 (markdown 렌더링)
@@ -164,7 +158,6 @@ interface HeaderProps {
 }
 
 export function Header({
-  currentTime,
   isEditing,
   setIsEditing,
   setEditingContent,

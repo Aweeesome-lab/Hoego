@@ -1,14 +1,9 @@
-import { Clock, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import React from 'react';
 
 import { hideOverlayWindow } from '@/lib/tauri';
 
 interface MiniHeaderProps {
-  /**
-   * 현재 시간 (HH:MM 형식)
-   */
-  currentTime: string;
-
   /**
    * 입력 필드 ref
    */
@@ -41,7 +36,6 @@ interface MiniHeaderProps {
 }
 
 export function MiniHeader({
-  currentTime,
   inputRef,
   inputValue,
   setInputValue,
@@ -58,20 +52,6 @@ export function MiniHeader({
       }`}
       data-tauri-drag-region
     >
-      {/* 시계 */}
-      <button
-        type="button"
-        className={`flex h-7 items-center rounded-full border px-2.5 text-[11px] font-semibold shrink-0 ${
-          isDarkMode
-            ? 'border-white/10 bg-slate-800/50 text-slate-300'
-            : 'border-slate-200 bg-slate-50 text-slate-700'
-        }`}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <Clock className="mr-1.5 h-3 w-3" />
-        {currentTime}
-      </button>
-
       {/* 입력창 */}
       <form
         onSubmit={handleSubmit}

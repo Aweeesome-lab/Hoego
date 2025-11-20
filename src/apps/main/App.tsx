@@ -563,7 +563,6 @@ export default function App() {
       >
         <div className="w-full">
           <MiniHeader
-            currentTime={currentTime}
             inputRef={inputRef}
             inputValue={inputValue}
             setInputValue={setInputValue}
@@ -604,7 +603,6 @@ export default function App() {
         } transition-all duration-200`}
       >
         <Header
-          currentTime={currentTime}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
           setEditingContent={setEditingContent}
@@ -737,7 +735,6 @@ export default function App() {
 
       {/* Floating Mini Bar - positioned at bottom */}
       <FloatingMiniBar
-        currentTime={currentTime}
         inputRef={inputRef}
         inputValue={inputValue}
         setInputValue={setInputValue}
