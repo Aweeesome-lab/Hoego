@@ -531,7 +531,7 @@ export default function App() {
   if (viewMode === 'mini') {
     return (
       <div
-        className={`relative flex h-full w-full items-end justify-center pb-2 transition-all duration-300 ease-in-out ${
+        className={`relative flex h-full w-full items-center justify-center px-3 transition-all duration-300 ease-in-out ${
           isDarkMode ? 'bg-transparent' : 'bg-transparent'
         }`}
       >

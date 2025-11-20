@@ -51,10 +51,10 @@ export function MiniHeader({
 }: MiniHeaderProps) {
   return (
     <div
-      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-xl border shadow-2xl transition-all ${
+      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
         isDarkMode
-          ? 'bg-slate-900/90 border-white/10 shadow-black/30'
-          : 'bg-white/90 border-slate-200/50 shadow-slate-300/30'
+          ? 'bg-slate-900/95 border-white/10 shadow-black/30'
+          : 'bg-white/95 border-slate-200/50 shadow-slate-300/30'
       }`}
       data-tauri-drag-region
     >
