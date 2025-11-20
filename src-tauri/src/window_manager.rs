@@ -172,9 +172,18 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         )
     });
 
-    // 5. 고정 윈도우 크기로 중앙 좌표 계산 (tauri.conf.json과 동일)
-    const WINDOW_WIDTH: f64 = 1000.0;
-    const WINDOW_HEIGHT: f64 = 700.0;
+    // 5. 현재 윈도우의 실제 크기 가져오기
+    let window_size = match window.inner_size() {
+        Ok(size) => size,
+        Err(e) => {
+            eprintln!("[hoego] 윈도우 크기를 가져올 수 없습니다: {}", e);
+            // Fallback: 기본 크기 사용
+            tauri::PhysicalSize {
+                width: 1000,
+                height: 700,
+            }
+        }
+    };
 
     // 6. 모니터/창 크기를 모두 '논리 좌표계'로 변환해서 중앙 좌표 계산
     let origin_x_logical = origin_x as f64 / scale_factor;
@@ -182,12 +191,28 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
     let width_logical = width as f64 / scale_factor;
     let height_logical = height as f64 / scale_factor;
 
-    let center_x_logical = origin_x_logical + width_logical / 2.0;
-    let center_y_logical = origin_y_logical + height_logical / 2.0;
+    // 윈도우 크기를 논리 좌표계로 변환
+    let window_width_logical = window_size.width as f64 / scale_factor;
+    let window_height_logical = window_size.height as f64 / scale_factor;
 
-    // 고정 크기를 사용하여 중앙 정렬
-    let pos_x_logical = center_x_logical - WINDOW_WIDTH / 2.0;
-    let pos_y_logical = center_y_logical - WINDOW_HEIGHT / 2.0;
+    // 윈도우 크기를 기반으로 모드 감지 (높이가 100px 이하면 mini 모드)
+    let is_mini_mode = window_height_logical <= 100.0;
+
+    let center_x_logical = origin_x_logical + width_logical / 2.0;
+
+    // X 좌표는 항상 중앙 정렬
+    let pos_x_logical = center_x_logical - window_width_logical / 2.0;
+
+    // Y 좌표는 모드에 따라 다르게 계산
+    let pos_y_logical = if is_mini_mode {
+        // Mini 모드: 화면 하단 중앙 (하단에서 40px 여백)
+        let bottom_margin = 40.0;
+        origin_y_logical + height_logical - window_height_logical - bottom_margin
+    } else {
+        // Expanded 모드: 화면 중앙
+        let center_y_logical = origin_y_logical + height_logical / 2.0;
+        center_y_logical - window_height_logical / 2.0
+    };
 
     // 7. 최종 중앙 위치로 이동 후 표시
     window.set_position(Position::Logical(LogicalPosition::new(
@@ -196,9 +221,12 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
     )))?;
 
     tracing::debug!(
-        "창 이동 이벤트: ({}, {})",
+        "창 이동 ({}): ({}, {}), 크기: {}x{}",
+        if is_mini_mode { "mini" } else { "expanded" },
         pos_x_logical.round(),
-        pos_y_logical.round()
+        pos_y_logical.round(),
+        window_width_logical.round(),
+        window_height_logical.round()
     );
     window.set_always_on_top(true)?;
     window.show()?;

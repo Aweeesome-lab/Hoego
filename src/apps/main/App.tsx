@@ -1,17 +1,25 @@
+import { appWindow } from '@tauri-apps/api/window';
 import { Pencil, Eye, Columns } from 'lucide-react';
 import React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, MiniHeader, Footer, Sidebar } from '@/components/layout';
 import { useMarkdownComponents } from '@/components/markdown';
 import { DumpPanel } from '@/components/panels';
-import { useTheme, useMarkdown, useRetrospect, useSidebar } from '@/hooks';
+import {
+  useTheme,
+  useMarkdown,
+  useRetrospect,
+  useSidebar,
+  useViewMode,
+} from '@/hooks';
 import { useAiPipeline } from '@/hooks/useAiPipeline';
 import {
   hideOverlayWindow,
   appendHistoryEntry,
   onHistoryUpdated,
   getHistoryMarkdown,
+  saveMiniModePosition,
 } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
 
@@ -127,6 +135,8 @@ export default function App() {
     loadHistoryFiles,
     toggleSidebar,
   } = useSidebar();
+
+  const { viewMode, switchToExpanded, switchToMini } = useViewMode();
 
   const markdownComponents = useMarkdownComponents({
     isDarkMode,
@@ -495,6 +505,54 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Mini 모드일 때 윈도우 위치 저장
+  React.useEffect(() => {
+    if (viewMode !== 'mini') return;
+
+    let unlisten: (() => void) | null = null;
+
+    const setupPositionListener = async () => {
+      // 윈도우 이동 이벤트 리스너
+      unlisten = await appWindow.onMoved(() => {
+        void saveMiniModePosition();
+      });
+    };
+
+    void setupPositionListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [viewMode]);
+
+  // Mini 모드: 입력창만 표시
+  if (viewMode === 'mini') {
+    return (
+      <div
+        className={`relative flex h-full w-full items-end justify-center pb-2 transition-all duration-300 ease-in-out ${
+          isDarkMode ? 'bg-transparent' : 'bg-transparent'
+        }`}
+      >
+        <div className="w-full animate-in fade-in duration-300">
+          <MiniHeader
+            currentTime={currentTime}
+            inputRef={inputRef}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            handleSubmit={handleSubmit}
+            onExpandClick={() => {
+              void switchToExpanded();
+            }}
+            isDarkMode={isDarkMode}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Expanded 모드: 전체 UI 표시
   return (
     <div
       className={`relative flex h-full w-full flex-row overflow-hidden ${
@@ -548,6 +606,7 @@ export default function App() {
           isDarkMode={isDarkMode}
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
+          switchToMini={switchToMini}
         />
 
         <div

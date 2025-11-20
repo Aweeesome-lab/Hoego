@@ -1,6 +1,11 @@
 import { listen } from '@tauri-apps/api/event';
 import { invoke as tauriInvoke } from '@tauri-apps/api/tauri';
-import { appWindow, LogicalSize } from '@tauri-apps/api/window';
+import {
+  appWindow,
+  LogicalSize,
+  LogicalPosition,
+  currentMonitor,
+} from '@tauri-apps/api/window';
 
 import type {
   HistoryFileInfo,
@@ -10,6 +15,8 @@ import type {
   AiSummaryInfo,
 } from '@/types/tauri-commands';
 import type { UnlistenFn } from '@tauri-apps/api/event';
+
+import { VIEW_MODE_CONFIG } from '@/types/viewMode';
 
 // ============================================================================
 // 타입 정의
@@ -92,6 +99,173 @@ export const resizeWindowTo = async (
   const targetWidth = Math.max(MIN_WINDOW_WIDTH, Math.ceil(width + padding));
   const targetHeight = Math.max(MIN_WINDOW_HEIGHT, Math.ceil(height + padding));
   await appWindow.setSize(new LogicalSize(targetWidth, targetHeight));
+};
+
+/**
+ * Mini 모드로 전환 (600x80px, 화면 하단 중앙)
+ * toggle_overlay 함수의 로직을 참고하여 정확한 위치 계산
+ */
+export const setMiniMode = async () => {
+  try {
+    const { width, height } = VIEW_MODE_CONFIG.mini;
+
+    if (import.meta.env.DEV) {
+      console.log('[hoego] Setting mini mode:', { width, height });
+    }
+
+    // 1. 현재 모니터 정보 먼저 가져오기
+    const monitor = await currentMonitor();
+    if (!monitor) {
+      if (import.meta.env.DEV) {
+        console.error('[hoego] No monitor found');
+      }
+      return;
+    }
+
+    // 2. 모니터 정보 추출
+    const monitorPos = monitor.position;
+    const monitorSize = monitor.size;
+    const scaleFactor = monitor.scaleFactor;
+
+    // 3. 논리 좌표계로 변환 (Rust 로직과 동일)
+    const originXLogical = monitorPos.x / scaleFactor;
+    const originYLogical = monitorPos.y / scaleFactor;
+    const widthLogical = monitorSize.width / scaleFactor;
+    const heightLogical = monitorSize.height / scaleFactor;
+
+    // 4. 중앙 X 좌표 계산
+    const centerXLogical = originXLogical + widthLogical / 2.0;
+    const posXLogical = centerXLogical - width / 2.0;
+
+    // 5. 하단 Y 좌표 계산 (하단에서 40px 여백)
+    const bottomMargin = 40;
+    const posYLogical = originYLogical + heightLogical - height - bottomMargin;
+
+    if (import.meta.env.DEV) {
+      console.log('[hoego] Mini mode position calculation:', {
+        monitor: { width: monitorSize.width, height: monitorSize.height },
+        scaleFactor,
+        logical: { width: widthLogical, height: heightLogical },
+        position: { x: Math.round(posXLogical), y: Math.round(posYLogical) },
+      });
+    }
+
+    // 6. 크기와 위치를 동시에 설정
+    await Promise.all([
+      appWindow.setSize(new LogicalSize(width, height)),
+      appWindow.setPosition(
+        new LogicalPosition(Math.round(posXLogical), Math.round(posYLogical))
+      ),
+    ]);
+
+    // localStorage에 모드 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('viewMode', 'mini');
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[hoego] setMiniMode failed', error);
+    }
+  }
+};
+
+/**
+ * Mini 모드 윈도우 위치 저장
+ */
+export const saveMiniModePosition = async () => {
+  try {
+    const position = await appWindow.outerPosition();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'miniModePosition',
+        JSON.stringify({ x: position.x, y: position.y })
+      );
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[hoego] saveMiniModePosition failed', error);
+    }
+  }
+};
+
+/**
+ * Expanded 모드로 전환 (1200x800px, 화면 중앙)
+ * toggle_overlay 함수의 로직을 참고하여 정확한 위치 계산
+ */
+export const setExpandedMode = async () => {
+  try {
+    const { width, height } = VIEW_MODE_CONFIG.expanded;
+
+    if (import.meta.env.DEV) {
+      console.log('[hoego] Setting expanded mode:', { width, height });
+    }
+
+    // 1. 현재 모니터 정보 먼저 가져오기
+    const monitor = await currentMonitor();
+    if (!monitor) {
+      if (import.meta.env.DEV) {
+        console.error('[hoego] No monitor found');
+      }
+      return;
+    }
+
+    // 2. 모니터 정보 추출
+    const monitorPos = monitor.position;
+    const monitorSize = monitor.size;
+    const scaleFactor = monitor.scaleFactor;
+
+    // 3. 논리 좌표계로 변환 (Rust 로직과 동일)
+    const originXLogical = monitorPos.x / scaleFactor;
+    const originYLogical = monitorPos.y / scaleFactor;
+    const widthLogical = monitorSize.width / scaleFactor;
+    const heightLogical = monitorSize.height / scaleFactor;
+
+    // 4. 중앙 좌표 계산
+    const centerXLogical = originXLogical + widthLogical / 2.0;
+    const centerYLogical = originYLogical + heightLogical / 2.0;
+
+    const posXLogical = centerXLogical - width / 2.0;
+    const posYLogical = centerYLogical - height / 2.0;
+
+    if (import.meta.env.DEV) {
+      console.log('[hoego] Expanded mode position calculation:', {
+        monitor: { width: monitorSize.width, height: monitorSize.height },
+        scaleFactor,
+        logical: { width: widthLogical, height: heightLogical },
+        position: { x: Math.round(posXLogical), y: Math.round(posYLogical) },
+      });
+    }
+
+    // 5. 크기와 위치를 동시에 설정
+    await Promise.all([
+      appWindow.setSize(new LogicalSize(width, height)),
+      appWindow.setPosition(
+        new LogicalPosition(Math.round(posXLogical), Math.round(posYLogical))
+      ),
+    ]);
+
+    // localStorage에 모드 저장
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('viewMode', 'expanded');
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('[hoego] setExpandedMode failed', error);
+    }
+  }
+};
+
+/**
+ * 저장된 ViewMode 가져오기
+ */
+export const getSavedViewMode = (): 'mini' | 'expanded' => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('viewMode');
+    if (saved === 'mini' || saved === 'expanded') {
+      return saved;
+    }
+  }
+  return 'mini'; // 기본값
 };
 
 // ============================================================================

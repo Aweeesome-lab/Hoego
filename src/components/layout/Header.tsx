@@ -10,6 +10,7 @@ import {
   NotebookPen,
   PanelLeftOpen,
   PanelLeftClose,
+  Minimize2,
 } from 'lucide-react';
 import React from 'react';
 
@@ -170,6 +171,11 @@ interface HeaderProps {
    * 사이드바 토글 함수
    */
   toggleSidebar: () => void;
+
+  /**
+   * Mini 모드로 축소 함수 (선택사항)
+   */
+  switchToMini?: () => void;
 }
 
 export function Header({
@@ -201,6 +207,7 @@ export function Header({
   isDarkMode,
   isSidebarOpen,
   toggleSidebar,
+  switchToMini,
 }: HeaderProps) {
   return (
     <div
@@ -395,6 +402,23 @@ export function Header({
       >
         <RotateCcw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
       </button>
+      {switchToMini && (
+        <button
+          type="button"
+          onClick={() => {
+            void switchToMini();
+          }}
+          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+            isDarkMode
+              ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
+              : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title="Mini 모드로 축소"
+        >
+          <Minimize2 className="h-4 w-4" />
+        </button>
+      )}
       <button
         type="button"
         onClick={toggleTheme}
