@@ -165,6 +165,8 @@ impl TuiApp {
     }
 
     pub fn scroll_down(&mut self, lines: usize) {
+        // scroll_offset은 로그 인덱스이므로 단순히 증가
+        // 최대값 체크는 adjust_scroll_if_needed에서 처리
         self.scroll_offset = self.scroll_offset.saturating_add(lines);
         self.should_scroll_to_bottom = false; // 수동 스크롤 시 자동 스크롤 해제
     }
@@ -183,26 +185,18 @@ impl TuiApp {
         self.should_scroll_to_bottom = false;
     }
 
-    pub fn adjust_scroll_if_needed(&mut self, visible_lines: usize) {
+    pub fn adjust_scroll_if_needed(&mut self, _visible_lines: usize) {
         // 최하단으로 스크롤해야 하는 경우
         if self.should_scroll_to_bottom {
-            if self.logs.len() > visible_lines {
-                self.scroll_offset = self.logs.len() - visible_lines;
-            } else {
-                self.scroll_offset = 0;
-            }
+            // 마지막 로그로 이동 (UI에서 wrap 처리)
+            self.scroll_offset = self.logs.len().saturating_sub(1);
             self.should_scroll_to_bottom = false;
             return;
         }
 
-        // 일반적인 스크롤 범위 조정
-        if self.logs.len() > visible_lines {
-            let max_offset = self.logs.len() - visible_lines;
-            if self.scroll_offset > max_offset {
-                self.scroll_offset = max_offset;
-            }
-        } else {
-            self.scroll_offset = 0;
+        // scroll_offset이 로그 범위를 벗어나지 않도록 제한
+        if self.scroll_offset >= self.logs.len() {
+            self.scroll_offset = self.logs.len().saturating_sub(1);
         }
     }
 }
@@ -360,8 +354,8 @@ fn run_app<B: ratatui::backend::Backend>(
                     app.scroll_to_top();
                 }
                 (KeyCode::End, KeyModifiers::CONTROL) => {
-                    // 최하단으로 스크롤 (visible_lines는 나중에 UI에서 계산)
-                    app.scroll_to_bottom(100);
+                    // 최하단으로 스크롤 (현재 터미널 크기의 log_area_height 사용)
+                    app.scroll_to_bottom(log_area_height);
                 }
                 _ => {}
             },
@@ -379,7 +373,7 @@ fn run_app<B: ratatui::backend::Backend>(
     }
 }
 
-fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
+fn ui(f: &mut ratatui::Frame, app: &mut TuiApp) {
     // 입력 텍스트 길이에 따라 필요한 줄 수 계산 (unicode width 고려)
     // 프롬프트(4칸) + 입력 영역을 고려
     let available_width = f.area().width.saturating_sub(8) as usize; // 프롬프트(4) + borders(4)
@@ -401,10 +395,67 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
 
     // 상단: 로그 영역
     // 스크롤 오프셋 적용
-    let log_area_height = chunks[0].height.saturating_sub(2) as usize; // title과 border 제외
+    // Block with Borders::NONE but with title + title_bottom
+    // ratatui renders: title (1 line) + content + title_bottom (1 line)
+    let log_area_height = chunks[0].height.saturating_sub(2) as usize;
     let total_logs = app.logs.len();
+
+    // 텍스트가 wrap될 수 있으므로 실제 렌더링되는 줄 수 계산
+    let content_width = chunks[0].width.saturating_sub(4) as usize; // 좌우 여백 제외
+
+    // scroll_offset부터 화면에 채울 수 있는 만큼의 로그 가져오기
     let visible_start = app.scroll_offset.min(total_logs.saturating_sub(1));
-    let visible_end = (visible_start + log_area_height).min(total_logs);
+
+    // 화면에 표시할 로그 범위 계산 (wrap 고려)
+    let mut accumulated_lines = 0;
+    let mut visible_end = visible_start;
+
+    for idx in visible_start..total_logs {
+        let log_line = &app.logs[idx];
+
+        // 이 줄이 차지하는 화면 줄 수 계산
+        let visual_width = log_line.width() + 2;
+        let lines_taken = if content_width > 0 {
+            ((visual_width as f32) / (content_width as f32)).ceil() as usize
+        } else {
+            1
+        };
+        let lines_taken = lines_taken.max(1);
+
+        // 화면에 들어갈 수 있으면 추가
+        if accumulated_lines + lines_taken <= log_area_height {
+            accumulated_lines += lines_taken;
+            visible_end = idx + 1;
+        } else {
+            break;
+        }
+    }
+
+    // 만약 마지막까지 도달했는데 화면이 남으면, 위로 올려서 채우기
+    if visible_end >= total_logs && accumulated_lines < log_area_height {
+        let mut extra_lines_needed = log_area_height - accumulated_lines;
+        let mut new_start = visible_start;
+
+        while new_start > 0 && extra_lines_needed > 0 {
+            new_start -= 1;
+            let log_line = &app.logs[new_start];
+            let visual_width = log_line.width() + 2;
+            let lines_taken = if content_width > 0 {
+                ((visual_width as f32) / (content_width as f32)).ceil() as usize
+            } else {
+                1
+            };
+            let lines_taken = lines_taken.max(1);
+
+            if lines_taken <= extra_lines_needed {
+                extra_lines_needed -= lines_taken;
+            } else {
+                break;
+            }
+        }
+
+        app.scroll_offset = new_start;
+    }
 
     let log_lines: Vec<Line> = app
         .logs
@@ -420,8 +471,9 @@ fn ui(f: &mut ratatui::Frame, app: &TuiApp) {
     let scroll_indicator = if total_logs > log_area_height {
         let can_scroll_up = visible_start > 0;
         let can_scroll_down = visible_end < total_logs;
-        let percentage = if total_logs > 0 {
-            (visible_start * 100) / total_logs.saturating_sub(log_area_height)
+        let max_offset = total_logs.saturating_sub(log_area_height);
+        let percentage = if max_offset > 0 {
+            (visible_start * 100) / max_offset
         } else {
             0
         };
