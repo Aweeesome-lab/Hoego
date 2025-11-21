@@ -83,9 +83,7 @@ export function MarkdownPreview({
   return (
     <div
       ref={previewRef}
-      className={`w-full h-full overflow-y-auto scrollbar-auto ${
-        isDarkMode ? 'bg-slate-900' : 'bg-white'
-      } ${className || 'p-4'}`}
+      className={`w-full h-full overflow-y-auto scrollbar-auto ${className || 'p-4'}`}
     >
       <MarkdownRenderer
         content={content}

@@ -21,7 +21,7 @@ export const Response = React.memo(function Response({
       )}
       {...props}
     >
-      <div className="text-[13px] leading-5 text-inherit">{children}</div>
+      {children}
     </div>
   );
 });

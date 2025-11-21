@@ -13,7 +13,7 @@ export function ParagraphRenderer({
   ...props
 }: TextRendererProps & React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p {...props} className="mb-3 text-[13px] leading-relaxed break-words">
+    <p {...props} className="mb-4 text-sm leading-[1.75] break-words">
       {children}
     </p>
   );

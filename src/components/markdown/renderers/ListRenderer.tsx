@@ -21,8 +21,8 @@ export function UnorderedListRenderer({
       {...props}
       className={
         isTaskList
-          ? 'mb-2 ml-0 list-none text-[13px] leading-relaxed break-words space-y-1'
-          : 'mb-2 ml-5 list-disc text-[13px] leading-relaxed break-words marker:text-slate-400 space-y-1'
+          ? 'mb-3 ml-0 list-none text-sm leading-[1.75] break-words space-y-1.5'
+          : 'mb-3 ml-5 list-disc text-sm leading-[1.75] break-words marker:text-slate-400 space-y-1.5'
       }
       style={{ marginTop: 0, paddingLeft: isTaskList ? 0 : undefined }}
     >
@@ -42,7 +42,7 @@ export function OrderedListRenderer({
   return (
     <ol
       {...props}
-      className="mb-2 ml-5 list-decimal text-[13px] leading-relaxed break-words marker:text-slate-400 space-y-1"
+      className="mb-3 ml-5 list-decimal text-sm leading-[1.75] break-words marker:text-slate-400 space-y-1.5"
       style={{ marginTop: 0 }}
     >
       {children}
@@ -63,7 +63,7 @@ export function ListItemRenderer({
   return (
     <li
       {...props}
-      className="leading-relaxed text-[13px] break-words"
+      className="leading-[1.75] text-sm break-words"
       style={{ marginTop: '2px', marginBottom: '2px' }}
     >
       {children}

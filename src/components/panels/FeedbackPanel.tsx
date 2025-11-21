@@ -5,9 +5,8 @@ import type { AiSummaryEntry } from '@/lib/tauri';
 import type { PipelineStage } from '@/store';
 
 import { ModelSelector } from '@/components/ai/ModelSelector';
-import { Response } from '@/components/ai/response';
 import { ThinkingIndicator } from '@/components/ai/thinking';
-import { MarkdownRenderer } from '@/components/markdown';
+import { MarkdownPreview } from '@/components/markdown';
 import { Button } from '@/components/ui';
 import { useAppStore } from '@/store';
 
@@ -70,7 +69,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
     <section
       className={`flex flex-1 flex-col overflow-hidden border-r ${
         isDarkMode
-          ? 'bg-[#111625] text-slate-100 border-white/10'
+          ? 'bg-[#0f141f] text-slate-100 border-white/10'
           : 'bg-white text-slate-900 border-slate-200/50'
       }`}
     >
@@ -143,51 +142,46 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
           )}
         </div>
       </div>
-      <div
-        className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 scrollbar-auto"
-        style={{ paddingBottom: '120px' }}
-      >
-        <div className="space-y-4 max-w-full">
-          {isPipelineRunning ? (
-            <Response isDarkMode={isDarkMode}>
-              {streamingAiText ? (
-                <MarkdownRenderer
-                  content={streamingAiText}
-                  isDarkMode={isDarkMode}
-                />
-              ) : (
-                <ThinkingIndicator isDarkMode={isDarkMode} />
-              )}
-            </Response>
-          ) : summariesError ? (
-            <Response isDarkMode={isDarkMode} className="border-red-500/30">
-              <p className="text-sm font-semibold text-red-400">
-                AI 피드백을 불러오지 못했어요.
-              </p>
-              <p className="text-xs text-red-300">{summariesError}</p>
-            </Response>
-          ) : aiSummaries.length === 0 ? (
-            <Response isDarkMode={isDarkMode}>
-              <p
-                className={`text-sm ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-500'
-                }`}
-              >
-                오늘 작성된 AI 피드백이 없습니다. &ldquo;AI 피드백&rdquo; 버튼을
-                눌러 요약을 생성해보세요.
-              </p>
-            </Response>
+      <div className="flex-1 overflow-hidden">
+        {isPipelineRunning ? (
+          streamingAiText ? (
+            <MarkdownPreview
+              content={streamingAiText}
+              isDarkMode={isDarkMode}
+              className="px-10 py-6"
+            />
           ) : (
-            <Response isDarkMode={isDarkMode}>
-              <MarkdownRenderer
-                content={
-                  selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
-                }
-                isDarkMode={isDarkMode}
-              />
-            </Response>
-          )}
-        </div>
+            <div className="px-10 py-6">
+              <ThinkingIndicator isDarkMode={isDarkMode} />
+            </div>
+          )
+        ) : summariesError ? (
+          <div className="px-10 py-6">
+            <p className="text-sm font-semibold text-red-400">
+              AI 피드백을 불러오지 못했어요.
+            </p>
+            <p className="text-xs text-red-300 mt-1">{summariesError}</p>
+          </div>
+        ) : aiSummaries.length === 0 ? (
+          <div className="px-10 py-6">
+            <p
+              className={`text-sm ${
+                isDarkMode ? 'text-slate-200' : 'text-slate-500'
+              }`}
+            >
+              오늘 작성된 AI 피드백이 없습니다. &ldquo;AI 피드백&rdquo; 버튼을
+              눌러 요약을 생성해보세요.
+            </p>
+          </div>
+        ) : (
+          <MarkdownPreview
+            content={
+              selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
+            }
+            isDarkMode={isDarkMode}
+            className="px-10 py-6"
+          />
+        )}
       </div>
     </section>
   );
