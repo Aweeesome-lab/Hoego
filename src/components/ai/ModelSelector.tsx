@@ -150,10 +150,10 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
           </SelectGroup>
         )}
 
-        {localModels.length > 0 &&
+        {/* TODO: Beta 테스트 후 클라우드 모델 활성화 */}
+        {/* {localModels.length > 0 &&
           Object.keys(cloudModelsByProvider).length > 0 && <SelectSeparator />}
 
-        {/* Cloud Models Section */}
         {Object.entries(cloudModelsByProvider).map(([provider, models]) => (
           <SelectGroup key={provider}>
             <SelectLabel
@@ -185,7 +185,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
               </SelectItem>
             ))}
           </SelectGroup>
-        ))}
+        ))} */}
 
         {/* Empty State */}
         {modelOptions.length === 0 && !loading && (

@@ -25,7 +25,8 @@ interface SettingsSidebarProps {
 
 export const sidebarItems: SidebarItem[] = [
   { id: 'models', label: '로컬 모델', icon: Brain },
-  { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
+  // TODO: Beta 테스트 후 클라우드 LLM 활성화
+  // { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
   { id: 'general', label: '일반', icon: Settings },
   { id: 'about', label: '정보', icon: Info },
 ];

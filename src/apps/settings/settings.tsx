@@ -49,9 +49,10 @@ function LLMSettingsApp() {
           <div className="px-6 py-4">
             {activeTab === 'models' && <LLMSettings isDarkMode={isDarkMode} />}
 
-            {activeTab === 'cloud' && (
+            {/* TODO: Beta 테스트 후 클라우드 LLM 활성화 */}
+            {/* {activeTab === 'cloud' && (
               <CloudLLMSettings isDarkMode={isDarkMode} />
-            )}
+            )} */}
 
             {activeTab === 'general' && (
               <GeneralSettings isDarkMode={isDarkMode} />
