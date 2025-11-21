@@ -1,73 +1,16 @@
-use serde::{Deserialize, Serialize};
+// services/weekly_service.rs
+// Weekly data processing and aggregation service
+
 use std::collections::HashMap;
 use std::fs;
-use tauri::State;
-use time::{Duration, OffsetDateTime, Weekday, Date, Time, UtcOffset};
-use time::macros::format_description;
+use time::{Duration, OffsetDateTime, Weekday};
 
-use crate::history::HistoryState;
+use crate::models::dump::HistoryState;
+use crate::models::weekly::{AggregatedStats, DailyEntry, DailyTrend, ProductivityStats};
 use crate::utils::*;
 
-// ============================================================================
-// Data Structures
-// ============================================================================
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct WeekData {
-    pub start_date: String,
-    pub end_date: String,
-    pub daily_entries: Vec<DailyEntry>,
-    pub aggregated_stats: AggregatedStats,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct DailyEntry {
-    pub date: String,
-    pub dump_content: String,
-    pub ai_feedback: Option<String>,
-    pub retrospect_content: Option<String>,
-    pub categorized_time: HashMap<String, i64>, // category -> seconds
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AggregatedStats {
-    pub total_categories: HashMap<String, i64>, // category -> total seconds
-    pub productivity_vs_waste: ProductivityStats,
-    pub daily_trend: Vec<DailyTrend>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct ProductivityStats {
-    pub productive_seconds: i64,
-    pub waste_seconds: i64,
-    pub productive_percentage: f64,
-    pub waste_percentage: f64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct DailyTrend {
-    pub date: String,
-    pub categories: HashMap<String, i64>, // category -> seconds for this day
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GetWeekDataPayload {
-    pub start_date: String, // ISO 8601 format: YYYY-MM-DD
-    pub week_start_day: String, // "sunday" or "monday"
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
 /// Parse week start day from string
-fn parse_week_start_day(day: &str) -> Result<Weekday, String> {
+pub fn parse_week_start_day(day: &str) -> Result<Weekday, String> {
     match day.to_lowercase().as_str() {
         "sunday" => Ok(Weekday::Sunday),
         "monday" => Ok(Weekday::Monday),
@@ -76,7 +19,7 @@ fn parse_week_start_day(day: &str) -> Result<Weekday, String> {
 }
 
 /// Get the start of the week for a given date
-fn get_week_start(date: &OffsetDateTime, week_start_day: Weekday) -> OffsetDateTime {
+pub fn get_week_start(date: &OffsetDateTime, week_start_day: Weekday) -> OffsetDateTime {
     let current_weekday = date.weekday();
     let days_diff = (current_weekday.number_days_from_monday() as i64
         - week_start_day.number_days_from_monday() as i64 + 7)
@@ -86,14 +29,14 @@ fn get_week_start(date: &OffsetDateTime, week_start_day: Weekday) -> OffsetDateT
 }
 
 /// Get all 7 dates for a week
-fn get_week_dates(start_date: &OffsetDateTime) -> Vec<OffsetDateTime> {
+pub fn get_week_dates(start_date: &OffsetDateTime) -> Vec<OffsetDateTime> {
     (0..7)
         .map(|i| *start_date + Duration::days(i))
         .collect()
 }
 
 /// Load daily dump file
-fn load_daily_dump(history_state: &HistoryState, date: &OffsetDateTime) -> Result<String, String> {
+pub fn load_daily_dump(history_state: &HistoryState, date: &OffsetDateTime) -> Result<String, String> {
     let date_key = format_date_key(date)?;
     let filename = format!("{}.md", date_key);
     let file_path = history_state.directory.join(filename);
@@ -107,7 +50,7 @@ fn load_daily_dump(history_state: &HistoryState, date: &OffsetDateTime) -> Resul
 }
 
 /// Load AI feedback files for a specific date
-fn load_ai_feedback(date: &OffsetDateTime) -> Result<Option<String>, String> {
+pub fn load_ai_feedback(date: &OffsetDateTime) -> Result<Option<String>, String> {
     let summaries_dir = summaries_directory_path()?;
 
     if !summaries_dir.exists() {
@@ -302,7 +245,7 @@ fn extract_category(text: &str) -> String {
 
 /// Parse categorized time from dump content
 /// Looks for patterns like "- task (HH:MM:SS)" and calculates time spent
-fn parse_categorized_time(dump_content: &str) -> HashMap<String, i64> {
+pub fn parse_categorized_time(dump_content: &str) -> HashMap<String, i64> {
     let mut categories: HashMap<String, i64> = HashMap::new();
     let mut entries: Vec<TimeEntry> = Vec::new();
 
@@ -358,7 +301,7 @@ fn parse_categorized_time(dump_content: &str) -> HashMap<String, i64> {
 }
 
 /// Classify categories into productive vs waste
-fn classify_productivity(categories: &HashMap<String, i64>) -> ProductivityStats {
+pub fn classify_productivity(categories: &HashMap<String, i64>) -> ProductivityStats {
     // Productive categories
     let productive_categories = ["개발", "회의", "기획", "학습", "운동"];
 
@@ -397,39 +340,17 @@ fn classify_productivity(categories: &HashMap<String, i64>) -> ProductivityStats
     }
 }
 
-// ============================================================================
-// Tauri Commands
-// ============================================================================
-
-/// Get week data including all daily entries and aggregated statistics
-#[tauri::command]
-pub async fn get_week_data(
-    history_state: State<'_, HistoryState>,
-    payload: GetWeekDataPayload,
-) -> Result<WeekData, String> {
-    // Parse the start date from YYYY-MM-DD format
-    let date_format = format_description!("[year]-[month]-[day]");
-    let date = Date::parse(&payload.start_date, &date_format)
-        .map_err(|e| format!("Invalid start date format '{}': {}", payload.start_date, e))?;
-
-    // Create OffsetDateTime at midnight local time
-    let time = Time::from_hms(0, 0, 0).unwrap();
-    let start_date = date.with_time(time)
-        .assume_offset(UtcOffset::current_local_offset().unwrap_or(UtcOffset::UTC));
-
-    let week_start_day = parse_week_start_day(&payload.week_start_day)?;
-
-    // Get the actual week start
-    let week_start = get_week_start(&start_date, week_start_day);
-    let week_dates = get_week_dates(&week_start);
-
-    // Load data for each day
+/// Build week data from daily entries
+pub fn build_week_data(
+    history_state: &HistoryState,
+    week_dates: &[OffsetDateTime],
+) -> Result<(Vec<DailyEntry>, AggregatedStats), String> {
     let mut daily_entries = Vec::new();
     let mut total_categories: HashMap<String, i64> = HashMap::new();
     let mut daily_trends = Vec::new();
 
-    for date in &week_dates {
-        let dump_content = load_daily_dump(history_state.inner(), date)?;
+    for date in week_dates {
+        let dump_content = load_daily_dump(history_state, date)?;
         let ai_feedback = load_ai_feedback(date)?;
         let categorized_time = parse_categorized_time(&dump_content);
 
@@ -460,18 +381,11 @@ pub async fn get_week_data(
     // Calculate productivity stats
     let productivity_vs_waste = classify_productivity(&total_categories);
 
-    let start_date_str = format_date_key(&week_start)?;
-    let end_date = week_start + Duration::days(6);
-    let end_date_str = format_date_key(&end_date)?;
+    let aggregated_stats = AggregatedStats {
+        total_categories,
+        productivity_vs_waste,
+        daily_trend: daily_trends,
+    };
 
-    Ok(WeekData {
-        start_date: start_date_str,
-        end_date: end_date_str,
-        daily_entries,
-        aggregated_stats: AggregatedStats {
-            total_categories,
-            productivity_vs_waste,
-            daily_trend: daily_trends,
-        },
-    })
+    Ok((daily_entries, aggregated_stats))
 }

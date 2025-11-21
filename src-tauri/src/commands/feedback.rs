@@ -1,102 +1,28 @@
-use serde::Serialize;
+// commands/feedback.rs
+// Feedback stage: AI feedback generation and management commands
+// Part of the 3-stage workflow: Dump → Feedback → Retrospect
+
 use std::fs;
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 use time::format_description::well_known::Rfc3339;
-use time::macros::format_description;
 use time::OffsetDateTime;
 
-use crate::history::{HistoryState, ensure_daily_file};
+use crate::models::dump::HistoryState;
+use crate::models::feedback::{AiSummaryFile, StreamCancellationState};
+use crate::models::settings::ModelSelectionState;
+use crate::services::feedback_service::{ensure_summaries_dir, write_ai_summary_file};
+use crate::services::history_service::ensure_daily_file;
 use crate::services::llm;
 use crate::utils::pii_masker;
 use crate::utils::*;
 
-/// AI 피드백 스트리밍 취소 상태 관리
-pub struct StreamCancellationState {
-    pub is_cancelled: Arc<AtomicBool>,
-}
-
-impl Default for StreamCancellationState {
-    fn default() -> Self {
-        Self {
-            is_cancelled: Arc::new(AtomicBool::new(false)),
-        }
-    }
-}
-
-impl StreamCancellationState {
-    pub fn reset(&self) {
-        self.is_cancelled.store(false, Ordering::SeqCst);
-    }
-
-    pub fn cancel(&self) {
-        self.is_cancelled.store(true, Ordering::SeqCst);
-    }
-
-    pub fn is_cancelled(&self) -> bool {
-        self.is_cancelled.load(Ordering::SeqCst)
-    }
-}
-
-#[derive(Debug, Serialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AiSummaryFile {
-    pub filename: String,
-    pub path: String,
-    pub created_at: Option<String>,
-    pub content: String,
-    pub pii_masked: bool, // 개인정보 보호 여부
-}
-
-/// AI 요약 디렉토리를 생성합니다
-pub fn ensure_summaries_dir(path: &PathBuf) -> Result<(), String> {
-    fs::create_dir_all(path)
-        .map_err(|error| format!("AI 요약 디렉토리 생성 실패: {error}, 경로: {:?}", path))
-}
-
-/// AI 요약 파일을 작성합니다
-fn write_ai_summary_file(date: &OffsetDateTime, content: &str, pii_masked: bool) -> Result<AiSummaryFile, String> {
-    let dir = summaries_directory_path()?;
-    ensure_summaries_dir(&dir)?;
-
-    let date_key = date
-        .format(&format_description!(
-            "[year][month][day]-[hour][minute][second]"
-        ))
-        .map_err(|error| error.to_string())?;
-
-    let mut filename = format!("ai-feedback-{date_key}.md");
-    let mut path = dir.join(&filename);
-    let mut suffix = 1;
-
-    while path.exists() {
-        filename = format!("ai-feedback-{date_key}-{suffix}.md");
-        path = dir.join(&filename);
-        suffix += 1;
-    }
-
-    fs::write(&path, content.as_bytes()).map_err(|error| format!("AI 요약 저장 실패: {error}"))?;
-
-    let created_at = date.format(&Rfc3339).ok();
-
-    Ok(AiSummaryFile {
-        filename,
-        path: path.to_string_lossy().into_owned(),
-        created_at,
-        content: content.to_string(),
-        pii_masked,
-    })
-}
-
-// Tauri Commands
 
 #[tauri::command]
 pub async fn generate_ai_feedback(
     history: State<'_, HistoryState>,
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
-    model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
+    model_selection_state: State<'_, ModelSelectionState>,
 ) -> Result<AiSummaryFile, String> {
     let now = current_local_time()?;
     let (today_path, _) = ensure_daily_file(history.inner(), &now)?;
@@ -176,7 +102,7 @@ pub async fn generate_ai_feedback_stream(
     history: State<'_, HistoryState>,
     llm_state: tauri::State<'_, Arc<llm::LLMManager>>,
     cloud_llm_state: State<'_, llm::CloudLLMState>,
-    model_selection_state: State<'_, crate::model_selection::ModelSelectionState>,
+    model_selection_state: State<'_, ModelSelectionState>,
     cancellation_state: State<'_, StreamCancellationState>,
     target_date: Option<String>, // Optional target date in YYYY-MM-DD format
 ) -> Result<(), String> {

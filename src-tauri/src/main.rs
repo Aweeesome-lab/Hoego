@@ -1,35 +1,25 @@
-mod ai_summary;
-mod app_settings;
-mod history;
-mod model_selection;
-mod weekly_data;
-
 // Re-export library modules for legacy code in this binary
 pub use hoego::utils;
 pub use hoego::services;
 pub use hoego::platform;
+pub use hoego::models;
+pub use hoego::commands;
 
 // Use new module structure
 use platform::shortcuts::{register_shortcuts};
 use platform::tray::{build_tray, handle_tray_event};
 use platform::window_manager;
 use services::llm;
+use services::storage_service;
+use services::history_service;
 use utils::link_preview;
+use models::settings::{AppSettingsState, ModelSelectionState};
+use models::dump::HistoryState;
 
 use std::sync::Arc;
 use tauri::{Manager, WindowEvent};
 
-use ai_summary::{
-    cancel_ai_feedback_stream, generate_ai_feedback, generate_ai_feedback_stream,
-    list_ai_summaries, StreamCancellationState,
-};
-use history::{
-    append_history_entry, get_history_markdown, get_retrospect_markdown, get_today_markdown,
-    list_history, open_history_folder, save_history_markdown, save_retrospect_markdown,
-    save_today_markdown,
-    HistoryState,
-};
-use weekly_data::get_week_data;
+use models::feedback::StreamCancellationState;
 use window_manager::{
     ensure_accessibility_permission, set_window_corner_radius,
     set_window_visible_on_all_workspaces,
@@ -262,16 +252,16 @@ fn main() {
     let cloud_llm_state = llm::CloudLLMState::new();
 
     // Initialize Model Selection State
-    let model_selection_state = model_selection::ModelSelectionState::new();
+    let model_selection_state = ModelSelectionState::new();
 
     // Initialize Stream Cancellation State
     let stream_cancellation_state = StreamCancellationState::default();
 
     // Initialize App Settings State
-    let app_settings_state = app_settings::AppSettingsState::new();
+    let app_settings_state = AppSettingsState::new();
 
-    // 설정 로드 시도
-    if let Ok(loaded_settings) = app_settings::load_settings() {
+    // Load settings
+    if let Ok(loaded_settings) = storage_service::load_settings() {
         if let Ok(mut settings) = app_settings_state.settings.lock() {
             *settings = loaded_settings;
             tracing::info!("앱 설정 로드 완료");
@@ -288,27 +278,38 @@ fn main() {
         .system_tray(build_tray())
         .on_system_tray_event(handle_tray_event)
         .invoke_handler(tauri::generate_handler![
-            append_history_entry,
-            save_today_markdown,
-            save_history_markdown,
-            get_today_markdown,
-            get_history_markdown,
-            get_retrospect_markdown,
-            save_retrospect_markdown,
-            list_history,
-            generate_ai_feedback,
-            generate_ai_feedback_stream,
-            cancel_ai_feedback_stream,
-            list_ai_summaries,
-            open_history_folder,
+            // ========================================
+            // STAGE 1: Dump (일지 작성 및 조회)
+            // ========================================
+            commands::dump::append_history_entry,
+            commands::dump::get_today_markdown,
+            commands::dump::save_today_markdown,
+            commands::dump::get_history_markdown,
+            commands::dump::save_history_markdown,
+            // ========================================
+            // STAGE 2: Feedback (AI 피드백)
+            // ========================================
+            commands::feedback::generate_ai_feedback,
+            commands::feedback::generate_ai_feedback_stream,
+            commands::feedback::cancel_ai_feedback_stream,
+            commands::feedback::list_ai_summaries,
+            // ========================================
+            // STAGE 3: Retrospect (회고)
+            // ========================================
+            commands::retrospect::get_retrospect_markdown,
+            commands::retrospect::save_retrospect_markdown,
+            // ========================================
+            // History (히스토리 탐색 - 사이드바용)
+            // ========================================
+            commands::history::list_history,
+            commands::history::open_history_folder,
+            commands::history::get_week_data,
             window_manager::hide_main_window,
             window_manager::toggle_overlay_window,
             window_manager::set_window_position,
             window_manager::get_window_position,
             window_manager::open_llm_settings,
             window_manager::open_settings_window_command,
-            // Weekly dashboard commands
-            get_week_data,
             // LLM commands
             llm::summarize::summarize_note,
             llm::summarize::batch_summarize,
@@ -341,21 +342,21 @@ fn main() {
             llm::commands::get_provider_models,
             llm::commands::initialize_cloud_provider,
             // Model selection commands
-            model_selection::set_selected_model,
-            model_selection::get_selected_model,
+            commands::settings::set_selected_model,
+            commands::settings::get_selected_model,
             // App settings commands
-            app_settings::get_app_settings,
-            app_settings::update_app_settings,
-            app_settings::update_quick_note_shortcut,
-            app_settings::update_documents_path,
-            app_settings::reset_app_settings,
+            commands::settings::get_app_settings,
+            commands::settings::update_app_settings,
+            commands::settings::update_quick_note_shortcut,
+            commands::settings::update_documents_path,
+            commands::settings::reset_app_settings,
             // Shortcut test command
             platform::shortcuts::test_shortcut_available
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();
             tracing::info!("앱 시작 - 히스토리 디렉토리: {:?}", state.directory);
-            history::ensure_history_dir(&state.directory).map_err(|error| {
+            history_service::ensure_history_dir(&state.directory).map_err(|error| {
                 format!(
                     "히스토리 디렉토리 생성 실패: {error}, 경로: {:?}",
                     state.directory
@@ -368,7 +369,7 @@ fn main() {
 
             ensure_accessibility_permission();
             register_shortcuts(&app.handle())?;
-            history::emit_history_update(&app.handle())?;
+            history_service::emit_history_update(&app.handle(), &state)?;
 
             // 백그라운드에서 LLM 서버 예열: 기본 모델이 설정되어 있으면 자동 로드
             let llm_state = app.state::<Arc<llm::LLMManager>>().inner().clone();

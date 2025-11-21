@@ -3,7 +3,7 @@ use tauri::{
     SystemTrayMenuItem,
 };
 
-use crate::history::HistoryState;
+use crate::models::dump::HistoryState;
 use crate::platform::window_manager::{open_settings_window, toggle_overlay};
 
 /// 시스템 트레이를 생성합니다

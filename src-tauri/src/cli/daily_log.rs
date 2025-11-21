@@ -3,7 +3,8 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use time::OffsetDateTime;
 
-use crate::history::{ensure_daily_file, HistoryState};
+use crate::models::dump::HistoryState;
+use crate::services::history_service::ensure_daily_file;
 use crate::utils::{current_local_time, format_date_label, format_time_with_seconds};
 
 // ANSI 색상 코드

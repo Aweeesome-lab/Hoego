@@ -1,4 +1,4 @@
-use hoego::llm::{self};
+use hoego::services::llm::{self};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("[smoke] starting LLM smoke test");

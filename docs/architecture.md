@@ -137,53 +137,55 @@ src/
 
 ```
 src-tauri/src/
-├── commands/                       # Tauri Commands (IPC)
+├── commands/                       # Tauri Commands (3단계 워크플로우)
 │   ├── mod.rs
-│   ├── dump.rs                     # 일지 관련
-│   ├── feedback.rs                 # 피드백 관련
-│   ├── retrospect.rs               # 회고 관련
-│   ├── history.rs
-│   ├── settings.rs
-│   ├── ai.rs
-│   ├── llm.rs
-│   └── window.rs
+│   ├── dump.rs                     # STAGE 1: 일지 작성/조회 ✅
+│   ├── feedback.rs                 # STAGE 2: AI 피드백 ✅
+│   ├── retrospect.rs               # STAGE 3: 회고 ✅
+│   ├── history.rs                  # 히스토리 탐색 (사이드바용) ✅
+│   ├── settings.rs                 # 설정 관련 commands ✅
+│   ├── llm.rs                      # LLM commands (placeholder)
+│   └── window.rs                   # 윈도우 commands (placeholder)
 ├── services/                       # 비즈니스 로직
 │   ├── mod.rs
-│   ├── dump_service.rs
-│   ├── feedback_service.rs
-│   ├── retrospect_service.rs
-│   ├── history_service.rs
-│   ├── ai_service.rs
-│   ├── llm/
-│   │   ├── mod.rs
-│   │   ├── engine.rs
-│   │   ├── summarize.rs
-│   │   ├── download.rs
-│   │   ├── providers/
-│   │   │   ├── mod.rs
-│   │   │   └── openai.rs
-│   │   ├── security.rs
-│   │   └── types.rs
-│   └── storage_service.rs
+│   ├── ai_service.rs               # AI 서비스 (placeholder)
+│   ├── feedback_service.rs         # 피드백 비즈니스 로직 ✅
+│   ├── history_service.rs          # 히스토리 비즈니스 로직 ✅
+│   ├── storage_service.rs          # 파일 저장/로드 ✅
+│   ├── weekly_service.rs           # 주간 데이터 집계 ✅
+│   └── llm/                        # LLM 서비스 ✅
+│       ├── mod.rs
+│       ├── commands.rs             # Cloud LLM commands
+│       ├── engine.rs               # LLM 엔진 (llama.cpp)
+│       ├── models.rs               # 모델 정보
+│       ├── download.rs             # 모델 다운로드
+│       ├── summarize.rs            # 요약 기능
+│       ├── security.rs             # 보안 검증
+│       ├── traits.rs               # LLM traits
+│       ├── types.rs                # LLM 타입
+│       ├── prompts.rs              # 프롬프트 템플릿
+│       ├── prompt_config.rs        # 프롬프트 설정
+│       └── providers/
+│           ├── mod.rs
+│           └── openai.rs
 ├── models/                         # 데이터 모델
 │   ├── mod.rs
-│   ├── dump.rs
-│   ├── feedback.rs
-│   ├── retrospect.rs
-│   ├── settings.rs
-│   ├── paths.rs
-│   └── errors.rs
+│   ├── dump.rs                     # 일지/히스토리 데이터 모델 ✅
+│   ├── feedback.rs                 # 피드백 데이터 모델 ✅
+│   ├── weekly.rs                   # 주간 데이터 모델 ✅
+│   ├── settings.rs                 # 설정 데이터 모델 ✅
+│   ├── paths.rs                    # 경로 구조체 ✅
+│   └── errors.rs                   # 에러 타입 정의 ✅
 ├── utils/                          # 유틸리티
 │   ├── mod.rs
-│   ├── pii_masker.rs
-│   ├── logger.rs
-│   ├── datetime.rs
-│   └── link_preview.rs
+│   ├── pii_masker.rs               # PII 마스킹 ✅
+│   ├── datetime.rs                 # 날짜/시간 처리 ✅
+│   └── link_preview.rs             # 링크 프리뷰 ✅
 ├── platform/                       # 플랫폼 통합
 │   ├── mod.rs
-│   ├── tray.rs
-│   ├── window_manager.rs
-│   └── shortcuts.rs
+│   ├── tray.rs                     # 시스템 트레이 ✅
+│   ├── window_manager.rs           # 윈도우 관리 ✅
+│   └── shortcuts.rs                # 단축키 ✅
 ├── cli/                            # CLI 도구
 │   ├── mod.rs
 │   ├── tui.rs
@@ -193,6 +195,16 @@ src-tauri/src/
 ├── lib.rs
 └── main.rs
 ```
+
+**✅ = 실제 구현 완료**
+
+**주요 구조 결정 (3단계 워크플로우 기반):**
+1. **STAGE 1 - Dump**: dump.rs에서 일지 작성/조회 담당
+2. **STAGE 2 - Feedback**: feedback.rs에서 AI 피드백 생성/관리 담당
+3. **STAGE 3 - Retrospect**: retrospect.rs에서 회고 작성/조회 담당
+4. **History**: history.rs는 사이드바 히스토리 탐색 전용
+5. Weekly 데이터 집계를 별도 서비스/모델로 분리
+6. LLM 관련 기능을 services/llm 디렉토리로 통합
 
 ### 데이터 저장 구조
 
