@@ -1,295 +1,119 @@
-import { ChevronDown, Check } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Check, ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
-export interface SelectOption {
-  value: string;
-  label: React.ReactNode;
-  disabled?: boolean;
-}
+import { cn } from '@/lib/utils';
 
-export interface SelectProps
-  extends Omit<
-    React.SelectHTMLAttributes<HTMLSelectElement>,
-    'size' | 'onChange'
-  > {
-  /**
-   * 선택 옵션 목록
-   */
-  options: SelectOption[];
+const Select = SelectPrimitive.Root;
 
-  /**
-   * 선택된 값
-   */
-  value?: string;
+const SelectGroup = SelectPrimitive.Group;
 
-  /**
-   * 값 변경 핸들러
-   */
-  onValueChange?: (value: string) => void;
+const SelectValue = SelectPrimitive.Value;
 
-  /**
-   * 플레이스홀더 텍스트
-   */
-  placeholder?: string;
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      'flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300',
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+));
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
-  /**
-   * 크기
-   * @default "md"
-   */
-  size?: 'sm' | 'md' | 'lg';
-
-  /**
-   * 에러 상태
-   */
-  error?: boolean;
-
-  /**
-   * 전체 너비
-   */
-  fullWidth?: boolean;
-}
-
-const sizeClasses = {
-  sm: 'h-8 text-sm px-3',
-  md: 'h-10 text-base px-4',
-  lg: 'h-12 text-lg px-5',
-};
-
-const iconSizeClasses = {
-  sm: 'h-4 w-4',
-  md: 'h-5 w-5',
-  lg: 'h-6 w-6',
-};
-
-/**
- * 셀렉트 드롭다운 컴포넌트
- *
- * @example
- * ```tsx
- * <Select
- *   options={[
- *     { value: '1', label: 'Option 1' },
- *     { value: '2', label: 'Option 2' },
- *   ]}
- *   placeholder="선택하세요"
- * />
- * ```
- */
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  (
-    {
-      className = '',
-      options,
-      value,
-      onValueChange,
-      placeholder,
-      size = 'md',
-      error,
-      fullWidth,
-      disabled,
-      ...props
-    },
-    ref
-  ) => {
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onValueChange?.(e.target.value);
-    };
-
-    return (
-      <div className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`}>
-        <select
-          ref={ref}
-          value={value}
-          onChange={handleChange}
-          disabled={disabled}
-          className={`
-            ${sizeClasses[size]}
-            ${fullWidth ? 'w-full' : 'min-w-[200px]'}
-            appearance-none
-            rounded-lg
-            border-2
-            ${
-              error
-                ? 'border-red-500 focus:border-red-600 focus:ring-red-500'
-                : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500'
-            }
-            bg-white dark:bg-gray-800
-            text-gray-900 dark:text-gray-100
-            focus:outline-none focus:ring-2 focus:ring-offset-0
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-colors
-            pr-10
-            ${className}
-          `}
-          {...props}
-        >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
-          {options.map((option) => (
-            <option
-              key={option.value}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          className={`
-            ${iconSizeClasses[size]}
-            absolute right-3 top-1/2 -translate-y-1/2
-            text-gray-400 dark:text-gray-500
-            pointer-events-none
-          `}
-        />
-      </div>
-    );
-  }
-);
-
-Select.displayName = 'Select';
-
-/**
- * 커스텀 셀렉트 컴포넌트 (더 많은 커스터마이징 가능)
- */
-export interface CustomSelectProps extends Omit<SelectProps, 'options'> {
-  options: SelectOption[];
-  renderOption?: (option: SelectOption) => React.ReactNode;
-}
-
-export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
-  (
-    {
-      className = '',
-      options,
-      value,
-      onValueChange,
-      placeholder,
-      size = 'md',
-      error,
-      fullWidth,
-      disabled,
-      renderOption,
-    },
-    ref
-  ) => {
-    const [isOpen, setIsOpen] = React.useState(false);
-    const containerRef = React.useRef<HTMLDivElement>(null);
-
-    React.useImperativeHandle(
-      ref,
-      () => containerRef.current as HTMLDivElement
-    );
-
-    const selectedOption = options.find((opt) => opt.value === value);
-
-    React.useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(event.target as Node)
-        ) {
-          setIsOpen(false);
-        }
-      };
-
-      document.addEventListener('mousedown', handleClickOutside);
-      return () =>
-        document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleSelect = (optionValue: string) => {
-      onValueChange?.(optionValue);
-      setIsOpen(false);
-    };
-
-    return (
-      <div
-        ref={containerRef}
-        className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`}
-      >
-        <button
-          type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          disabled={disabled}
-          className={`
-            ${sizeClasses[size]}
-            ${fullWidth ? 'w-full' : 'min-w-[200px]'}
-            flex items-center justify-between
-            rounded-lg
-            border-2
-            ${
-              error
-                ? 'border-red-500 focus:border-red-600 focus:ring-red-500'
-                : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500'
-            }
-            bg-white dark:bg-gray-800
-            text-gray-900 dark:text-gray-100
-            focus:outline-none focus:ring-2 focus:ring-offset-0
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-colors
-            ${className}
-          `}
-        >
-          <span className={selectedOption ? '' : 'text-gray-400'}>
-            {selectedOption
-              ? renderOption
-                ? renderOption(selectedOption)
-                : selectedOption.label
-              : placeholder || '선택하세요'}
-          </span>
-          <ChevronDown
-            className={`
-              ${iconSizeClasses[size]}
-              text-gray-400 dark:text-gray-500
-              transition-transform
-              ${isOpen ? 'rotate-180' : ''}
-            `}
-          />
-        </button>
-
-        {isOpen && (
-          <div
-            className={`
-              absolute z-50 mt-2 w-full
-              bg-white dark:bg-gray-800
-              border-2 border-gray-300 dark:border-gray-600
-              rounded-lg shadow-lg
-              max-h-60 overflow-auto
-            `}
-          >
-            {options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => !option.disabled && handleSelect(option.value)}
-                disabled={option.disabled}
-                className={`
-                  w-full flex items-center justify-between
-                  px-4 py-2 text-left
-                  hover:bg-gray-100 dark:hover:bg-gray-700
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  transition-colors
-                  ${option.value === value ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
-                `}
-              >
-                <span>
-                  {renderOption ? renderOption(option) : option.label}
-                </span>
-                {option.value === value && (
-                  <Check className="h-4 w-4 text-blue-600" />
-                )}
-              </button>
-            ))}
-          </div>
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = 'popper', ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        'relative z-50 min-w-[8rem] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50',
+        position === 'popper' &&
+          'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectPrimitive.Viewport
+        className={cn(
+          'p-1',
+          position === 'popper' &&
+            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
         )}
-      </div>
-    );
-  }
-);
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+));
+SelectContent.displayName = SelectPrimitive.Content.displayName;
 
-CustomSelect.displayName = 'CustomSelect';
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
+    {...props}
+  />
+));
+SelectLabel.displayName = SelectPrimitive.Label.displayName;
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-slate-800 dark:focus:text-slate-50',
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+));
+SelectItem.displayName = SelectPrimitive.Item.displayName;
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn('-mx-1 my-1 h-px bg-slate-100 dark:bg-slate-800', className)}
+    {...props}
+  />
+));
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+};

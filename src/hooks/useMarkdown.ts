@@ -349,18 +349,53 @@ export function useMarkdown() {
     }
   }, [loadMarkdown, setIsSyncing]);
 
+  // Wrap setters to support SetStateAction
+  const wrappedSetMarkdownContent = useCallback(
+    (value: React.SetStateAction<string>) => {
+      const newValue =
+        typeof value === 'function' ? value(markdownContent) : value;
+      setMarkdownContent(newValue);
+    },
+    [markdownContent, setMarkdownContent]
+  );
+
+  const wrappedSetEditingContent = useCallback(
+    (value: React.SetStateAction<string>) => {
+      const newValue =
+        typeof value === 'function' ? value(editingContent) : value;
+      setEditingContent(newValue);
+    },
+    [editingContent, setEditingContent]
+  );
+
+  const wrappedSetIsEditing = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      const newValue = typeof value === 'function' ? value(isEditing) : value;
+      setIsEditing(newValue);
+    },
+    [isEditing, setIsEditing]
+  );
+
+  const wrappedSetIsSaving = useCallback(
+    (value: React.SetStateAction<boolean>) => {
+      const newValue = typeof value === 'function' ? value(isSaving) : value;
+      setIsSaving(newValue);
+    },
+    [isSaving, setIsSaving]
+  );
+
   return {
     markdownRef,
     markdownContent,
-    setMarkdownContent,
+    setMarkdownContent: wrappedSetMarkdownContent,
     lastMinute,
     setLastMinute,
     isEditing,
-    setIsEditing,
+    setIsEditing: wrappedSetIsEditing,
     editingContent,
-    setEditingContent,
+    setEditingContent: wrappedSetEditingContent,
     isSaving,
-    setIsSaving,
+    setIsSaving: wrappedSetIsSaving,
     isSyncing,
     editorRef,
     lastSavedRef,

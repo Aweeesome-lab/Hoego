@@ -94,8 +94,8 @@
 
   /* Hide scrollbar for IE, Edge and Firefox */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   /* Task list checkbox - override prose styles */
@@ -103,14 +103,14 @@
   .prose ol li.task-list-item,
   ul li:has(> [data-state]),
   ol li:has(> [data-state]),
-  .prose li:has(> button[role="checkbox"]) {
+  .prose li:has(> button[role='checkbox']) {
     list-style: none !important;
     margin-left: 0 !important;
     padding-left: 0 !important;
   }
 
-  .prose ul:has(li:has(> button[role="checkbox"])),
-  .prose ol:has(li:has(> button[role="checkbox"])) {
+  .prose ul:has(li:has(> button[role='checkbox'])),
+  .prose ol:has(li:has(> button[role='checkbox'])) {
     padding-left: 0 !important;
     margin-left: 0 !important;
   }

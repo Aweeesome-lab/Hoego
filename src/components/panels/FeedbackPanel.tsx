@@ -4,10 +4,11 @@ import React from 'react';
 import type { AiSummaryEntry } from '@/lib/tauri';
 import type { PipelineStage } from '@/store';
 
+import { ModelSelector } from '@/components/ai/ModelSelector';
 import { Response } from '@/components/ai/response';
 import { ThinkingIndicator } from '@/components/ai/thinking';
 import { MarkdownRenderer } from '@/components/markdown';
-import { ModelSelector } from '@/components/ModelSelector';
+import { Button } from '@/components/ui';
 import { useAppStore } from '@/store';
 
 interface FeedbackPanelProps {
@@ -109,35 +110,36 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
           {/* Model Selector */}
           <ModelSelector isDarkMode={isDarkMode} />
           {/* Unified AI Pipeline Button */}
-          <button
+          <Button
+            variant="hoego"
+            size="icon-md"
+            shape="pill"
             onClick={handleRunPipeline}
             disabled={isPipelineRunning}
             title={getButtonLabel()}
-            className={`rounded-full p-2 transition-colors border ${
-              isDarkMode
-                ? 'border-white/20 hover:bg-white/10 text-slate-300 hover:text-slate-100 hover:border-white/30 disabled:text-slate-600 disabled:border-white/10 disabled:cursor-not-allowed'
-                : 'border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed'
-            }`}
           >
             {isPipelineRunning ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Sparkles className="h-4 w-4" />
             )}
-          </button>
+          </Button>
           {/* Cancel Button (only shown when pipeline is running) */}
           {isPipelineRunning && (
-            <button
+            <Button
+              variant="hoego"
+              size="icon-md"
+              shape="pill"
               onClick={handleCancelPipeline}
               title="생성 중지"
-              className={`rounded-full p-2 transition-colors border ${
+              className={
                 isDarkMode
                   ? 'border-red-500/30 hover:bg-red-500/10 text-red-400 hover:text-red-300 hover:border-red-500/50'
                   : 'border-red-300 hover:bg-red-50 text-red-600 hover:text-red-700 hover:border-red-400'
-              }`}
+              }
             >
               <Square className="h-4 w-4 fill-current" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

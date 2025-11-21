@@ -1,3 +1,5 @@
+import { useState, useMemo } from 'react';
+
 import HistoryHeader from './HistoryHeader';
 import HistoryPanel from './HistoryPanel';
 
@@ -7,9 +9,25 @@ import { useHistory } from '@/hooks/useHistory';
 export default function HistoryApp() {
   const { isDarkMode } = useTheme();
   const { overview, isLoading, error, loadHistory, openFolder } = useHistory();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleRefresh = () => void loadHistory();
   const handleOpenFolder = () => void openFolder();
+
+  // Filter files based on search term
+  const filteredFiles = useMemo(() => {
+    if (!overview?.files) return [];
+    if (!searchTerm.trim()) return overview.files;
+
+    const term = searchTerm.toLowerCase();
+    return overview.files.filter(
+      (file) =>
+        file.filename.toLowerCase().includes(term) ||
+        (file.title && file.title.toLowerCase().includes(term)) ||
+        (file.preview && file.preview.toLowerCase().includes(term)) ||
+        (file.date && file.date.includes(term))
+    );
+  }, [overview?.files, searchTerm]);
 
   return (
     <div
@@ -24,10 +42,12 @@ export default function HistoryApp() {
           directory={overview?.directory ?? ''}
           onRefresh={handleRefresh}
           onOpenFolder={handleOpenFolder}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
           isDarkMode={isDarkMode}
         />
         <HistoryPanel
-          files={overview?.files ?? []}
+          files={filteredFiles}
           isLoading={isLoading}
           error={error}
           isDarkMode={isDarkMode}

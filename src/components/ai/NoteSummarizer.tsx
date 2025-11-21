@@ -2,9 +2,9 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { Sparkles, Loader2, Copy, Check, Settings } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import { llmApi } from '../lib/llm';
+import type { SummaryResult } from '@/lib/llm';
 
-import type { SummaryResult } from '../lib/llm';
+import { llmApi } from '@/lib/llm';
 
 interface NoteSummarizerProps {
   content: string;

@@ -8,10 +8,6 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-import { CategoryPieChart } from './charts/CategoryPieChart';
-import { DailyTrendChart } from './charts/DailyTrendChart';
-import { ProductivityChart } from './charts/ProductivityChart';
-
 import type { GetWeekDataPayload, WeekData } from '@/types/tauri-commands';
 
 import { useAppStore } from '@/store/appStore';
@@ -471,27 +467,6 @@ export function WeeklyDashboard({ isDarkMode }: WeeklyDashboardProps) {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Charts Section */}
-          <div className="space-y-6">
-            {/* Time Distribution Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CategoryPieChart
-                data={weekData.aggregatedStats.totalCategories}
-                isDarkMode={isDarkMode}
-              />
-              <ProductivityChart
-                data={weekData.aggregatedStats.productivityVsWaste}
-                isDarkMode={isDarkMode}
-              />
-            </div>
-
-            {/* Daily Trend Chart */}
-            <DailyTrendChart
-              data={weekData.aggregatedStats.dailyTrend}
-              isDarkMode={isDarkMode}
-            />
           </div>
         </div>
       )}

@@ -1,6 +1,5 @@
-import { appWindow } from '@tauri-apps/api/window';
 import React from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 
 import {
   Header,
@@ -16,17 +15,12 @@ import {
   useRetrospect,
   useSidebar,
   useViewMode,
+  useAppEffects,
 } from '@/hooks';
 import { useAiPipeline } from '@/hooks/useAiPipeline';
-import {
-  hideOverlayWindow,
-  appendHistoryEntry,
-  onHistoryUpdated,
-  saveMiniModePosition,
-  saveTodayMarkdown,
-} from '@/lib/tauri';
-import { openSettingsWindow } from '@/services/settingsService';
-import { useDocumentStore } from '@/store/documentStore';
+import { useAppHandlers } from '@/hooks/useAppHandlers';
+import { useAppKeyboardShortcuts } from '@/hooks/useAppKeyboardShortcuts';
+import { useAppState } from '@/hooks/useAppState';
 
 // Code splitting: lazy load panels that are conditionally rendered
 const FeedbackPanel = React.lazy(() =>
@@ -42,22 +36,25 @@ const RetrospectPanel = React.lazy(() =>
 
 export default function App() {
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
-  const [inputValue, setInputValue] = React.useState('');
-  const [isSyncing, setIsSyncing] = React.useState(false);
-  const [isFeedbackPanelExpanded, setIsFeedbackPanelExpanded] =
-    React.useState(false);
-  const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
-    React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
 
-  // 현재 보고 있는 히스토리 정보
-  const [currentHistoryDate, setCurrentHistoryDate] = React.useState<
-    string | null
-  >(null);
-  const [isLoadingHistoryContent, setIsLoadingHistoryContent] =
-    React.useState(false);
+  // Use custom hooks for state management
+  const {
+    inputValue,
+    setInputValue,
+    isSyncing,
+    setIsSyncing,
+    isFeedbackPanelExpanded,
+    setIsFeedbackPanelExpanded,
+    isRetrospectPanelExpanded,
+    setIsRetrospectPanelExpanded,
+    currentHistoryDate,
+    setCurrentHistoryDate,
+    isLoadingHistoryContent,
+    setIsLoadingHistoryContent,
+  } = useAppState();
 
-  // Use custom hooks
+  // Use custom hooks for theme, markdown, etc.
   const { themeMode, isDarkMode, toggleTheme } = useTheme();
   const {
     markdownRef,
@@ -115,478 +112,65 @@ export default function App() {
     [aiSummaries, selectedSummaryIndex]
   );
 
-  // Load markdown on mount
-  React.useEffect(() => {
-    void loadMarkdown();
-  }, [loadMarkdown]);
-
-  // Load AI summaries on mount and when selected date changes
-  React.useEffect(() => {
-    void loadAiSummaries();
-  }, [currentHistoryDate, loadAiSummaries]);
-
-  // Load history files on mount and when sidebar opens
-  React.useEffect(() => {
-    if (isSidebarOpen) {
-      void loadHistoryFiles();
-    }
-  }, [isSidebarOpen, loadHistoryFiles]);
-
-  // Initialize Cloud LLM provider on mount
-  React.useEffect(() => {
-    const initCloudProvider = async () => {
-      try {
-        const { CloudLLMClient } = await import('@/lib/cloud-llm');
-
-        // Try to initialize OpenAI provider if key exists
-        const hasOpenAIKey = await CloudLLMClient.hasApiKey('openai');
-        if (hasOpenAIKey) {
-          await CloudLLMClient.initializeProvider('openai');
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error(
-            '[Cloud LLM] Failed to auto-initialize provider:',
-            error
-          );
-        }
-      }
-    };
-
-    void initCloudProvider();
-  }, []);
-
-  // Refs for latest functions and state (to avoid stale closures in event listeners)
-  const loadMarkdownRef = React.useRef(loadMarkdown);
-  const loadAiSummariesRef = React.useRef(loadAiSummaries);
-  const currentHistoryDateRef = React.useRef(currentHistoryDate);
-
-  React.useEffect(() => {
-    loadMarkdownRef.current = loadMarkdown;
-  }, [loadMarkdown]);
-
-  React.useEffect(() => {
-    loadAiSummariesRef.current = loadAiSummaries;
-  }, [loadAiSummaries]);
-
-  React.useEffect(() => {
-    currentHistoryDateRef.current = currentHistoryDate;
-  }, [currentHistoryDate]);
-
-  // History update listener
-  React.useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
-    void onHistoryUpdated(() => {
-      // 히스토리 모드가 아닐 때만 오늘 dump 로드
-      // 히스토리 모드에서는 이미 해당 날짜의 콘텐츠가 로드되어 있음
-      if (!currentHistoryDateRef.current) {
-        void loadMarkdownRef.current();
-      }
-      void loadAiSummariesRef.current();
-    }).then((unsub) => {
-      unsubscribe = unsub;
-    });
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []); // No dependencies - listener registered once, refs always point to latest
-
-  // Focus input field
-  React.useEffect(() => {
-    const focusInput = () => {
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          inputRef.current.select();
-        }
-      }, 200);
-    };
-
-    focusInput();
-    window.addEventListener('focus', focusInput);
-    return () => window.removeEventListener('focus', focusInput);
-  }, []);
-
-  // Submit handler
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    void (async () => {
-      const taskText = inputValue.trim();
-      if (!taskText) {
-        return;
-      }
-
-      const now = new Date();
-      const timestamp = now.toISOString();
-      const currentMinute = `${now.getHours().toString().padStart(2, '0')}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}`;
-      const isNewMinute = lastMinute !== currentMinute;
-
-      // 입력 필드 즉시 초기화
-      const savedTask = taskText;
-      setInputValue('');
-      setLastMinute(currentMinute);
-
-      try {
-        const payload = {
-          timestamp,
-          task: savedTask,
-          isNewMinute,
-        };
-
-        await appendHistoryEntry(payload);
-
-        // 마크다운 즉시 다시 로드
-        await loadMarkdown();
-
-        // 입력 필드 다시 포커스
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 100);
-      } catch (error) {
-        if (import.meta.env.DEV)
-          console.error('[hoego] 항목 추가 실패:', error);
-        toast.error(
-          `작업 저장 실패: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-        // 실패 시 입력값 복원
-        setInputValue(savedTask);
-      }
-    })();
-  };
-
-  // Keyboard shortcuts
-  React.useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      // 사이드바 토글: Cmd/Ctrl + 1
-      if ((event.metaKey || event.ctrlKey) && event.key === '1') {
-        event.preventDefault();
-        event.stopPropagation();
-        toggleSidebar();
-        return;
-      }
-
-      // 패널 토글: Cmd/Ctrl + 2 for AI panel
-      if ((event.metaKey || event.ctrlKey) && event.key === '2') {
-        event.preventDefault();
-        event.stopPropagation();
-        setIsFeedbackPanelExpanded((prev) => !prev);
-        return;
-      }
-
-      // 패널 토글: Cmd/Ctrl + 3 for Retrospect panel
-      if ((event.metaKey || event.ctrlKey) && event.key === '3') {
-        event.preventDefault();
-        event.stopPropagation();
-        setIsRetrospectPanelExpanded((prev) => !prev);
-        return;
-      }
-
-      // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        event.stopPropagation();
-        if (isEditing) {
-          // 편집 종료 시 저장 flush
-          if (editingContent !== lastSavedRef.current) {
-            void (async () => {
-              try {
-                setIsSaving(true);
-
-                // ✅ 변경: Active Document 사용
-                const { saveActiveDocument } = useDocumentStore.getState();
-                const result = await saveActiveDocument(editingContent);
-
-                if (!result.success) {
-                  throw new Error(result.error);
-                }
-
-                lastSavedRef.current = editingContent;
-                await loadMarkdown();
-              } catch (error) {
-                if (import.meta.env.DEV)
-                  console.error('[hoego] 저장 실패:', error);
-              } finally {
-                setIsSaving(false);
-                setIsEditing(false);
-              }
-            })();
-          } else {
-            setIsEditing(false);
-          }
-        } else {
-          void hideOverlayWindow();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [
-    toggleSidebar,
-    isEditing,
-    editingContent,
-    markdownContent,
+  // Use custom hook for all event handlers
+  const {
+    handleSubmit,
+    handleManualSync,
+    handlePipelineExecution,
+    handlePipelineCancellation,
+    handleHomeClick,
+    handleToggleEdit,
+    handleSettingsClick,
+    handleHistoryFileClick,
+  } = useAppHandlers({
+    inputValue,
+    setInputValue,
+    lastMinute,
+    setLastMinute,
+    inputRef,
     loadMarkdown,
-    appendTimestampToLine,
-    setEditingContent,
-    setIsEditing,
-    setIsSaving,
-    lastSavedRef,
-    editorRef,
-    currentHistoryDate,
-  ]);
-
-  const handleManualSync = React.useCallback(() => {
-    void (async () => {
-      if (isSyncing) return;
-      try {
-        setIsSyncing(true);
-
-        // 히스토리 모드면 해당 날짜의 문서를 다시 로드, 아니면 오늘 문서 로드
-        if (currentHistoryDate) {
-          const { activeDocument, loadHistory } = useDocumentStore.getState();
-          if (activeDocument?.filePath) {
-            await loadHistory(currentHistoryDate, activeDocument.filePath);
-            const { activeDocument: reloaded } = useDocumentStore.getState();
-            if (reloaded) {
-              setMarkdownContent(reloaded.content);
-              setEditingContent(reloaded.content);
-            }
-          }
-        } else {
-          await loadMarkdown();
-        }
-
-        await loadAiSummaries();
-      } catch (error) {
-        if (import.meta.env.DEV)
-          console.error('[hoego] 마크다운 동기화 실패', error);
-      } finally {
-        setIsSyncing(false);
-      }
-    })();
-  }, [
     isSyncing,
+    setIsSyncing,
+    currentHistoryDate,
+    setMarkdownContent,
+    setEditingContent,
+    loadAiSummaries,
+    handleRunPipeline,
+    handleCancelPipeline,
+    isEditing,
+    setIsEditing,
+    editingContent,
+    lastSavedRef,
+    setIsSaving,
+    markdownContent,
+    setCurrentHistoryDate,
+    setIsLoadingHistoryContent,
+  });
+
+  // Use custom hook for side effects
+  useAppEffects({
     loadMarkdown,
     loadAiSummaries,
+    loadHistoryFiles,
     currentHistoryDate,
-    setMarkdownContent,
-    setEditingContent,
-  ]);
+    isSidebarOpen,
+    viewMode,
+    inputRef,
+    streamingCleanupRef,
+  });
 
-  const handlePipelineExecution = React.useCallback(() => {
-    void (async () => {
-      // Run the pipeline (streaming feedback)
-      await handleRunPipeline();
-    })();
-  }, [handleRunPipeline]);
-
-  const handlePipelineCancellation = React.useCallback(() => {
-    void (async () => {
-      // Cancel the running pipeline
-      await handleCancelPipeline();
-    })();
-  }, [handleCancelPipeline]);
-
-  // Sidebar handlers
-  const handleHomeClick = React.useCallback(() => {
-    void (async () => {
-      try {
-        // 편집 중이면 먼저 저장
-        if (isEditing && editingContent !== lastSavedRef.current) {
-          setIsSaving(true);
-          await saveTodayMarkdown(editingContent);
-          lastSavedRef.current = editingContent;
-          setIsSaving(false);
-        }
-
-        // 오늘 날짜로 돌아가기
-        setCurrentHistoryDate(null);
-
-        // 편집 모드 종료
-        if (isEditing) {
-          setIsEditing(false);
-        }
-
-        // ✅ 변경: loadToday 사용
-        const { loadToday } = useDocumentStore.getState();
-        await loadToday();
-
-        // appStore도 업데이트 (기존 동작 유지)
-        const { activeDocument } = useDocumentStore.getState();
-        if (activeDocument) {
-          setMarkdownContent(activeDocument.content);
-          setEditingContent(activeDocument.content);
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('[hoego] 오늘 문서 로드 실패:', error);
-        }
-        toast.error('오늘 문서를 불러오는데 실패했습니다.');
-      }
-    })();
-  }, [
+  // Use custom hook for keyboard shortcuts
+  useAppKeyboardShortcuts({
+    toggleSidebar,
+    setIsFeedbackPanelExpanded,
+    setIsRetrospectPanelExpanded,
     isEditing,
     setIsEditing,
     editingContent,
-    lastSavedRef,
     setIsSaving,
-    setMarkdownContent,
-    setEditingContent,
-  ]);
-
-  const handleToggleEdit = React.useCallback(() => {
-    if (isEditing) {
-      // 편집 종료 시 저장
-      if (editingContent !== lastSavedRef.current) {
-        void (async () => {
-          try {
-            setIsSaving(true);
-            await saveTodayMarkdown(editingContent);
-
-            lastSavedRef.current = editingContent;
-            setMarkdownContent(editingContent);
-          } catch (error) {
-            if (import.meta.env.DEV) {
-              console.error('[hoego] 저장 실패:', error);
-            }
-          } finally {
-            setIsSaving(false);
-            setIsEditing(false);
-          }
-        })();
-      } else {
-        setIsEditing(false);
-      }
-    } else {
-      // 편집 시작
-      setEditingContent(markdownContent);
-      setIsEditing(true);
-    }
-  }, [
-    isEditing,
-    editingContent,
-    markdownContent,
     lastSavedRef,
-    setIsSaving,
-    setIsEditing,
-    setMarkdownContent,
-    setEditingContent,
-  ]);
-
-  const handleSettingsClick = React.useCallback(() => {
-    void (async () => {
-      try {
-        await openSettingsWindow();
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('[hoego] Failed to open settings window:', error);
-        }
-        toast.error('설정 창을 여는데 실패했습니다.');
-      }
-    })();
-  }, []);
-
-  const handleHistoryFileClick = React.useCallback(
-    (file: (typeof historyFiles)[0]) => {
-      // 같은 날짜면 다시 로드하지 않음
-      if (currentHistoryDate === file.date) {
-        return;
-      }
-
-      void (async () => {
-        try {
-          // 편집 중이면 먼저 저장
-          if (isEditing && editingContent !== lastSavedRef.current) {
-            setIsSaving(true);
-            await saveTodayMarkdown(editingContent);
-            lastSavedRef.current = editingContent;
-            setIsSaving(false);
-          }
-
-          setIsLoadingHistoryContent(true);
-          setCurrentHistoryDate(file.date);
-
-          // 편집 모드 종료
-          if (isEditing) {
-            setIsEditing(false);
-          }
-
-          // ✅ 변경: loadHistory 사용
-          const { loadHistory } = useDocumentStore.getState();
-          await loadHistory(file.date, file.path);
-
-          // appStore도 업데이트 (기존 동작 유지)
-          const { activeDocument } = useDocumentStore.getState();
-          if (activeDocument) {
-            setMarkdownContent(activeDocument.content);
-            setEditingContent(activeDocument.content);
-            lastSavedRef.current = activeDocument.content; // 자동 저장 방지를 위해 ref도 업데이트
-          }
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('[hoego] Failed to load history:', error);
-          }
-          toast.error('히스토리를 불러오는데 실패했습니다.');
-        } finally {
-          setIsLoadingHistoryContent(false);
-        }
-      })();
-    },
-    [
-      currentHistoryDate,
-      setMarkdownContent,
-      setEditingContent,
-      isEditing,
-      setIsEditing,
-      editingContent,
-      lastSavedRef,
-      setIsSaving,
-    ]
-  );
-
-  // Cleanup streaming on unmount
-  React.useEffect(() => {
-    const cleanup = streamingCleanupRef.current;
-    return () => {
-      if (cleanup) {
-        cleanup();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Mini 모드일 때 윈도우 위치 저장
-  React.useEffect(() => {
-    if (viewMode !== 'mini') return;
-
-    let unlisten: (() => void) | null = null;
-
-    const setupPositionListener = async () => {
-      // 윈도우 이동 이벤트 리스너
-      unlisten = await appWindow.onMoved(() => {
-        void saveMiniModePosition();
-      });
-    };
-
-    void setupPositionListener();
-
-    return () => {
-      if (unlisten) {
-        unlisten();
-      }
-    };
-  }, [viewMode]);
+    loadMarkdown,
+  });
 
   // Mini 모드: 입력창만 표시
   if (viewMode === 'mini') {
@@ -638,8 +222,8 @@ export default function App() {
         } transition-all duration-200`}
       >
         <Header
-          isFeedbackPanelExpanded={isFeedbackPanelExpanded}
-          setIsFeedbackPanelExpanded={setIsFeedbackPanelExpanded}
+          isAiPanelExpanded={isFeedbackPanelExpanded}
+          setIsAiPanelExpanded={setIsFeedbackPanelExpanded}
           isRetrospectPanelExpanded={isRetrospectPanelExpanded}
           setIsRetrospectPanelExpanded={setIsRetrospectPanelExpanded}
           handleManualSync={handleManualSync}

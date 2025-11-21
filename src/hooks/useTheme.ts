@@ -113,5 +113,11 @@ export function useTheme() {
      * @function
      */
     toggleTheme,
+
+    /**
+     * 테마 모드 설정
+     * @function
+     */
+    setThemeMode,
   };
 }

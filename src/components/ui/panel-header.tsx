@@ -40,8 +40,8 @@ const sizeClasses = {
  *   title="회고하기(retrospect)"
  *   actions={
  *     <>
- *       <StatusBadge>저장 중</StatusBadge>
- *       <PillButton icon={<Settings />} iconOnly />
+ *       <Badge variant="subtle-default" size="sm">저장 중</Badge>
+ *       <Button variant="hoego" size="icon-md" shape="pill" icon={<Settings />} />
  *     </>
  *   }
  * />

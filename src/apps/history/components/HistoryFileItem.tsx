@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 import type { HistoryFileInfo } from '@/types/tauri-commands';
+
+import { Button } from '@/components/ui/button';
 
 interface HistoryFileItemProps {
   file: HistoryFileInfo;
   isDarkMode: boolean;
 }
 
-export default function HistoryFileItem({
-  file,
-  isDarkMode,
-}: HistoryFileItemProps) {
+function HistoryFileItem({ file, isDarkMode }: HistoryFileItemProps) {
   const [copyButtonText, setCopyButtonText] = useState('경로 복사');
 
   const handleCopyPath = () => {
@@ -58,17 +57,18 @@ export default function HistoryFileItem({
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleCopyPath}
-            className={`text-[0.8rem] px-3 py-1.5 rounded-lg border transition-all ${
+            className={
               isDarkMode
                 ? 'border-slate-400/30 bg-slate-400/15 text-slate-100 hover:bg-slate-400/25 hover:border-slate-400/45'
                 : 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
+            }
           >
             {copyButtonText}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -94,3 +94,5 @@ export default function HistoryFileItem({
     </li>
   );
 }
+
+export default memo(HistoryFileItem);

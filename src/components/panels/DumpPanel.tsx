@@ -4,6 +4,7 @@ import React from 'react';
 import type { Position } from 'unist';
 
 import { MarkdownPreview } from '@/components/markdown';
+import { Button, Badge } from '@/components/ui';
 
 interface DumpPanelProps {
   isDarkMode: boolean;
@@ -62,24 +63,15 @@ export const DumpPanel = React.memo(function DumpPanel({
         </div>
         <div className="flex items-center gap-2">
           {isSaving && (
-            <span
-              className={`rounded-full px-3 py-1 text-[10px] ${
-                isDarkMode
-                  ? 'bg-white/10 text-slate-200'
-                  : 'bg-slate-200 text-slate-700'
-              }`}
-            >
+            <Badge variant="subtle-default" size="sm">
               저장 중
-            </span>
+            </Badge>
           )}
-          <button
-            type="button"
+          <Button
+            variant="hoego"
+            size="icon-md"
+            shape="pill"
             onClick={onToggleEdit}
-            className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
-              isDarkMode
-                ? 'border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
-            }`}
             title={isEditing ? '미리보기' : '편집'}
             aria-label={isEditing ? '미리보기' : '편집'}
           >
@@ -88,7 +80,7 @@ export const DumpPanel = React.memo(function DumpPanel({
             ) : (
               <Pencil className="h-4 w-4" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 

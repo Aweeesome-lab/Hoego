@@ -10,6 +10,8 @@ import {
   Minimize2,
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 interface HeaderProps {
   /**
    * AI 패널 확장 상태
@@ -81,8 +83,8 @@ interface HeaderProps {
 }
 
 export function Header({
-  isFeedbackPanelExpanded,
-  setIsFeedbackPanelExpanded,
+  isAiPanelExpanded,
+  setIsAiPanelExpanded,
   isRetrospectPanelExpanded,
   setIsRetrospectPanelExpanded,
   handleManualSync,
@@ -103,14 +105,11 @@ export function Header({
       }`}
     >
       {/* Sidebar Toggle Button */}
-      <button
-        type="button"
+      <Button
+        variant="hoego"
+        size="icon-md"
+        shape="pill"
         onClick={toggleSidebar}
-        className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all ${
-          isDarkMode
-            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-300 hover:bg-slate-800/80'
-            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
-        }`}
         aria-label={isSidebarOpen ? '사이드바 닫기' : '사이드바 열기'}
       >
         {isSidebarOpen ? (
@@ -118,90 +117,66 @@ export function Header({
         ) : (
           <PanelLeftOpen className="h-3.5 w-3.5" />
         )}
-      </button>
+      </Button>
 
       <div className="flex-1" />
-      <button
-        type="button"
-        onClick={() => setIsFeedbackPanelExpanded((prev) => !prev)}
-        className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-          isFeedbackPanelExpanded
-            ? isDarkMode
-              ? 'border-white/20 bg-white/10 text-slate-200'
-              : 'border-slate-300 bg-slate-100 text-slate-700'
-            : isDarkMode
-              ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
-              : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-        }`}
+      <Button
+        variant={isAiPanelExpanded ? 'hoego-active' : 'hoego'}
+        size="icon-md"
+        shape="pill"
+        onClick={() => setIsAiPanelExpanded((prev) => !prev)}
         onMouseDown={(e) => e.stopPropagation()}
         title={
-          isFeedbackPanelExpanded
-            ? '정리하기 패널 접기'
-            : '정리하기 패널 펼치기'
+          isAiPanelExpanded ? '정리하기 패널 접기' : '정리하기 패널 펼치기'
         }
       >
         <Brain className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant={isRetrospectPanelExpanded ? 'hoego-active' : 'hoego'}
+        size="icon-md"
+        shape="pill"
         onClick={() => setIsRetrospectPanelExpanded((prev) => !prev)}
-        className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-          isRetrospectPanelExpanded
-            ? isDarkMode
-              ? 'border-white/20 bg-white/10 text-slate-200'
-              : 'border-slate-300 bg-slate-100 text-slate-700'
-            : isDarkMode
-              ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
-              : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-        }`}
         onMouseDown={(e) => e.stopPropagation()}
         title={
           isRetrospectPanelExpanded ? '회고 패널 접기' : '회고 패널 펼치기'
         }
       >
         <NotebookPen className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant="hoego"
+        size="icon-md"
+        shape="pill"
         onClick={() => {
           void handleManualSync();
         }}
-        className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-          isDarkMode
-            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
-            : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-        } ${isSyncing ? 'opacity-80' : ''}`}
+        className={isSyncing ? 'opacity-80' : ''}
         onMouseDown={(e) => e.stopPropagation()}
         disabled={isSyncing}
         title="마크다운 동기화"
       >
         <RotateCcw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-      </button>
+      </Button>
       {switchToMini && (
-        <button
-          type="button"
+        <Button
+          variant="hoego"
+          size="icon-md"
+          shape="pill"
           onClick={() => {
             void switchToMini();
           }}
-          className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-            isDarkMode
-              ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
-              : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-          }`}
           onMouseDown={(e) => e.stopPropagation()}
           title="Mini 모드로 축소"
         >
           <Minimize2 className="h-4 w-4" />
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
+      <Button
+        variant="hoego"
+        size="icon-md"
+        shape="pill"
         onClick={toggleTheme}
-        className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-          isDarkMode
-            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200'
-            : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-        }`}
         onMouseDown={(e) => e.stopPropagation()}
         title={
           themeMode === 'light'
@@ -218,7 +193,7 @@ export function Header({
         ) : (
           <MonitorSmartphone className="h-4 w-4" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }
