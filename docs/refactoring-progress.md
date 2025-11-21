@@ -29,18 +29,17 @@
 - [x] `utils/` 모듈 생성
 - [x] `platform/` 모듈 생성
 
-### 1.2 Commands 모듈 구성 (8/9) ✅
-- [x] `commands/mod.rs` 생성 및 업데이트
-- [x] `commands/dump.rs` - 일지 작성 commands (실제 구현) ✨
-- [x] `commands/feedback.rs` - 피드백 commands (placeholder, 향후 확장용)
-- [x] `commands/retrospect.rs` - 회고 commands (실제 구현) ✨
-- [x] `commands/history.rs` - 히스토리 조회 commands (실제 구현, 분리 완료) ✨
-- [x] `commands/ai.rs` - AI 피드백 commands (실제 구현)
+### 1.2 Commands 모듈 구성 (8/8) ✅
+- [x] `commands/mod.rs` 생성 및 업데이트 (3-stage workflow 기반)
+- [x] `commands/dump.rs` - STAGE 1: 일지 작성/읽기 (5개 commands) ✨
+- [x] `commands/feedback.rs` - STAGE 2: AI 피드백 (4개 commands, ai.rs 통합) ✨
+- [x] `commands/retrospect.rs` - STAGE 3: 회고 (2개 commands) ✨
+- [x] `commands/history.rs` - 사이드바용 히스토리 탐색 (3개 commands) ✨
 - [x] `commands/settings.rs` - 설정 관련 commands (실제 구현)
 - [x] `commands/llm.rs` - LLM commands (placeholder, main.rs에 직접 구현)
 - [x] `commands/window.rs` - 윈도우 commands (placeholder, platform에 구현)
 
-**Note**: Architecture.md의 이상적인 구조대로 dump, history, retrospect 분리 완료!
+**Note**: 3단계 워크플로우 (Dump → Feedback → Retrospect) 기반 재구성 완료!
 
 ### 1.3 Services 모듈 구성 (6/6) ✅
 - [x] `services/mod.rs` 생성
@@ -288,39 +287,27 @@
 
 ## 📅 세션 노트
 
-### 2025-11-21 PM Session 3 - Commands 모듈 이상적 구조 분리 ✅
-- ✅ **Architecture.md 이상적 구조 적용**
-  - history.rs 통합 구조 → dump/history/retrospect 독립 파일로 분리
-  - Architecture.md 설계 의도 완벽 반영
-- ✅ **Commands 분리 작업**
-  - commands/dump.rs 생성 (일지 작성 3개 명령)
-  - commands/retrospect.rs 생성 (회고 2개 명령)
-  - commands/history.rs 업데이트 (히스토리 조회 5개 명령)
-  - commands/feedback.rs 생성 (placeholder, 향후 확장용)
-- ✅ **통합 작업**
-  - commands/mod.rs 업데이트 (모든 명령 re-export)
-  - main.rs 명령 등록 업데이트 (주석으로 구분)
-- ✅ **빌드 검증**
-  - cargo check ✅
-  - cargo clippy (no warnings) ✅
+### 2025-11-21 PM Session 3 - 3단계 워크플로우 기반 재구성 ✅
+- ✅ **3단계 워크플로우 기반 재구성**
+  - **STAGE 1 - Dump**: 일지 작성/읽기 (dump.rs)
+  - **STAGE 2 - Feedback**: AI 피드백 (feedback.rs, ai.rs 통합)
+  - **STAGE 3 - Retrospect**: 회고 (retrospect.rs)
+  - **History**: 사이드바용 탐색 전용 (history.rs)
+- ✅ **Commands 재구성**
+  - dump.rs: 5개 (get_today_markdown, append_history_entry, save_today_markdown, get_history_markdown, save_history_markdown)
+  - feedback.rs: 4개 (generate_ai_feedback, generate_ai_feedback_stream, cancel_ai_feedback_stream, list_ai_summaries)
+  - retrospect.rs: 2개 (get_retrospect_markdown, save_retrospect_markdown)
+  - history.rs: 3개 (get_week_data, list_history, open_history_folder)
+- ✅ **정리**
+  - ai.rs 삭제 (feedback.rs로 통합)
+  - mod.rs / main.rs 3단계 워크플로우 기반 주석 추가
+- ✅ **빌드 검증**: cargo check ✅, cargo clippy (no warnings) ✅
 
-**분리 결과**:
-- **dump.rs**: `append_history_entry`, `get_today_markdown`, `save_today_markdown`
-- **history.rs**: `list_history`, `get_history_markdown`, `save_history_markdown`, `open_history_folder`, `get_week_data`
-- **retrospect.rs**: `get_retrospect_markdown`, `save_retrospect_markdown`
-
-**성과**:
-- 🎯 Architecture.md의 이상적인 설계 구조 완벽 구현
-- ✅ Commands 8개 파일로 명확히 분리 (dump, feedback, retrospect, history, ai, settings, llm, window)
-- 📚 코드 구조가 설계 의도와 일치
-- ✅ 컴파일 완벽 통과 (no warnings)
-
-**Commit**:
-- ✅ `[1346d6c]` refactor: phase-1 - split commands into ideal architecture structure
+**Squash Commit** (10개 커밋 통합):
+- ✅ `[5e9c34a]` refactor: phase-1 - complete backend module reorganization
 
 **다음 작업**:
-- Services 모듈 분리 (dump_service, retrospect_service)
-- Models 모듈 추가 (retrospect.rs)
+- Phase 2 Frontend 컴포넌트 추출 시작
 
 ---
 
@@ -485,5 +472,5 @@
 
 ---
 
-**최종 업데이트**: 2025-11-21 10:30
+**최종 업데이트**: 2025-11-21 PM
 **담당**: Claude SM Agent
