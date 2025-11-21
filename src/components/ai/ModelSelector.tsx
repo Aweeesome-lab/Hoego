@@ -10,7 +10,6 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue,
   SelectSeparator,
 } from '@/components/ui/select';
 import {
@@ -106,24 +105,23 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
       disabled={loading}
     >
       <SelectTrigger
-        className={`w-auto min-w-[140px] h-8 gap-2 border-none shadow-none focus:ring-0 ${
+        hideChevron
+        className={`h-8 w-8 rounded-full border p-0 shadow-none focus:ring-0 ${
           isDarkMode
-            ? 'bg-white/5 text-slate-300 hover:bg-white/10'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200 hover:bg-white/5 hover:border-white/20'
+            : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300'
         }`}
+        title={currentOption?.displayName || '모델 선택'}
       >
-        <div className="flex items-center gap-2 truncate">
-          {currentOption?.type === 'local' ? (
-            <Brain className="h-3.5 w-3.5 flex-shrink-0" />
-          ) : (
-            <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
-          )}
-          <SelectValue placeholder="모델 선택" />
-        </div>
+        {currentOption?.type === 'local' ? (
+          <Brain className="h-4 w-4" />
+        ) : (
+          <Cloud className="h-4 w-4" />
+        )}
       </SelectTrigger>
       <SelectContent
         align="end"
-        className={`w-[280px] ${
+        className={`min-w-[140px] ${
           isDarkMode ? 'bg-[#1a1f2e] border-white/10' : 'bg-white'
         }`}
       >
@@ -131,32 +129,27 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
         {localModels.length > 0 && (
           <SelectGroup>
             <SelectLabel
-              className={`text-[10px] uppercase tracking-wider ${
+              className={`text-[9px] uppercase tracking-wider pl-2 ${
                 isDarkMode ? 'text-slate-500' : 'text-slate-400'
               }`}
             >
-              로컬 모델
+              로컬
             </SelectLabel>
             {localModels.map((option) => (
               <SelectItem
                 key={getValueString(option)}
                 value={getValueString(option)}
                 disabled={!option.isAvailable}
-                className="py-2"
+                hideIndicator
+                className={`pr-3 py-1.5 text-xs cursor-pointer ${
+                  currentValueString === getValueString(option)
+                    ? isDarkMode
+                      ? 'bg-blue-500/20 text-blue-300'
+                      : 'bg-blue-50 text-blue-700'
+                    : ''
+                }`}
               >
-                <div className="flex flex-col gap-0.5 text-left">
-                  <div className="flex items-center gap-2">
-                    <Brain className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="font-medium">{option.displayName}</span>
-                  </div>
-                  <span
-                    className={`text-[10px] ${
-                      isDarkMode ? 'text-slate-500' : 'text-slate-500'
-                    }`}
-                  >
-                    {option.description}
-                  </span>
-                </div>
+                {option.displayName}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -169,14 +162,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
         {Object.entries(cloudModelsByProvider).map(([provider, models]) => (
           <SelectGroup key={provider}>
             <SelectLabel
-              className={`text-[10px] uppercase tracking-wider ${
+              className={`text-[9px] uppercase tracking-wider pl-2 ${
                 isDarkMode ? 'text-slate-500' : 'text-slate-400'
               }`}
             >
               {provider === 'openai'
                 ? 'OpenAI'
                 : provider === 'gemini'
-                  ? 'Google Gemini'
+                  ? 'Gemini'
                   : provider}
             </SelectLabel>
             {models.map((option) => (
@@ -184,21 +177,16 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                 key={getValueString(option)}
                 value={getValueString(option)}
                 disabled={!option.isAvailable}
-                className="py-2"
+                hideIndicator
+                className={`pr-3 py-1.5 text-xs cursor-pointer ${
+                  currentValueString === getValueString(option)
+                    ? isDarkMode
+                      ? 'bg-blue-500/20 text-blue-300'
+                      : 'bg-blue-50 text-blue-700'
+                    : ''
+                }`}
               >
-                <div className="flex flex-col gap-0.5 text-left">
-                  <div className="flex items-center gap-2">
-                    <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="font-medium">{option.displayName}</span>
-                  </div>
-                  <span
-                    className={`text-[10px] ${
-                      isDarkMode ? 'text-slate-500' : 'text-slate-500'
-                    }`}
-                  >
-                    {option.description}
-                  </span>
-                </div>
+                {option.displayName}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -207,13 +195,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
         {/* Empty State */}
         {modelOptions.length === 0 && !loading && (
           <div
-            className={`px-3 py-6 text-center text-[12px] ${
+            className={`px-2 py-4 text-center text-[11px] ${
               isDarkMode ? 'text-slate-500' : 'text-slate-400'
             }`}
           >
-            사용 가능한 모델이 없습니다.
-            <br />
-            설정에서 모델을 다운로드하거나 API 키를 설정하세요.
+            모델 없음
           </div>
         )}
       </SelectContent>

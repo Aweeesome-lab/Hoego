@@ -106,7 +106,7 @@ impl ModelManager {
             },
             ModelInfo {
                 id: "gemma-3-4b-qat".to_string(),
-                name: "Gemma 3 4B QAT (Q4_K_M) - Google Latest".to_string(),
+                name: "Gemma 3 4B QAT".to_string(),
                 size: 2791728384, // ~2.6GB
                 url: "https://huggingface.co/bartowski/google_gemma-3-4b-it-qat-GGUF/resolve/main/google_gemma-3-4b-it-qat-Q4_K_M.gguf".to_string(),
                 quantization: "Q4_K_M QAT".to_string(),
