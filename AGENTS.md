@@ -2,6 +2,8 @@
 
 > This file is for LLM agents (Claude, GPT, Codex CLI, etc.)
 
+---
+
 ## 📋 Primary Instructions
 
 **All coding guidelines and rules are defined in:**
@@ -10,35 +12,36 @@
 
 Please read and follow the instructions in that file.
 
+---
+
 ## 📚 Quick Links
 
-- **[.claude/CLAUDE.md](./.claude/CLAUDE.md)** - Main coding rules and guidelines
+### Documentation
 - **[docs/README.md](./docs/README.md)** - Documentation index
-- **[docs/guides/development.md](./docs/guides/development.md)** - Development workflow
+- **[docs/refactoring/00-overview.md](./docs/refactoring/00-overview.md)** - Active refactoring plan
+- **[docs/refactoring/next-session.md](./docs/refactoring/next-session.md)** - Next session guide
 
-## 🔄 Refactoring in Progress
-
-Check these files before starting work:
-
-- **[.claude/docs/refactoring-progress.md](./.claude/docs/refactoring-progress.md)** - Current progress (⭐ CHECK FIRST)
-- **[.claude/docs/refactoring-plan.md](./.claude/docs/refactoring-plan.md)** - Overall plan
-
-## 🎯 Project Overview
-
-**Hoego** is an AI-powered retrospective and reflection tool built with:
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS
-- **Backend**: Rust + Tauri
-- **LLM**: Local (llama.cpp) + Cloud (OpenAI/Claude/Gemini)
-
-## ⚡ Quick Commands
-
-```bash
-npm run dev          # Start development server
-npm test             # Run tests
-npm run check        # Run all checks (type, lint, format)
-npm run validate     # Full validation (checks + tests)
-```
+### Coding Guidelines
+- **[.claude/CLAUDE.md](./.claude/CLAUDE.md)** - Main coding rules
 
 ---
 
-**For detailed instructions, see [.claude/CLAUDE.md](./.claude/CLAUDE.md)**
+## 🔄 Current Work
+
+**Refactoring Progress**: 75% Complete (Phase 1-3 Done)
+
+**Next Task**: Phase 4 - Cleanup (레거시 코드 제거)
+
+See **[docs/refactoring/next-session.md](./docs/refactoring/next-session.md)** for details.
+
+---
+
+## 🎯 Quick Start
+
+1. Read **[.claude/CLAUDE.md](./.claude/CLAUDE.md)** for coding rules
+2. Check **[docs/refactoring/next-session.md](./docs/refactoring/next-session.md)** for current task
+3. Follow the instructions and update progress
+
+---
+
+**Last Updated**: 2025-11-21
