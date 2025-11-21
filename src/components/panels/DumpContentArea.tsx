@@ -1,5 +1,9 @@
+import 'katex/dist/katex.min.css';
+
 import React from 'react';
+import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 
 import type { Components } from 'react-markdown';
 
@@ -100,7 +104,8 @@ export const DumpContentArea = React.memo(function DumpContentArea({
           style={{ paddingBottom: '120px' }}
         >
           <MemoizedReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
             components={markdownComponents}
           >
             {dumpContent || '# 오늘\n\n작업을 기록해보세요.'}

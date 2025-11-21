@@ -24,6 +24,7 @@ import {
   appendHistoryEntry,
   onHistoryUpdated,
   saveMiniModePosition,
+  saveTodayMarkdown,
 } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
 import { useDocumentStore } from '@/store/documentStore';
@@ -415,17 +416,10 @@ export default function App() {
     void (async () => {
       try {
         // 편집 중이면 먼저 저장
-        if (isEditing && markdownContent !== lastSavedRef.current) {
+        if (isEditing && editingContent !== lastSavedRef.current) {
           setIsSaving(true);
-          // ✅ 변경: Active Document 사용
-          const { saveActiveDocument } = useDocumentStore.getState();
-          const result = await saveActiveDocument(markdownContent);
-
-          if (!result.success) {
-            throw new Error(result.error);
-          }
-
-          lastSavedRef.current = markdownContent;
+          await saveTodayMarkdown(editingContent);
+          lastSavedRef.current = editingContent;
           setIsSaving(false);
         }
 
@@ -454,7 +448,37 @@ export default function App() {
         toast.error('오늘 문서를 불러오는데 실패했습니다.');
       }
     })();
-  }, [isEditing, setIsEditing, markdownContent, lastSavedRef, setIsSaving, setMarkdownContent, setEditingContent]);
+  }, [isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving, setMarkdownContent, setEditingContent]);
+
+  const handleToggleEdit = React.useCallback(() => {
+    if (isEditing) {
+      // 편집 종료 시 저장
+      if (editingContent !== lastSavedRef.current) {
+        void (async () => {
+          try {
+            setIsSaving(true);
+            await saveTodayMarkdown(editingContent);
+
+            lastSavedRef.current = editingContent;
+            setMarkdownContent(editingContent);
+          } catch (error) {
+            if (import.meta.env.DEV) {
+              console.error('[hoego] 저장 실패:', error);
+            }
+          } finally {
+            setIsSaving(false);
+            setIsEditing(false);
+          }
+        })();
+      } else {
+        setIsEditing(false);
+      }
+    } else {
+      // 편집 시작
+      setEditingContent(markdownContent);
+      setIsEditing(true);
+    }
+  }, [isEditing, editingContent, markdownContent, lastSavedRef, setIsSaving, setIsEditing, setMarkdownContent, setEditingContent]);
 
   const handleSettingsClick = React.useCallback(() => {
     void (async () => {
@@ -474,17 +498,10 @@ export default function App() {
       void (async () => {
         try {
           // 편집 중이면 먼저 저장
-          if (isEditing && markdownContent !== lastSavedRef.current) {
+          if (isEditing && editingContent !== lastSavedRef.current) {
             setIsSaving(true);
-            // ✅ 변경: Active Document 사용
-            const { saveActiveDocument } = useDocumentStore.getState();
-            const result = await saveActiveDocument(markdownContent);
-
-            if (!result.success) {
-              throw new Error(result.error);
-            }
-
-            lastSavedRef.current = markdownContent;
+            await saveTodayMarkdown(editingContent);
+            lastSavedRef.current = editingContent;
             setIsSaving(false);
           }
 
@@ -517,7 +534,7 @@ export default function App() {
         }
       })();
     },
-    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, markdownContent, lastSavedRef, setIsSaving]
+    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving]
   );
 
   // Cleanup streaming on unmount
@@ -637,7 +654,7 @@ export default function App() {
             appendTimestampToLine={appendTimestampToLine}
             markdownComponents={markdownComponents}
             currentDateLabel={currentHistoryDate ?? undefined}
-            setIsEditing={setIsEditing}
+            onToggleEdit={handleToggleEdit}
             isSaving={isSaving}
             isHistoryMode={!!currentHistoryDate}
           />

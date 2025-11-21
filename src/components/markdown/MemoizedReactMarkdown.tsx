@@ -8,6 +8,7 @@ interface MemoizedReactMarkdownProps {
   children: string;
   components: Components;
   remarkPlugins?: PluggableList;
+  rehypePlugins?: PluggableList;
   className?: string;
 }
 
@@ -20,11 +21,13 @@ export const MemoizedReactMarkdown = React.memo(
     children,
     components,
     remarkPlugins,
+    rehypePlugins,
     className,
   }: MemoizedReactMarkdownProps) {
     return (
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         components={components}
         className={className}
       >
@@ -38,6 +41,7 @@ export const MemoizedReactMarkdown = React.memo(
       prevProps.children === nextProps.children &&
       prevProps.components === nextProps.components &&
       prevProps.remarkPlugins === nextProps.remarkPlugins &&
+      prevProps.rehypePlugins === nextProps.rehypePlugins &&
       prevProps.className === nextProps.className
     );
   }

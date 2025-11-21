@@ -5,7 +5,7 @@ interface DumpPanelHeaderProps {
   isDarkMode: boolean;
   isSaving: boolean;
   isEditing: boolean;
-  setIsEditing: (isEditing: boolean) => void;
+  onToggleEdit: () => void;
   currentDateLabel?: string;
   isHistoryMode?: boolean;
 }
@@ -14,7 +14,7 @@ export const DumpPanelHeader = React.memo(function DumpPanelHeader({
   isDarkMode,
   isSaving,
   isEditing,
-  setIsEditing,
+  onToggleEdit,
   currentDateLabel,
   isHistoryMode = false,
 }: DumpPanelHeaderProps) {
@@ -48,7 +48,7 @@ export const DumpPanelHeader = React.memo(function DumpPanelHeader({
         )}
         <button
           type="button"
-          onClick={() => setIsEditing(!isEditing)}
+          onClick={onToggleEdit}
           className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
             isDarkMode
               ? 'border-white/10 bg-[#05070c] text-slate-200 hover:border-white/30'

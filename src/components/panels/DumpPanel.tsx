@@ -15,7 +15,7 @@ interface DumpPanelProps {
   appendTimestampToLine: (line: string) => string;
   markdownComponents: Components;
   currentDateLabel?: string;
-  setIsEditing: (value: boolean) => void;
+  onToggleEdit: () => void;
   isSaving: boolean;
   isHistoryMode?: boolean;
 }
@@ -30,7 +30,7 @@ export const DumpPanel = React.memo(function DumpPanel({
   appendTimestampToLine,
   markdownComponents,
   currentDateLabel,
-  setIsEditing,
+  onToggleEdit,
   isSaving,
   isHistoryMode = false,
 }: DumpPanelProps) {
@@ -46,7 +46,7 @@ export const DumpPanel = React.memo(function DumpPanel({
         isDarkMode={isDarkMode}
         isSaving={isSaving}
         isEditing={isEditing}
-        setIsEditing={setIsEditing}
+        onToggleEdit={onToggleEdit}
         currentDateLabel={currentDateLabel}
         isHistoryMode={isHistoryMode}
       />
