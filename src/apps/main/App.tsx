@@ -310,62 +310,6 @@ export default function App() {
         return;
       }
 
-      // 편집 토글 / 편집 중이면 현재 줄 타임스탬프 후 저장 종료
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'e') {
-        event.preventDefault();
-        event.stopPropagation();
-
-        // 히스토리를 보고 있으면 편집 불가
-        if (currentHistoryDate) {
-          toast.error('히스토리는 읽기 전용입니다.');
-          return;
-        }
-
-        if (isEditing) {
-          const el = editorRef.current;
-          const start = el ? el.selectionStart : editingContent.length;
-          const end = el ? el.selectionEnd : start;
-          const before = editingContent.slice(0, start);
-          const after = editingContent.slice(end);
-          const lineStart = before.lastIndexOf('\n') + 1;
-          const currentLine = before.slice(lineStart);
-
-          const stampedLine = appendTimestampToLine(currentLine);
-          const newContent =
-            editingContent.slice(0, lineStart) + stampedLine + after;
-
-          void (async () => {
-            try {
-              setIsSaving(true);
-              if (newContent !== editingContent) {
-                setEditingContent(newContent);
-              }
-
-              // ✅ 변경: Active Document 사용
-              const { saveActiveDocument } = useDocumentStore.getState();
-              const result = await saveActiveDocument(newContent);
-
-              if (!result.success) {
-                throw new Error(result.error);
-              }
-
-              lastSavedRef.current = newContent;
-              await loadMarkdown();
-            } catch (error) {
-              if (import.meta.env.DEV)
-                console.error('[hoego] Cmd+E 저장 실패:', error);
-            } finally {
-              setIsSaving(false);
-              setIsEditing(false);
-            }
-          })();
-        } else {
-          setEditingContent(markdownContent);
-          setIsEditing(true);
-        }
-        return;
-      }
-
       // ESC: 편집 중이면 편집 종료, 아니면 창 숨김
       if (event.key === 'Escape') {
         event.preventDefault();
