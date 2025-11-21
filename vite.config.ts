@@ -13,9 +13,16 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       input: {
         main: path.resolve(rootDir, "index.html"),
+      },
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          markdown: ["react-markdown", "remark-gfm", "rehype-raw", "rehype-katex"],
+        },
       },
     },
   },
