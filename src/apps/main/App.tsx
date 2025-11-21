@@ -8,6 +8,7 @@ import {
   Footer,
   Sidebar,
 } from '@/components/layout';
+import { UpdateDialog } from '@/components/UpdateDialog';
 import { DumpPanel } from '@/components/panels';
 import {
   useTheme,
@@ -317,6 +318,8 @@ export default function App() {
             },
           }}
         />
+
+        <UpdateDialog />
       </div>
 
       {/* Floating Mini Bar - positioned at bottom */}

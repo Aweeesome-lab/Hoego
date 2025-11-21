@@ -2,119 +2,107 @@
 /**
  * Build script for Hoego
  *
- * Workaround for Tauri bundler issue where it looks for "hoego.rs" instead of "hoego"
- * This script creates symlinks before running the Tauri build.
- * Also handles DMG conversion if bundle_dmg.sh fails.
+ * Handles:
+ * 1. Symlink workaround for Tauri bundler (hoego.rs -> hoego)
+ * 2. DMG conversion from read-write to compressed format
  */
 
 import { execSync } from 'child_process';
-import { existsSync, symlinkSync, unlinkSync } from 'fs';
+import { existsSync, symlinkSync, unlinkSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
+const macosBundle = join(rootDir, 'src-tauri/target/release/bundle/macos');
 
-// Paths for debug and release binaries
-const debugBinary = join(rootDir, 'src-tauri/target/debug/hoego');
-const debugSymlink = join(rootDir, 'src-tauri/target/debug/hoego.rs');
-const releaseBinary = join(rootDir, 'src-tauri/target/release/hoego');
-const releaseSymlink = join(rootDir, 'src-tauri/target/release/hoego.rs');
+// Binary paths
+const BINARIES = [
+  {
+    binary: join(rootDir, 'src-tauri/target/debug/hoego'),
+    symlink: join(rootDir, 'src-tauri/target/debug/hoego.rs'),
+  },
+  {
+    binary: join(rootDir, 'src-tauri/target/release/hoego'),
+    symlink: join(rootDir, 'src-tauri/target/release/hoego.rs'),
+  },
+];
 
 /**
- * Create symlink if binary exists and symlink doesn't
+ * Create symlink for Tauri bundler workaround
  */
-function createSymlink(binary, symlink) {
-  if (existsSync(binary)) {
-    // Remove old symlink if it exists
-    if (existsSync(symlink)) {
-      try {
-        unlinkSync(symlink);
-      } catch (_err) {
-        console.warn(
-          `Warning: Could not remove old symlink ${symlink}:`,
-          _err.message
-        );
-      }
-    }
+function createSymlink({ binary, symlink }) {
+  if (!existsSync(binary)) return;
 
-    try {
-      symlinkSync(binary, symlink);
-      console.log(`✓ Created symlink: ${symlink} -> ${binary}`);
-    } catch (_err) {
-      console.error(`Error creating symlink ${symlink}:`, _err.message);
-    }
+  try {
+    if (existsSync(symlink)) unlinkSync(symlink);
+    symlinkSync(binary, symlink);
+    console.log(`✓ Symlink: ${symlink.split('/').pop()}`);
+  } catch (err) {
+    console.warn(`⚠ Symlink failed: ${err.message}`);
   }
 }
 
 /**
- * Monitor for binary creation and create symlinks
+ * Convert read-write DMG to compressed format
  */
-function setupSymlinks() {
-  // Create symlinks for existing binaries
-  createSymlink(debugBinary, debugSymlink);
-  createSymlink(releaseBinary, releaseSymlink);
+function convertDmg() {
+  if (!existsSync(macosBundle)) {
+    console.log('ℹ No macos bundle found, skipping DMG conversion.');
+    return;
+  }
+
+  const files = readdirSync(macosBundle);
+  const rwDmg = files.find((f) => f.startsWith('rw.') && f.endsWith('.dmg'));
+
+  if (!rwDmg) {
+    console.log('ℹ No read-write DMG found.');
+    return;
+  }
+
+  const rwPath = join(macosBundle, rwDmg);
+  const finalPath = join(macosBundle, rwDmg.replace('rw.', ''));
+
+  // Remove existing final DMG if exists
+  if (existsSync(finalPath)) {
+    console.log(`🗑 Removing existing: ${rwDmg.replace('rw.', '')}`);
+    unlinkSync(finalPath);
+  }
+
+  console.log(`📦 Converting: ${rwDmg} → ${rwDmg.replace('rw.', '')}`);
+
+  try {
+    execSync(`hdiutil convert "${rwPath}" -format UDZO -o "${finalPath}"`, {
+      stdio: 'inherit',
+    });
+    console.log('✓ DMG conversion completed!');
+
+    // Clean up rw DMG
+    unlinkSync(rwPath);
+    console.log('✓ Cleaned up temporary DMG.');
+  } catch (err) {
+    console.warn(`⚠ DMG conversion failed: ${err.message}`);
+  }
 }
 
-// Setup initial symlinks
-setupSymlinks();
-
-// Run the actual Tauri build
+// === Main ===
 console.log('\n🔨 Building Hoego...\n');
 
-// Attempt to build
+// Setup symlinks
+BINARIES.forEach(createSymlink);
+
+// Run Tauri build
 try {
-  execSync('tauri build', {
-    stdio: 'inherit',
-    cwd: rootDir,
-  });
+  execSync('tauri build', { stdio: 'inherit', cwd: rootDir });
   console.log('\n✅ Tauri build completed!\n');
 } catch (_err) {
-  console.warn(
-    '\n⚠ Tauri build encountered an issue, checking for DMG files...\n'
-  );
+  console.warn('\n⚠ Tauri build had issues, attempting DMG recovery...\n');
 }
 
-// Create symlinks again after build (in case they're needed for bundling)
-setupSymlinks();
+// Post-build symlinks
+BINARIES.forEach(createSymlink);
 
-// Convert read-write DMG to compressed DMG
-console.log('\n📦 Converting DMG to compressed format...\n');
-const macosBundle = join(rootDir, 'src-tauri/target/release/bundle/macos');
-const rwDmgPattern = 'rw.Hoego_*.dmg';
+// Convert DMG
+convertDmg();
 
-try {
-  // Find rw.Hoego DMG files
-  const files = execSync(
-    `find "${macosBundle}" -name "${rwDmgPattern}" 2>/dev/null || true`,
-    {
-      encoding: 'utf8',
-      cwd: rootDir,
-    }
-  ).trim();
-
-  if (files) {
-    const rwDmgPath = files.split('\n')[0];
-    const finalDmgPath = rwDmgPath.replace('rw.', '');
-
-    console.log(`Converting: ${rwDmgPath}`);
-    console.log(`       to: ${finalDmgPath}`);
-
-    execSync(
-      `hdiutil convert "${rwDmgPath}" -format UDZO -o "${finalDmgPath}"`,
-      {
-        stdio: 'inherit',
-        cwd: rootDir,
-      }
-    );
-
-    console.log('✓ DMG conversion completed successfully!');
-  } else {
-    console.log('ℹ No read-write DMG found, skipping conversion.');
-  }
-} catch (err) {
-  console.warn('⚠ DMG conversion failed (non-critical):', err.message);
-}
-
-console.log('\n✅ Build completed successfully!\n');
+console.log('\n✅ Build completed!\n');
