@@ -155,11 +155,11 @@ export const Sidebar = React.memo(function Sidebar({
       >
         <div
           className={`w-6 h-6 rounded-md flex items-center justify-center ${
-            isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
+            isDarkMode ? 'bg-slate-800' : 'bg-matcha-50'
           }`}
         >
           <span
-            className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}
+            className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-matcha-600'}`}
           >
             H
           </span>
@@ -193,7 +193,7 @@ export const Sidebar = React.memo(function Sidebar({
             isDarkMode ? 'text-slate-500' : 'text-slate-400'
           }`}
         >
-          History
+          기록
         </div>
 
         {/* Year and Month grouped history */}
@@ -202,13 +202,13 @@ export const Sidebar = React.memo(function Sidebar({
             <div
               className={`px-6 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              Loading...
+              불러오는 중...
             </div>
           ) : historyFiles.length === 0 ? (
             <div
               className={`px-6 py-2 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              No history yet
+              기록이 아직 없습니다.
             </div>
           ) : (
             <div className="space-y-0.5">

@@ -1,4 +1,4 @@
-import { Maximize2, Copy, Check } from 'lucide-react';
+import { Maximize2, Copy, Check, Send } from 'lucide-react';
 import React from 'react';
 
 import { hideOverlayWindow } from '@/lib/tauri';
@@ -118,21 +118,45 @@ export function MiniHeader({
         )}
       </form>
 
-      {/* 확장 버튼 */}
-      <button
-        type="button"
-        onClick={onExpandClick}
-        className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 ${
-          isDarkMode
-            ? 'border-white/10 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
-            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-        }`}
-        onMouseDown={(e) => e.stopPropagation()}
-        title="전체 화면으로 확장"
-        aria-label="전체 화면으로 확장"
-      >
-        <Maximize2 className="h-3.5 w-3.5" />
-      </button>
+      {/* 버튼 그룹 - 수직 중앙 정렬 */}
+      <div className="flex items-center gap-1.5 self-center">
+        {/* 전송 버튼 */}
+        <button
+          type="button"
+          onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
+          disabled={!inputValue.trim()}
+          className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 ${
+            inputValue.trim()
+              ? isDarkMode
+                ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300'
+                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:text-emerald-700'
+              : isDarkMode
+                ? 'border-white/5 bg-slate-800/30 text-slate-600 cursor-not-allowed'
+                : 'border-slate-200/50 bg-slate-50/50 text-slate-300 cursor-not-allowed'
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title="전송"
+          aria-label="전송"
+        >
+          <Send className="h-3.5 w-3.5" />
+        </button>
+
+        {/* 확장 버튼 */}
+        <button
+          type="button"
+          onClick={onExpandClick}
+          className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0 ${
+            isDarkMode
+              ? 'border-white/10 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
+              : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+          onMouseDown={(e) => e.stopPropagation()}
+          title="전체 화면으로 확장"
+          aria-label="전체 화면으로 확장"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

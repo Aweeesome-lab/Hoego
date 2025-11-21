@@ -24,7 +24,7 @@ const buttonVariants = cva(
         hoego:
           'border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 dark:border-white/10 dark:bg-[#0a0d13]/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-white/5 dark:hover:border-white/20',
         'hoego-active':
-          'border border-slate-300 bg-slate-100 text-slate-700 dark:border-white/20 dark:bg-white/10 dark:text-slate-200',
+          'border border-slate-300 bg-matcha-50 text-matcha-600 dark:border-white/20 dark:bg-white/10 dark:text-slate-200',
       },
       size: {
         default: 'h-10 px-4 py-2',

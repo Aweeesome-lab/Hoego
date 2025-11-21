@@ -99,9 +99,7 @@ export function Header({
   return (
     <div
       className={`relative z-50 flex h-14 shrink-0 items-center gap-3 border-b px-6 ${
-        isDarkMode
-          ? 'border-white/10 bg-[#12151d]/90'
-          : 'border-slate-200/50 bg-slate-50/90'
+        isDarkMode ? 'border-white/10 bg-[#12151d]/90' : 'border-slate-200/50'
       }`}
     >
       {/* Sidebar Toggle Button */}

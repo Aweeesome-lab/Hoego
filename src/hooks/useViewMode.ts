@@ -4,20 +4,31 @@ import type { ViewMode } from '@/types/viewMode';
 
 import { setMiniMode, setExpandedMode } from '@/lib/tauri';
 
+const FIRST_LAUNCH_KEY = 'hoego_has_launched_before';
+
 /**
  * ViewMode 관리 Hook
  * Mini/Expanded 모드 전환 및 상태 관리
  */
 export function useViewMode() {
-  const [viewMode, setViewMode] = useState<ViewMode>('mini');
+  const [viewMode, setViewMode] = useState<ViewMode>('expanded');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // 초기화: 항상 Mini 모드로 시작
+  // 초기화: 최초 실행 시 Expanded, 이후 Mini 모드로 시작
   useEffect(() => {
     const initializeViewMode = async () => {
-      // 항상 Mini 모드로 시작
-      setViewMode('mini');
-      await setMiniMode();
+      const hasLaunchedBefore = localStorage.getItem(FIRST_LAUNCH_KEY);
+
+      if (!hasLaunchedBefore) {
+        // 최초 실행: Expanded 모드로 시작
+        localStorage.setItem(FIRST_LAUNCH_KEY, 'true');
+        setViewMode('expanded');
+        await setExpandedMode();
+      } else {
+        // 이후 실행: Mini 모드로 시작
+        setViewMode('mini');
+        await setMiniMode();
+      }
     };
 
     void initializeViewMode();
