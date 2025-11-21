@@ -16,7 +16,7 @@ export function useRetrospect({ currentHistoryDate }: UseRetrospectOptions) {
     (state) => state.setRetrospectContent
   );
   const setIsSavingRetrospect = useAppStore(
-    (state) => state.isSavingRetrospect
+    (state) => state.setIsSavingRetrospect
   );
 
   // Refs

@@ -46,7 +46,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
     setIsRecording(true);
     setRecordingKeys([]);
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     let keydownListenerRef: ((e: KeyboardEvent) => void) | null = null;
     let keyupListenerRef: ((e: KeyboardEvent) => void) | null = null;
 
@@ -162,9 +162,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
       };
 
       let displayKey: string;
-      if (specialKeys[e.key]) {
-        key = specialKeys[e.key];
-        displayKey = specialKeys[e.key];
+      const specialKey = specialKeys[e.key];
+      if (specialKey) {
+        key = specialKey;
+        displayKey = specialKey;
       } else if (e.key.length === 1) {
         // 일반 문자는 대문자로
         key = e.key.toUpperCase();

@@ -42,7 +42,6 @@ const RetrospectPanel = React.lazy(() =>
 export default function App() {
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [inputValue, setInputValue] = React.useState('');
-  const [currentTime, setCurrentTime] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);
   const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(false);
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
@@ -121,19 +120,6 @@ export default function App() {
   );
 
 
-  // Update current time
-  React.useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Load markdown on mount
   React.useEffect(() => {
@@ -495,6 +481,11 @@ export default function App() {
 
   const handleHistoryFileClick = React.useCallback(
     (file: (typeof historyFiles)[0]) => {
+      // 같은 날짜면 다시 로드하지 않음
+      if (currentHistoryDate === file.date) {
+        return;
+      }
+
       void (async () => {
         try {
           // 편집 중이면 먼저 저장
@@ -534,7 +525,7 @@ export default function App() {
         }
       })();
     },
-    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving]
+    [currentHistoryDate, setMarkdownContent, setEditingContent, isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving]
   );
 
   // Cleanup streaming on unmount
@@ -656,7 +647,6 @@ export default function App() {
             currentDateLabel={currentHistoryDate ?? undefined}
             onToggleEdit={handleToggleEdit}
             isSaving={isSaving}
-            isHistoryMode={!!currentHistoryDate}
           />
 
           <React.Suspense fallback={<div className="flex flex-1" />}>

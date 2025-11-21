@@ -17,7 +17,6 @@ interface DumpPanelProps {
   currentDateLabel?: string;
   onToggleEdit: () => void;
   isSaving: boolean;
-  isHistoryMode?: boolean;
 }
 
 export const DumpPanel = React.memo(function DumpPanel({
@@ -32,7 +31,6 @@ export const DumpPanel = React.memo(function DumpPanel({
   currentDateLabel,
   onToggleEdit,
   isSaving,
-  isHistoryMode = false,
 }: DumpPanelProps) {
   return (
     <section
@@ -48,7 +46,6 @@ export const DumpPanel = React.memo(function DumpPanel({
         isEditing={isEditing}
         onToggleEdit={onToggleEdit}
         currentDateLabel={currentDateLabel}
-        isHistoryMode={isHistoryMode}
       />
       <DumpContentArea
         isDarkMode={isDarkMode}

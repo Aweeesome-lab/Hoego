@@ -7,7 +7,6 @@ interface DumpPanelHeaderProps {
   isEditing: boolean;
   onToggleEdit: () => void;
   currentDateLabel?: string;
-  isHistoryMode?: boolean;
 }
 
 export const DumpPanelHeader = React.memo(function DumpPanelHeader({
@@ -16,7 +15,6 @@ export const DumpPanelHeader = React.memo(function DumpPanelHeader({
   isEditing,
   onToggleEdit,
   currentDateLabel,
-  isHistoryMode = false,
 }: DumpPanelHeaderProps) {
   return (
     <div className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>

@@ -86,7 +86,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
       if (!cloudModelsByProvider[model.provider]) {
         cloudModelsByProvider[model.provider] = [];
       }
-      cloudModelsByProvider[model.provider].push(model);
+      cloudModelsByProvider[model.provider]!.push(model);
     }
   });
 

@@ -3,7 +3,6 @@ import {
   Moon,
   Sun,
   MonitorSmartphone,
-  NotebookPen,
   Settings,
   Brain,
   Cloud,
@@ -12,7 +11,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { GeneralSettings } from './components/GeneralSettings';
-import { RetrospectiveTemplateSettings } from './components/RetrospectiveTemplateSettings';
 import { LLMSettings } from './components/LLMSettings';
 import { CloudLLMSettings } from './components/CloudLLMSettings';
 // import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
