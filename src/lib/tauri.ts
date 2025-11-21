@@ -115,10 +115,6 @@ export const setMiniMode = async () => {
   try {
     const { width, height } = VIEW_MODE_CONFIG.mini;
 
-    if (import.meta.env.DEV) {
-      console.log('[hoego] Setting mini mode:', { width, height });
-    }
-
     // 1. 현재 모니터 정보 먼저 가져오기
     const monitor = await currentMonitor();
     if (!monitor) {
@@ -146,15 +142,6 @@ export const setMiniMode = async () => {
     // 5. 하단 Y 좌표 계산 (하단에서 40px 여백)
     const bottomMargin = 40;
     const posYLogical = originYLogical + heightLogical - height - bottomMargin;
-
-    if (import.meta.env.DEV) {
-      console.log('[hoego] Mini mode position calculation:', {
-        monitor: { width: monitorSize.width, height: monitorSize.height },
-        scaleFactor,
-        logical: { width: widthLogical, height: heightLogical },
-        position: { x: Math.round(posXLogical), y: Math.round(posYLogical) },
-      });
-    }
 
     // 6. 크기와 위치를 동시에 설정
     await Promise.all([
@@ -202,10 +189,6 @@ export const setExpandedMode = async () => {
   try {
     const { width, height } = VIEW_MODE_CONFIG.expanded;
 
-    if (import.meta.env.DEV) {
-      console.log('[hoego] Setting expanded mode:', { width, height });
-    }
-
     // 1. 현재 모니터 정보 먼저 가져오기
     const monitor = await currentMonitor();
     if (!monitor) {
@@ -232,15 +215,6 @@ export const setExpandedMode = async () => {
 
     const posXLogical = centerXLogical - width / 2.0;
     const posYLogical = centerYLogical - height / 2.0;
-
-    if (import.meta.env.DEV) {
-      console.log('[hoego] Expanded mode position calculation:', {
-        monitor: { width: monitorSize.width, height: monitorSize.height },
-        scaleFactor,
-        logical: { width: widthLogical, height: heightLogical },
-        position: { x: Math.round(posXLogical), y: Math.round(posYLogical) },
-      });
-    }
 
     // 5. 크기와 위치를 동시에 설정
     await Promise.all([
