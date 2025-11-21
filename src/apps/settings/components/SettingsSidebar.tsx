@@ -1,6 +1,5 @@
 import {
   Brain,
-  Cloud,
   Settings,
   Info,
   Sun,
@@ -24,10 +23,10 @@ interface SettingsSidebarProps {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  { id: 'models', label: '로컬 모델', icon: Brain },
   // TODO: Beta 테스트 후 클라우드 LLM 활성화
   // { id: 'cloud', label: '클라우드 LLM', icon: Cloud },
   { id: 'general', label: '일반', icon: Settings },
+  { id: 'models', label: '로컬 모델', icon: Brain },
   { id: 'about', label: '정보', icon: Info },
 ];
 
@@ -150,6 +149,29 @@ export function SettingsSidebar({
             <span>시스템</span>
           </button>
         </div>
+      </div>
+
+      {/* Support */}
+      <div className="p-4 space-y-2">
+        <div
+          className={`text-[10px] font-semibold uppercase tracking-[0.2em] mb-2 ${
+            isDarkMode ? 'text-slate-500' : 'text-slate-400'
+          }`}
+        >
+          문의
+        </div>
+        <a
+          href="https://www.threads.com/@nerd_makr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`w-full flex items-center px-3 py-2 rounded-md text-[12px] transition ${
+            isDarkMode
+              ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          @nerd_makr
+        </a>
       </div>
     </div>
   );
