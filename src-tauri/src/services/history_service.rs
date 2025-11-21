@@ -116,10 +116,11 @@ pub fn collect_history(state: &HistoryState) -> Result<HistoryOverview, String> 
                 // Extract date key (remove .md from filename)
                 let date = filename.trim_end_matches(".md").to_string();
 
-                // Generate date label based on filename
-                let title = parse_date_key(&date)
-                    .map(|dt| format_date_label(&dt))
-                    .unwrap_or_else(|_| date.clone());
+                // Skip files that don't match YYYYMMDD format
+                let title = match parse_date_key(&date) {
+                    Ok(dt) => format_date_label(&dt),
+                    Err(_) => return None, // Skip invalid date format files
+                };
 
                 // Extract preview (first list item)
                 let content = fs::read_to_string(&path).ok()?;
