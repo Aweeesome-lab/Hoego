@@ -240,8 +240,8 @@ src-tauri/src/
 
 **TypeScript:**
 ```yaml
-컴포넌트: kebab-case.tsx
-  예: dump-panel.tsx, file-item.tsx
+컴포넌트: PascalCase.tsx
+  예: DumpPanel.tsx, FileItem.tsx
 
 Hooks: useXxx.ts
   예: useHistory.ts, useCloudLLM.ts
@@ -301,7 +301,7 @@ export function DumpPanel() { ... }
 // 약어 처리
 // - 타입명: AI, LLM, PII (대문자)
 // - 변수명: aiService, llmConfig (camelCase)
-// - 파일명: ai-panel.tsx (kebab-case)
+// - 파일명: AIPanel.tsx (PascalCase + Abbreviation Uppercase)
 ```
 
 ### Tauri Commands

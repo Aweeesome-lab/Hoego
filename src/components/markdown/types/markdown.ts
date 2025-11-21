@@ -36,6 +36,8 @@ export interface MarkdownPreviewProps extends MarkdownRendererProps {
   editorRef?: React.RefObject<HTMLTextAreaElement>;
   /** Enter 키 핸들러 (타임스탬프 추가 등) */
   onEnterKey?: (currentLine: string) => string;
+  /** 프리뷰 컨테이너 ref */
+  previewRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**

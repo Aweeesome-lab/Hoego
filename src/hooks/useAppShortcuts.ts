@@ -6,7 +6,7 @@ import { hideOverlayWindow } from '@/lib/tauri';
 
 interface UseAppShortcutsProps {
   toggleSidebar: () => void;
-  setIsAiPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsFeedbackPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   setIsRetrospectPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
@@ -23,7 +23,7 @@ interface UseAppShortcutsProps {
 
 export const useAppShortcuts = ({
   toggleSidebar,
-  setIsAiPanelExpanded,
+  setIsFeedbackPanelExpanded,
   setIsRetrospectPanelExpanded,
   isEditing,
   setIsEditing,
@@ -47,11 +47,11 @@ export const useAppShortcuts = ({
         return;
       }
 
-      // 패널 토글: Cmd/Ctrl + 2 for AI panel
+      // 패널 토글: Cmd/Ctrl + 2 for Feedback panel
       if ((event.metaKey || event.ctrlKey) && event.key === '2') {
         event.preventDefault();
         event.stopPropagation();
-        setIsAiPanelExpanded((prev) => !prev);
+        setIsFeedbackPanelExpanded((prev) => !prev);
         return;
       }
 
@@ -138,7 +138,7 @@ export const useAppShortcuts = ({
     return () => window.removeEventListener('keydown', handleKey);
   }, [
     toggleSidebar,
-    setIsAiPanelExpanded,
+    setIsFeedbackPanelExpanded,
     setIsRetrospectPanelExpanded,
     isEditing,
     setIsEditing,

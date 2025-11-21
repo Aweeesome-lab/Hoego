@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { isValidElement, useMemo } from 'react';
 
 import {
   HeadingRenderer,
@@ -101,8 +101,12 @@ export function useMarkdownComponents({
       ul: ({ children }) => {
         // Task list 감지
         const childArray = Array.isArray(children) ? children : [children];
-        const isTaskList = childArray.some((child: any) => {
-          return child?.props?.node?.checked !== undefined;
+        const isTaskList = childArray.some((child) => {
+          if (isValidElement(child)) {
+            const props = child.props as { node?: { checked?: boolean } };
+            return props.node?.checked !== undefined;
+          }
+          return false;
         });
 
         return (

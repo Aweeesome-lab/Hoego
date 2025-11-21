@@ -195,7 +195,7 @@ interface AiSlice {
    * AI 패널 확장 상태 변경
    * @param isExpanded - 확장 여부 또는 상태 변경 함수
    */
-  setIsAiPanelExpanded: (
+  setIsFeedbackPanelExpanded: (
     isExpanded: boolean | ((prev: boolean) => boolean)
   ) => void;
 
@@ -494,6 +494,7 @@ export const useAppStore = create<AppStore>()(
       pipelineStage: 'idle',
       streamingAiText: '',
       isAiPanelExpanded: false,
+      isFeedbackPanelExpanded: false,
       piiMaskingStats: null,
       setAiSummaries: (summaries) => set({ aiSummaries: summaries }),
       setSelectedSummaryIndex: (index) => set({ selectedSummaryIndex: index }),
@@ -502,11 +503,11 @@ export const useAppStore = create<AppStore>()(
         set({ isGeneratingAiFeedback: isGenerating }),
       setPipelineStage: (stage) => set({ pipelineStage: stage }),
       setStreamingAiText: (text) => set({ streamingAiText: text }),
-      setIsAiPanelExpanded: (isExpanded) =>
+      setIsFeedbackPanelExpanded: (isExpanded) =>
         set((state) => ({
-          isAiPanelExpanded:
+          isFeedbackPanelExpanded:
             typeof isExpanded === 'function'
-              ? isExpanded(state.isAiPanelExpanded)
+              ? isExpanded(state.isFeedbackPanelExpanded)
               : isExpanded,
         })),
       setPiiMaskingStats: (stats) => set({ piiMaskingStats: stats }),

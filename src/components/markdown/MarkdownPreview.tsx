@@ -29,6 +29,7 @@ export function MarkdownPreview({
   onTaskToggle,
   className = '',
   isSaving = false,
+  previewRef,
 }: MarkdownPreviewProps) {
   // 편집 모드
   if (isEditing) {
@@ -45,20 +46,24 @@ export function MarkdownPreview({
             const textBeforeCursor = content.slice(0, cursorPosition);
             const textAfterCursor = content.slice(cursorPosition);
 
-            // 현재 줄 추출
-            const lines = textBeforeCursor.split('\n');
-            const currentLine = lines[lines.length - 1] ?? '';
+            // 현재 줄의 시작 위치 찾기
+            const lineStart = textBeforeCursor.lastIndexOf('\n') + 1;
+            const currentLine = textBeforeCursor.slice(lineStart);
 
             // Enter 키 핸들러 호출하여 타임스탬프 추가된 줄 받기
             const processedLine = onEnterKey(currentLine);
 
-            // 콘텐츠 업데이트
-            const newContent = `${textBeforeCursor}\n${processedLine}${textAfterCursor}`;
+            // 콘텐츠 업데이트: 현재 줄을 processedLine으로 교체하고 개행 추가
+            const newContent = `${content.slice(
+              0,
+              lineStart
+            )}${processedLine}\n${textAfterCursor}`;
+
             onContentChange?.(newContent);
 
             // 커서 위치 업데이트 (다음 프레임에서)
             setTimeout(() => {
-              const newCursorPos = cursorPosition + 1 + processedLine.length;
+              const newCursorPos = lineStart + processedLine.length + 1; // +1 for newline
               textarea.setSelectionRange(newCursorPos, newCursorPos);
             }, 0);
           }
@@ -77,6 +82,7 @@ export function MarkdownPreview({
   // 프리뷰 모드
   return (
     <div
+      ref={previewRef}
       className={`w-full h-full overflow-y-auto p-4 ${
         isDarkMode ? 'bg-slate-900' : 'bg-white'
       } ${className}`}

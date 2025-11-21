@@ -81,8 +81,8 @@ interface HeaderProps {
 }
 
 export function Header({
-  isAiPanelExpanded,
-  setIsAiPanelExpanded,
+  isFeedbackPanelExpanded,
+  setIsFeedbackPanelExpanded,
   isRetrospectPanelExpanded,
   setIsRetrospectPanelExpanded,
   handleManualSync,
@@ -123,9 +123,9 @@ export function Header({
       <div className="flex-1" />
       <button
         type="button"
-        onClick={() => setIsAiPanelExpanded((prev) => !prev)}
+        onClick={() => setIsFeedbackPanelExpanded((prev) => !prev)}
         className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-          isAiPanelExpanded
+          isFeedbackPanelExpanded
             ? isDarkMode
               ? 'border-white/20 bg-white/10 text-slate-200'
               : 'border-slate-300 bg-slate-100 text-slate-700'
@@ -135,7 +135,9 @@ export function Header({
         }`}
         onMouseDown={(e) => e.stopPropagation()}
         title={
-          isAiPanelExpanded ? '정리하기 패널 접기' : '정리하기 패널 펼치기'
+          isFeedbackPanelExpanded
+            ? '정리하기 패널 접기'
+            : '정리하기 패널 펼치기'
         }
       >
         <Brain className="h-4 w-4" />

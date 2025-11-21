@@ -46,14 +46,15 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
     setIsRecording(true);
     setRecordingKeys([]);
 
-    let timeoutId: ReturnType<typeof setTimeout>;
+    // eslint-disable-next-line prefer-const
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let keydownListenerRef: ((e: KeyboardEvent) => void) | null = null;
     let keyupListenerRef: ((e: KeyboardEvent) => void) | null = null;
 
     const cleanup = () => {
       setIsRecording(false);
       setRecordingKeys([]);
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
       if (keydownListenerRef) {
         document.removeEventListener('keydown', keydownListenerRef);
         keydownListenerRef = null;
@@ -272,9 +273,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
     };
 
     keydownListenerRef = handleKeyDown;
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     keyupListenerRef = handleKeyUp;
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('keydown', (e) => void handleKeyDown(e));
+    document.addEventListener('keyup', (e) => void handleKeyUp(e));
 
     // 10초 후 자동 취소
     timeoutId = setTimeout(() => {
@@ -324,7 +326,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
 
   const handleReset = async () => {
     if (
-      !confirm('모든 설정을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')
+      // eslint-disable-next-line no-alert
+      !window.confirm(
+        '모든 설정을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
+      )
     ) {
       return;
     }
@@ -536,7 +541,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
               }`}
             />
             <button
-              onClick={handleSelectDirectory}
+              onClick={() => void handleSelectDirectory()}
               disabled={isSaving}
               className={`px-4 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 isDarkMode
@@ -547,7 +552,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
               변경
             </button>
             <button
-              onClick={handleSavePath}
+              onClick={() => void handleSavePath()}
               disabled={isSaving}
               className={`px-4 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 isDarkMode
@@ -587,7 +592,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
             </p>
           </div>
           <button
-            onClick={handleReset}
+            onClick={() => void handleReset()}
             disabled={isSaving}
             className={`px-4 py-2 rounded-lg text-[12px] font-medium transition-all ${
               isDarkMode

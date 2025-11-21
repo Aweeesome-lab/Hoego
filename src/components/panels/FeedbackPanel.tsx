@@ -1,45 +1,41 @@
 import { Sparkles, Loader2, Shield, Square } from 'lucide-react';
 import React from 'react';
-import remarkGfm from 'remark-gfm';
 
 import type { AiSummaryEntry } from '@/lib/tauri';
 import type { PipelineStage } from '@/store';
-import type { Components } from 'react-markdown';
 
 import { Response } from '@/components/ai/response';
 import { ThinkingIndicator } from '@/components/ai/thinking';
-import { MemoizedReactMarkdown } from '@/components/markdown';
+import { MarkdownRenderer } from '@/components/markdown';
 import { ModelSelector } from '@/components/ModelSelector';
 import { useAppStore } from '@/store';
 
-interface AiPanelProps {
+interface FeedbackPanelProps {
   isDarkMode: boolean;
-  isAiPanelExpanded: boolean;
+  isFeedbackPanelExpanded: boolean;
   isPipelineRunning: boolean;
   pipelineStage: PipelineStage;
   streamingAiText: string;
   summariesError: string | null;
   aiSummaries: AiSummaryEntry[];
   selectedSummary: AiSummaryEntry | null;
-  markdownComponents: Components;
   // Unified pipeline handler
   handleRunPipeline: () => void;
   handleCancelPipeline: () => void;
 }
 
-export const AiPanel = React.memo(function AiPanel({
+export const FeedbackPanel = React.memo(function FeedbackPanel({
   isDarkMode,
-  isAiPanelExpanded,
+  isFeedbackPanelExpanded,
   isPipelineRunning,
   pipelineStage,
   streamingAiText,
   summariesError,
   aiSummaries,
   selectedSummary,
-  markdownComponents,
   handleRunPipeline,
   handleCancelPipeline,
-}: AiPanelProps) {
+}: FeedbackPanelProps) {
   // Get PII masking stats from store (실시간 생성 중)
   const piiMaskingStats = useAppStore((state) => state.piiMaskingStats);
 
@@ -53,7 +49,7 @@ export const AiPanel = React.memo(function AiPanel({
       ? { piiDetected: selectedSummaryPiiMasked }
       : null;
 
-  if (!isAiPanelExpanded) return null;
+  if (!isFeedbackPanelExpanded) return null;
 
   // Get button label based on pipeline stage
   const getButtonLabel = () => {
@@ -153,12 +149,10 @@ export const AiPanel = React.memo(function AiPanel({
           {isPipelineRunning ? (
             <Response isDarkMode={isDarkMode}>
               {streamingAiText ? (
-                <MemoizedReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={markdownComponents}
-                >
-                  {streamingAiText}
-                </MemoizedReactMarkdown>
+                <MarkdownRenderer
+                  content={streamingAiText}
+                  isDarkMode={isDarkMode}
+                />
               ) : (
                 <ThinkingIndicator isDarkMode={isDarkMode} />
               )}
@@ -183,12 +177,12 @@ export const AiPanel = React.memo(function AiPanel({
             </Response>
           ) : (
             <Response isDarkMode={isDarkMode}>
-              <MemoizedReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={markdownComponents}
-              >
-                {selectedSummary?.content?.trim() || '요약 내용이 없습니다.'}
-              </MemoizedReactMarkdown>
+              <MarkdownRenderer
+                content={
+                  selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
+                }
+                isDarkMode={isDarkMode}
+              />
             </Response>
           )}
         </div>

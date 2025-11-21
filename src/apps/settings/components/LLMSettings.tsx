@@ -235,7 +235,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
           <div className="flex gap-2 pt-2">
             {localModel ? (
               <button
-                onClick={handleDelete}
+                onClick={() => void handleDelete()}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition ${
                   isDarkMode
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
@@ -260,7 +260,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
               </div>
             ) : (
               <button
-                onClick={handleDownload}
+                onClick={() => void handleDownload()}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition ${
                   isDarkMode
                     ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'

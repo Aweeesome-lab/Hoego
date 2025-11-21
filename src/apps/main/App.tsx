@@ -9,7 +9,6 @@ import {
   Footer,
   Sidebar,
 } from '@/components/layout';
-import { useMarkdownComponents } from '@/components/markdown';
 import { DumpPanel } from '@/components/panels';
 import {
   useTheme,
@@ -30,8 +29,10 @@ import { openSettingsWindow } from '@/services/settingsService';
 import { useDocumentStore } from '@/store/documentStore';
 
 // Code splitting: lazy load panels that are conditionally rendered
-const AiPanel = React.lazy(() =>
-  import('@/components/panels').then((module) => ({ default: module.AiPanel }))
+const FeedbackPanel = React.lazy(() =>
+  import('@/components/panels').then((module) => ({
+    default: module.FeedbackPanel,
+  }))
 );
 const RetrospectPanel = React.lazy(() =>
   import('@/components/panels').then((module) => ({
@@ -43,7 +44,8 @@ export default function App() {
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [inputValue, setInputValue] = React.useState('');
   const [isSyncing, setIsSyncing] = React.useState(false);
-  const [isAiPanelExpanded, setIsAiPanelExpanded] = React.useState(false);
+  const [isFeedbackPanelExpanded, setIsFeedbackPanelExpanded] =
+    React.useState(false);
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
     React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
@@ -107,14 +109,6 @@ export default function App() {
   } = useSidebar();
 
   const { viewMode, switchToExpanded, switchToMini } = useViewMode();
-
-  const markdownComponents = useMarkdownComponents({
-    isDarkMode,
-    isSaving,
-    onTaskToggle: async (position, checked) => {
-      await handleTaskCheckboxToggle({ position }, checked);
-    },
-  });
 
   const selectedSummary = React.useMemo(
     () => aiSummaries[selectedSummaryIndex] ?? null,
@@ -285,7 +279,7 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key === '2') {
         event.preventDefault();
         event.stopPropagation();
-        setIsAiPanelExpanded((prev) => !prev);
+        setIsFeedbackPanelExpanded((prev) => !prev);
         return;
       }
 
@@ -644,8 +638,8 @@ export default function App() {
         } transition-all duration-200`}
       >
         <Header
-          isAiPanelExpanded={isAiPanelExpanded}
-          setIsAiPanelExpanded={setIsAiPanelExpanded}
+          isFeedbackPanelExpanded={isFeedbackPanelExpanded}
+          setIsFeedbackPanelExpanded={setIsFeedbackPanelExpanded}
           isRetrospectPanelExpanded={isRetrospectPanelExpanded}
           setIsRetrospectPanelExpanded={setIsRetrospectPanelExpanded}
           handleManualSync={handleManualSync}
@@ -678,23 +672,24 @@ export default function App() {
             markdownRef={markdownRef}
             editorRef={editorRef}
             appendTimestampToLine={appendTimestampToLine}
-            markdownComponents={markdownComponents}
             currentDateLabel={currentHistoryDate ?? undefined}
             onToggleEdit={handleToggleEdit}
             isSaving={isSaving}
+            onTaskToggle={async (position, checked) => {
+              await handleTaskCheckboxToggle({ position }, checked);
+            }}
           />
 
           <React.Suspense fallback={<div className="flex flex-1" />}>
-            <AiPanel
+            <FeedbackPanel
               isDarkMode={isDarkMode}
-              isAiPanelExpanded={isAiPanelExpanded}
+              isFeedbackPanelExpanded={isFeedbackPanelExpanded}
               isPipelineRunning={isPipelineRunning}
               pipelineStage={pipelineStage}
               streamingAiText={streamingAiText}
               summariesError={summariesError}
               aiSummaries={aiSummaries}
               selectedSummary={selectedSummary}
-              markdownComponents={markdownComponents}
               handleRunPipeline={handlePipelineExecution}
               handleCancelPipeline={handlePipelineCancellation}
             />
@@ -710,7 +705,6 @@ export default function App() {
               isSavingRetrospect={isSavingRetrospect}
               isEditingRetrospect={isEditingRetrospect}
               setIsEditingRetrospect={setIsEditingRetrospect}
-              markdownComponents={markdownComponents}
             />
           </React.Suspense>
         </div>

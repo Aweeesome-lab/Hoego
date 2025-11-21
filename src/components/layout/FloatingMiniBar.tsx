@@ -106,7 +106,7 @@ export function FloatingMiniBar({
           {inputValue.trim() && (
             <button
               type="button"
-              onClick={handleCopy}
+              onClick={() => void handleCopy()}
               className={`absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded transition-all ${
                 isDarkMode
                   ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'

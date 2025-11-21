@@ -1,5 +1,5 @@
-import React from 'react';
 import { Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+import React from 'react';
 
 interface BlockquoteRendererProps {
   children: React.ReactNode;

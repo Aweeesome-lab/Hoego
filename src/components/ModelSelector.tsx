@@ -86,7 +86,10 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
       if (!cloudModelsByProvider[model.provider]) {
         cloudModelsByProvider[model.provider] = [];
       }
-      cloudModelsByProvider[model.provider]!.push(model);
+      const providerModels = cloudModelsByProvider[model.provider];
+      if (providerModels) {
+        providerModels.push(model);
+      }
     }
   });
 
@@ -138,7 +141,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                   <button
                     key={`${option.type}-${option.id}`}
                     onClick={() =>
-                      option.isAvailable && handleSelectModel(option)
+                      option.isAvailable && void handleSelectModel(option)
                     }
                     disabled={!option.isAvailable}
                     className={`w-full flex items-start gap-2 px-3 py-2 text-left transition ${
@@ -194,7 +197,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                   <button
                     key={`${option.type}-${option.id}-${option.provider}`}
                     onClick={() =>
-                      option.isAvailable && handleSelectModel(option)
+                      option.isAvailable && void handleSelectModel(option)
                     }
                     disabled={!option.isAvailable}
                     className={`w-full flex items-start gap-2 px-3 py-2 text-left transition ${
