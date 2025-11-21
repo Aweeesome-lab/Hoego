@@ -1,4 +1,4 @@
-use time::{OffsetDateTime, Weekday};
+use time::{Date, OffsetDateTime, Weekday};
 use time::macros::format_description;
 use std::path::PathBuf;
 
@@ -83,6 +83,17 @@ pub fn short_day_code(date: &OffsetDateTime) -> String {
 pub fn format_date_key(date: &OffsetDateTime) -> Result<String, String> {
     date.format(&format_description!("[year][month][day]"))
         .map_err(|error| error.to_string())
+}
+
+/// 날짜 키를 파싱합니다 (예: "20240101" -> OffsetDateTime)
+pub fn parse_date_key(date_key: &str) -> Result<OffsetDateTime, String> {
+    // YYYYMMDD 형식 파싱
+    let date = Date::parse(date_key, &format_description!("[year][month][day]"))
+        .map_err(|error| format!("날짜 파싱 실패: {}", error))?;
+
+    // OffsetDateTime으로 변환 (자정 시간, UTC)
+    let datetime = date.midnight().assume_utc();
+    Ok(datetime)
 }
 
 /// 시간 레이블을 포맷합니다 (예: "14:30:45")

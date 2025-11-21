@@ -159,22 +159,26 @@ fn collect_history(state: &HistoryState) -> Result<HistoryOverview, String> {
                     return None;
                 }
                 let filename = entry.file_name().to_string_lossy().into_owned();
+
+                // 날짜 키 추출 (파일명에서 .md 제거)
+                let date = filename.trim_end_matches(".md").to_string();
+
+                // 파일명 기반 날짜 레이블 생성
+                let title = parse_date_key(&date)
+                    .map(|dt| format_date_label(&dt))
+                    .unwrap_or_else(|_| date.clone());
+
+                // 미리보기 추출 (첫 번째 리스트 항목)
                 let content = fs::read_to_string(&path).ok()?;
                 let lines: Vec<&str> = content.lines().collect();
-                let title = lines
-                    .iter()
-                    .find(|line| line.starts_with('#'))
-                    .map(|line| line.trim_start_matches('#').trim())
-                    .unwrap_or(&filename);
                 let preview = lines
                     .iter()
                     .find(|line| line.starts_with("- "))
                     .map(|line| line.trim_start_matches("- ").trim().to_string());
 
-                let date = filename.trim_end_matches(".md").to_string();
                 Some(HistoryFileInfo {
                     date,
-                    title: title.to_string(),
+                    title,
                     preview,
                     filename,
                     path: path.to_string_lossy().into_owned(),
