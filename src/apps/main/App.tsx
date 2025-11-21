@@ -23,7 +23,6 @@ import {
   hideOverlayWindow,
   appendHistoryEntry,
   onHistoryUpdated,
-  saveHistoryMarkdown,
   saveMiniModePosition,
 } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
@@ -48,7 +47,6 @@ export default function App() {
   const [isRetrospectPanelExpanded, setIsRetrospectPanelExpanded] =
     React.useState(false);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
-  const historyDebounceIdRef = React.useRef<number | null>(null);
 
   // 현재 보고 있는 히스토리 정보
   const [currentHistoryDate, setCurrentHistoryDate] = React.useState<
@@ -76,7 +74,6 @@ export default function App() {
     loadMarkdown,
     appendTimestampToLine,
     handleTaskCheckboxToggle,
-    saveTodayMarkdown,
   } = useMarkdown();
 
   const {
@@ -153,41 +150,6 @@ export default function App() {
       void loadHistoryFiles();
     }
   }, [isSidebarOpen, loadHistoryFiles]);
-
-  // 히스토리 편집 시 자동 저장
-  React.useEffect(() => {
-    if (!currentHistoryDate || !markdownContent) return;
-
-    // 해당 날짜의 파일 경로 찾기
-    const historyFile = historyFiles.find(f => f.date === currentHistoryDate);
-    if (!historyFile) return;
-
-    if (historyDebounceIdRef.current) {
-      clearTimeout(historyDebounceIdRef.current);
-    }
-
-    historyDebounceIdRef.current = window.setTimeout(() => {
-      void (async () => {
-        try {
-          setIsSaving(true);
-          await saveHistoryMarkdown(historyFile.path, markdownContent);
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('[hoego] 히스토리 저장 실패:', error);
-          }
-          toast.error('히스토리 저장에 실패했습니다.');
-        } finally {
-          setIsSaving(false);
-        }
-      })();
-    }, 600);
-
-    return () => {
-      if (historyDebounceIdRef.current) {
-        clearTimeout(historyDebounceIdRef.current);
-      }
-    };
-  }, [currentHistoryDate, markdownContent, historyFiles, setIsSaving]);
 
   // Initialize Cloud LLM provider on mount
   React.useEffect(() => {
@@ -434,7 +396,6 @@ export default function App() {
     setIsEditing,
     setIsSaving,
     lastSavedRef,
-    saveTodayMarkdown,
     editorRef,
     currentHistoryDate,
   ]);

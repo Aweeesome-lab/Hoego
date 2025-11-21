@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 import type { Point, Position } from 'unist';
 
-import { getTodayMarkdown, saveTodayMarkdown } from '@/lib/tauri';
+import { getTodayMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
 import { useDocumentStore } from '@/store/documentStore';
 
@@ -333,7 +333,6 @@ export function useMarkdown() {
     loadMarkdown,
     appendTimestampToLine,
     handleTaskCheckboxToggle,
-    saveTodayMarkdown,
     handleManualSync,
   };
 }
