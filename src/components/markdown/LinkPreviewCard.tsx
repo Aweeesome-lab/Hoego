@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ExternalLink } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/tauri';
+import { ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import type { LinkMetadata } from '../../types/tauri-commands';
 
 interface LinkPreviewCardProps {

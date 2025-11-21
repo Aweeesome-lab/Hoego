@@ -12,7 +12,6 @@ export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
           ? 'border-white/10 bg-[#12151d]/90'
           : 'border-slate-200/50 bg-slate-50/90'
       }`}
-    >
-    </div>
+    ></div>
   );
 });

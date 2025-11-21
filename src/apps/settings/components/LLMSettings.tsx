@@ -160,7 +160,8 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
     );
   }
 
-  const isDownloading = downloadProgress && downloadProgress.status === 'downloading';
+  const isDownloading =
+    downloadProgress && downloadProgress.status === 'downloading';
 
   return (
     <div className="space-y-6">

@@ -137,7 +137,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                 {localModels.map((option) => (
                   <button
                     key={`${option.type}-${option.id}`}
-                    onClick={() => option.isAvailable && handleSelectModel(option)}
+                    onClick={() =>
+                      option.isAvailable && handleSelectModel(option)
+                    }
                     disabled={!option.isAvailable}
                     className={`w-full flex items-start gap-2 px-3 py-2 text-left transition ${
                       option.id === selectedModel.modelId &&
@@ -175,64 +177,62 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
             )}
 
             {/* Cloud Models Section */}
-            {Object.entries(cloudModelsByProvider).map(
-              ([provider, models]) => (
-                <div key={provider}>
-                  <div
-                    className={`px-3 py-2 text-[10px] font-semibold uppercase tracking-wider ${
-                      isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                    } ${localModels.length > 0 ? 'border-t border-white/10' : ''}`}
-                  >
-                    {provider === 'openai'
-                      ? 'OpenAI'
-                      : provider === 'gemini'
-                        ? 'Google Gemini'
-                        : provider}
-                  </div>
-                  {models.map((option) => (
-                    <button
-                      key={`${option.type}-${option.id}-${option.provider}`}
-                      onClick={() =>
-                        option.isAvailable && handleSelectModel(option)
-                      }
-                      disabled={!option.isAvailable}
-                      className={`w-full flex items-start gap-2 px-3 py-2 text-left transition ${
-                        option.id === selectedModel.modelId &&
-                        option.type === selectedModel.type &&
-                        option.provider === selectedModel.provider
-                          ? isDarkMode
-                            ? 'bg-blue-500/20 text-blue-300'
-                            : 'bg-blue-50 text-blue-700'
-                          : isDarkMode
-                            ? 'text-slate-300 hover:bg-white/5'
-                            : 'text-slate-700 hover:bg-slate-50'
-                      } ${!option.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <Cloud className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[12px] font-medium truncate">
-                            {option.displayName}
-                          </span>
-                          {option.id === selectedModel.modelId &&
-                            option.type === selectedModel.type &&
-                            option.provider === selectedModel.provider && (
-                              <Check className="h-3 w-3 flex-shrink-0" />
-                            )}
-                        </div>
-                        <div
-                          className={`text-[10px] ${
-                            isDarkMode ? 'text-slate-500' : 'text-slate-500'
-                          }`}
-                        >
-                          {option.description}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+            {Object.entries(cloudModelsByProvider).map(([provider, models]) => (
+              <div key={provider}>
+                <div
+                  className={`px-3 py-2 text-[10px] font-semibold uppercase tracking-wider ${
+                    isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                  } ${localModels.length > 0 ? 'border-t border-white/10' : ''}`}
+                >
+                  {provider === 'openai'
+                    ? 'OpenAI'
+                    : provider === 'gemini'
+                      ? 'Google Gemini'
+                      : provider}
                 </div>
-              )
-            )}
+                {models.map((option) => (
+                  <button
+                    key={`${option.type}-${option.id}-${option.provider}`}
+                    onClick={() =>
+                      option.isAvailable && handleSelectModel(option)
+                    }
+                    disabled={!option.isAvailable}
+                    className={`w-full flex items-start gap-2 px-3 py-2 text-left transition ${
+                      option.id === selectedModel.modelId &&
+                      option.type === selectedModel.type &&
+                      option.provider === selectedModel.provider
+                        ? isDarkMode
+                          ? 'bg-blue-500/20 text-blue-300'
+                          : 'bg-blue-50 text-blue-700'
+                        : isDarkMode
+                          ? 'text-slate-300 hover:bg-white/5'
+                          : 'text-slate-700 hover:bg-slate-50'
+                    } ${!option.isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Cloud className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[12px] font-medium truncate">
+                          {option.displayName}
+                        </span>
+                        {option.id === selectedModel.modelId &&
+                          option.type === selectedModel.type &&
+                          option.provider === selectedModel.provider && (
+                            <Check className="h-3 w-3 flex-shrink-0" />
+                          )}
+                      </div>
+                      <div
+                        className={`text-[10px] ${
+                          isDarkMode ? 'text-slate-500' : 'text-slate-500'
+                        }`}
+                      >
+                        {option.description}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ))}
 
             {/* Empty State */}
             {modelOptions.length === 0 && !loading && (

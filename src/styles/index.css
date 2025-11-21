@@ -55,6 +55,28 @@
   }
 }
 
+@layer components {
+  /* Override prose list item spacing for consistent line height */
+  .prose ul li,
+  .prose ol li {
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+  }
+  .prose ul > li:first-child,
+  .prose ol > li:first-child {
+    margin-top: 0 !important;
+  }
+  .prose ul ul,
+  .prose ul ol,
+  .prose ol ul,
+  .prose ol ol {
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+    padding-left: 1.25rem !important;
+  }
+}
+
 @layer utilities {
   .bg-overlay {
     background-image: linear-gradient(
@@ -74,5 +96,42 @@
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Task list checkbox - override prose styles */
+  .prose ul li.task-list-item,
+  .prose ol li.task-list-item,
+  ul li:has(> [data-state]),
+  ol li:has(> [data-state]),
+  .prose li:has(> button[role="checkbox"]) {
+    list-style: none !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .prose ul:has(li:has(> button[role="checkbox"])),
+  .prose ol:has(li:has(> button[role="checkbox"])) {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  /* Checkbox animations */
+  .animate-in {
+    animation: animate-in 150ms ease-out;
+  }
+
+  .zoom-in-50 {
+    --tw-enter-scale: 0.5;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: scale(var(--tw-enter-scale, 1));
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }

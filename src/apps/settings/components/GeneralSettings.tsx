@@ -1,7 +1,7 @@
+import { dialog } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/tauri';
 import { FolderOpen, Keyboard } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/tauri';
-import { dialog } from '@tauri-apps/api';
 
 import type { AppSettings } from '@/types/tauri-commands';
 
@@ -64,7 +64,11 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
       }
     };
 
-    let lastCombination: { modifiers: string[]; key: string; display: string[] } | null = null;
+    let lastCombination: {
+      modifiers: string[];
+      key: string;
+      display: string[];
+    } | null = null;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault();
@@ -108,11 +112,14 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
         setRecordingKeys(keys);
 
         // 수정키 조합이 2개 이상이면 저장 가능
-        lastCombination = keys.length >= 2 ? {
-          modifiers,
-          key: '',
-          display: keys
-        } : null;
+        lastCombination =
+          keys.length >= 2
+            ? {
+                modifiers,
+                key: '',
+                display: keys,
+              }
+            : null;
 
         return;
       }
@@ -135,7 +142,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
 
       // 수정키가 없으면 무시 (최소 1개의 수정키 필요)
       if (modifiers.length === 0) {
-        showMessage('error', '최소 1개의 수정키(Cmd/Ctrl, Alt, Shift)가 필요합니다');
+        showMessage(
+          'error',
+          '최소 1개의 수정키(Cmd/Ctrl, Alt, Shift)가 필요합니다'
+        );
         cleanup();
         return;
       }
@@ -146,19 +156,19 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
       // 특수 키 처리
       const specialKeys: Record<string, string> = {
         ' ': 'Space',
-        'ArrowUp': 'Up',
-        'ArrowDown': 'Down',
-        'ArrowLeft': 'Left',
-        'ArrowRight': 'Right',
-        'Enter': 'Return',
-        'Backspace': 'Backspace',
-        'Delete': 'Delete',
-        'Tab': 'Tab',
-        'Insert': 'Insert',
-        'Home': 'Home',
-        'End': 'End',
-        'PageUp': 'PageUp',
-        'PageDown': 'PageDown',
+        ArrowUp: 'Up',
+        ArrowDown: 'Down',
+        ArrowLeft: 'Left',
+        ArrowRight: 'Right',
+        Enter: 'Return',
+        Backspace: 'Backspace',
+        Delete: 'Delete',
+        Tab: 'Tab',
+        Insert: 'Insert',
+        Home: 'Home',
+        End: 'End',
+        PageUp: 'PageUp',
+        PageDown: 'PageDown',
       };
 
       let displayKey: string;
@@ -229,7 +239,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
             timeoutPromise,
           ]);
           setSettings({ ...settings, quickNoteShortcut: shortcut });
-          showMessage('success', `단축키가 ${shortcut}로 저장 및 적용되었습니다`);
+          showMessage(
+            'success',
+            `단축키가 ${shortcut}로 저장 및 적용되었습니다`
+          );
         } catch (error) {
           console.error('단축키 저장 실패:', error);
           const errorMessage =
@@ -240,7 +253,11 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
               'error',
               '저장 시간이 초과되었습니다. 앱을 재시작하고 다시 시도해주세요.'
             );
-          } else if (errorMessage.includes('등록할 수 없습니다') || errorMessage.includes('이미') || errorMessage.includes('사용 중')) {
+          } else if (
+            errorMessage.includes('등록할 수 없습니다') ||
+            errorMessage.includes('이미') ||
+            errorMessage.includes('사용 중')
+          ) {
             showMessage(
               'error',
               `${shortcut}은(는) 이미 사용 중입니다. 다른 단축키를 시도해보세요.`
@@ -277,7 +294,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
 
       if (selected && typeof selected === 'string') {
         setSettings({ ...settings, documentsPath: selected });
-        showMessage('success', '폴더가 선택되었습니다. 저장 버튼을 눌러주세요.');
+        showMessage(
+          'success',
+          '폴더가 선택되었습니다. 저장 버튼을 눌러주세요.'
+        );
       }
     } catch (error) {
       console.error('디렉토리 선택 실패:', error);
@@ -304,9 +324,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
 
   const handleReset = async () => {
     if (
-      !confirm(
-        '모든 설정을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
-      )
+      !confirm('모든 설정을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')
     ) {
       return;
     }
@@ -462,7 +480,10 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
                   키 조합: Cmd+M, Cmd+Ctrl+Space, Shift+Alt+K
                 </p>
                 <p className="text-[10px]">
-                  <kbd className="px-1 py-0.5 bg-slate-700 text-slate-200 rounded text-[10px]">ESC</kbd> 키로 취소
+                  <kbd className="px-1 py-0.5 bg-slate-700 text-slate-200 rounded text-[10px]">
+                    ESC
+                  </kbd>{' '}
+                  키로 취소
                 </p>
               </div>
             </div>

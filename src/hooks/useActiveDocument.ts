@@ -1,11 +1,9 @@
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 
-import {
-  useDocumentStore,
-  documentSelectors,
-} from '@/store/documentStore';
 import type { SaveResult } from '@/types/document';
+
+import { useDocumentStore, documentSelectors } from '@/store/documentStore';
 
 /**
  * Hook for managing the active document

@@ -17,7 +17,9 @@ export const DumpPanelHeader = React.memo(function DumpPanelHeader({
   currentDateLabel,
 }: DumpPanelHeaderProps) {
   return (
-    <div className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
+    <div
+      className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}
+    >
       <div className="flex items-center gap-2">
         <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
           쏟아내기(dump)

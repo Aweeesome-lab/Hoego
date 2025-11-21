@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 
-import { useAppStore } from '@/store';
 import { getRetrospectMarkdown, saveRetrospectMarkdown } from '@/lib/tauri';
+import { useAppStore } from '@/store';
 
 interface UseRetrospectOptions {
   currentHistoryDate: string | null;

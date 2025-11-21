@@ -60,9 +60,7 @@ export function MiniHeader({
   return (
     <div
       className={`flex items-center gap-2.5 px-3 h-full backdrop-blur-md border-0 transition-all ${
-        isDarkMode
-          ? 'bg-slate-900/95'
-          : 'bg-white/95'
+        isDarkMode ? 'bg-slate-900/95' : 'bg-white/95'
       }`}
       data-tauri-drag-region
     >

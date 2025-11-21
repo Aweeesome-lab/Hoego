@@ -2,11 +2,15 @@ import * as Checkbox from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {
+  oneDark,
+  oneLight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+import { LinkPreviewCard } from './LinkPreviewCard';
 
 import type { ListItem } from 'mdast';
 import type { Components } from 'react-markdown';
-import { LinkPreviewCard } from './LinkPreviewCard';
 
 interface UseMarkdownComponentsProps {
   isDarkMode: boolean;
@@ -85,59 +89,90 @@ export function useMarkdownComponents({
           {children}
         </h6>
       ),
-      ul: ({ children, ...props }) => (
-        <ul
-          {...props}
-          className="mb-2 ml-5 list-disc text-[13px] leading-normal break-words marker:text-slate-400"
-        >
-          {children}
-        </ul>
-      ),
+      ul: ({ children, node, ...props }) => {
+        // Check if this is a task list (contains task list items)
+        const nodeChildren = (node as unknown as { children?: ListItem[] })
+          ?.children;
+        const isTaskList =
+          Array.isArray(nodeChildren) &&
+          nodeChildren.some((child) => typeof child?.checked === 'boolean');
+        return (
+          <ul
+            {...props}
+            className={
+              isTaskList
+                ? 'mb-2 ml-0 list-none text-[13px] leading-relaxed break-words space-y-1'
+                : 'mb-2 ml-5 list-disc text-[13px] leading-relaxed break-words marker:text-slate-400 space-y-1'
+            }
+            style={{ marginTop: 0, paddingLeft: 0 }}
+          >
+            {children}
+          </ul>
+        );
+      },
       ol: ({ children, ...props }) => (
         <ol
           {...props}
           className="mb-2 ml-5 list-decimal text-[13px] leading-normal break-words marker:text-slate-400"
+          style={{ marginTop: 0 }}
         >
           {children}
         </ol>
       ),
       li: ({ node, children, ...props }) => {
         const listItem = node as unknown as ListItem | undefined;
+        const liStyle = { marginTop: '2px', marginBottom: '2px' };
+
+        // Task list item (has checkbox)
         if (typeof listItem?.checked === 'boolean') {
+          const isChecked = Boolean(listItem.checked);
+
           return (
             <li
               {...props}
-              className="!list-none !-ml-5 flex items-start gap-2 leading-normal text-[13px] break-words"
+              className="task-list-item !list-none !ml-0 !pl-0 flex items-start gap-2.5 leading-relaxed text-[13px] break-words transition-opacity duration-150"
+              style={{ ...liStyle, listStyle: 'none', paddingLeft: 0 }}
               onMouseDown={(e) => e.stopPropagation()}
             >
               <Checkbox.Root
-                className={`mt-[3px] flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition cursor-pointer ${
+                className={`mt-[3px] flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all duration-200 cursor-pointer ${
                   isDarkMode
-                    ? 'border-white/30 bg-white/5 data-[state=checked]:border-emerald-400 data-[state=checked]:bg-emerald-500/30'
-                    : 'border-slate-300 bg-white data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-100'
-                } ${isSaving ? 'opacity-60' : 'hover:border-emerald-400'}`}
-                checked={Boolean(listItem.checked)}
+                    ? 'border-slate-500 bg-slate-800/60 data-[state=checked]:border-emerald-400 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/25'
+                    : 'border-slate-300 bg-white shadow-sm data-[state=checked]:border-emerald-500 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/20'
+                } ${
+                  isSaving
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:border-emerald-400 hover:scale-105 active:scale-95 data-[state=checked]:hover:shadow-emerald-500/40'
+                }`}
+                checked={isChecked}
                 disabled={isSaving}
                 onCheckedChange={(value) => {
-                  const next = value === true;
-                  if (next !== Boolean(listItem.checked)) {
-                    void handleTaskCheckboxToggle(listItem, next);
+                  const nextChecked = value === true;
+                  if (nextChecked !== isChecked && !isSaving) {
+                    void handleTaskCheckboxToggle(listItem, nextChecked);
                   }
                 }}
-                aria-label="작업 완료 여부"
+                onClick={(e) => {
+                  // Prevent double-triggering
+                  e.stopPropagation();
+                }}
+                aria-label={isChecked ? '작업 완료됨' : '작업 미완료'}
+                aria-checked={isChecked}
               >
-                <Checkbox.Indicator>
+                <Checkbox.Indicator className="animate-in zoom-in-75 duration-150">
                   <Check
-                    className={`h-3 w-3 ${
-                      isDarkMode ? 'text-emerald-300' : 'text-emerald-600'
-                    }`}
+                    className="h-3.5 w-3.5 text-white drop-shadow-sm"
                     strokeWidth={3}
                   />
                 </Checkbox.Indicator>
               </Checkbox.Root>
               <span
-                className={`flex-1 select-text break-words ${
-                  listItem.checked ? 'text-slate-400 line-through' : ''
+                className={`flex-1 select-text break-words transition-all duration-200 ${
+                  isChecked
+                    ? `line-through decoration-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`
+                    : isDarkMode
+                      ? 'text-slate-200'
+                      : 'text-slate-700'
                 }`}
               >
                 {children}
@@ -145,8 +180,14 @@ export function useMarkdownComponents({
             </li>
           );
         }
+
+        // Regular list item
         return (
-          <li {...props} className="leading-normal text-[13px] break-words">
+          <li
+            {...props}
+            className="leading-relaxed text-[13px] break-words"
+            style={liStyle}
+          >
             {children}
           </li>
         );
@@ -220,7 +261,8 @@ export function useMarkdownComponents({
             }}
             codeTagProps={{
               style: {
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
               },
             }}
           >
@@ -241,7 +283,8 @@ export function useMarkdownComponents({
         };
 
         const fullText = extractText(children);
-        let calloutType: 'note' | 'warning' | 'tip' | 'info' | 'default' = 'default';
+        let calloutType: 'note' | 'warning' | 'tip' | 'info' | 'default' =
+          'default';
 
         if (/^Note:/i.test(fullText)) calloutType = 'note';
         else if (/^Warning:/i.test(fullText)) calloutType = 'warning';

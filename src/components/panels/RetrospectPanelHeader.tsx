@@ -15,7 +15,9 @@ export const RetrospectPanelHeader = React.memo(function RetrospectPanelHeader({
   setIsEditing,
 }: RetrospectPanelHeaderProps) {
   return (
-    <div className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
+    <div
+      className={`flex h-14 items-center justify-between border-b px-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}
+    >
       <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
         회고하기(retrospect)
       </span>

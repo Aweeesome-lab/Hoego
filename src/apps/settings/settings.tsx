@@ -10,9 +10,9 @@ import {
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
+import { CloudLLMSettings } from './components/CloudLLMSettings';
 import { GeneralSettings } from './components/GeneralSettings';
 import { LLMSettings } from './components/LLMSettings';
-import { CloudLLMSettings } from './components/CloudLLMSettings';
 // import { WeeklyDashboard } from './components/WeeklyDashboard'; // MVP Phase 0: 숨김
 import '@/styles/index.css';
 

@@ -148,7 +148,9 @@ export const Sidebar = React.memo(function Sidebar({
       } border-r ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}
     >
       {/* 헤더 */}
-      <div className={`flex h-14 shrink-0 items-center gap-2 px-6 border-b ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
+      <div
+        className={`flex h-14 shrink-0 items-center gap-2 px-6 border-b ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}
+      >
         <div
           className={`w-6 h-6 rounded-md flex items-center justify-center ${
             isDarkMode ? 'bg-slate-800' : 'bg-slate-100'
@@ -302,7 +304,9 @@ export const Sidebar = React.memo(function Sidebar({
       </div>
 
       {/* Settings 버튼 (하단 고정) */}
-      <div className={`flex h-14 shrink-0 items-center border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}>
+      <div
+        className={`flex h-14 shrink-0 items-center border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200/50'}`}
+      >
         <button
           type="button"
           onClick={onSettingsClick}

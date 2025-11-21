@@ -111,15 +111,15 @@ export default function App() {
   const markdownComponents = useMarkdownComponents({
     isDarkMode,
     isSaving,
-    handleTaskCheckboxToggle,
+    onTaskToggle: async (position, checked) => {
+      await handleTaskCheckboxToggle({ position }, checked);
+    },
   });
 
   const selectedSummary = React.useMemo(
     () => aiSummaries[selectedSummaryIndex] ?? null,
     [aiSummaries, selectedSummaryIndex]
   );
-
-
 
   // Load markdown on mount
   React.useEffect(() => {
@@ -381,7 +381,14 @@ export default function App() {
         setIsSyncing(false);
       }
     })();
-  }, [isSyncing, loadMarkdown, loadAiSummaries, currentHistoryDate, setMarkdownContent, setEditingContent]);
+  }, [
+    isSyncing,
+    loadMarkdown,
+    loadAiSummaries,
+    currentHistoryDate,
+    setMarkdownContent,
+    setEditingContent,
+  ]);
 
   const handlePipelineExecution = React.useCallback(() => {
     void (async () => {
@@ -434,7 +441,15 @@ export default function App() {
         toast.error('오늘 문서를 불러오는데 실패했습니다.');
       }
     })();
-  }, [isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving, setMarkdownContent, setEditingContent]);
+  }, [
+    isEditing,
+    setIsEditing,
+    editingContent,
+    lastSavedRef,
+    setIsSaving,
+    setMarkdownContent,
+    setEditingContent,
+  ]);
 
   const handleToggleEdit = React.useCallback(() => {
     if (isEditing) {
@@ -464,7 +479,16 @@ export default function App() {
       setEditingContent(markdownContent);
       setIsEditing(true);
     }
-  }, [isEditing, editingContent, markdownContent, lastSavedRef, setIsSaving, setIsEditing, setMarkdownContent, setEditingContent]);
+  }, [
+    isEditing,
+    editingContent,
+    markdownContent,
+    lastSavedRef,
+    setIsSaving,
+    setIsEditing,
+    setMarkdownContent,
+    setEditingContent,
+  ]);
 
   const handleSettingsClick = React.useCallback(() => {
     void (async () => {
@@ -525,7 +549,16 @@ export default function App() {
         }
       })();
     },
-    [currentHistoryDate, setMarkdownContent, setEditingContent, isEditing, setIsEditing, editingContent, lastSavedRef, setIsSaving]
+    [
+      currentHistoryDate,
+      setMarkdownContent,
+      setEditingContent,
+      isEditing,
+      setIsEditing,
+      editingContent,
+      lastSavedRef,
+      setIsSaving,
+    ]
   );
 
   // Cleanup streaming on unmount
@@ -622,7 +655,9 @@ export default function App() {
           isDarkMode={isDarkMode}
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          switchToMini={switchToMini}
+          switchToMini={() => {
+            void switchToMini();
+          }}
         />
 
         <div

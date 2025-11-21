@@ -15,9 +15,9 @@ export type DocumentType = 'today' | 'history';
  * View mode for the document
  */
 export type ViewMode =
-  | 'today'              // Viewing and editing today's document
-  | 'history-readonly'   // Viewing history in read-only mode
-  | 'history-edit';      // Actively editing a history document
+  | 'today' // Viewing and editing today's document
+  | 'history-readonly' // Viewing history in read-only mode
+  | 'history-edit'; // Actively editing a history document
 
 /**
  * Active Document representation
@@ -130,7 +130,15 @@ export function formatDateLabel(dateKey: string): string {
   const day = dateKey.slice(6, 8);
 
   const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const weekdays = [
+    '일요일',
+    '월요일',
+    '화요일',
+    '수요일',
+    '목요일',
+    '금요일',
+    '토요일',
+  ];
   const weekday = weekdays[date.getDay()];
 
   return `${year}년 ${month}월 ${day}일 ${weekday}`;

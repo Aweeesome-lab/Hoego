@@ -1,14 +1,12 @@
 import { create } from 'zustand';
 
+import type { DocumentState, SaveResult } from '@/types/document';
+
 import {
   getTodayMarkdown,
   saveTodayMarkdown,
   saveHistoryMarkdown,
 } from '@/lib/tauri';
-import type {
-  DocumentState,
-  SaveResult,
-} from '@/types/document';
 import { getCurrentDateKey } from '@/types/document';
 
 /**
@@ -159,7 +157,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       } else if (activeDocument.type === 'history' && activeDocument.filePath) {
         await saveHistoryMarkdown(activeDocument.filePath, contentToSave);
       } else {
-        throw new Error('Invalid document state: missing file path for history document');
+        throw new Error(
+          'Invalid document state: missing file path for history document'
+        );
       }
 
       // Update active document state
@@ -261,14 +261,12 @@ export const documentSelectors = {
   /**
    * Check if the active document is today
    */
-  isToday: (state: DocumentStore) =>
-    state.activeDocument?.type === 'today',
+  isToday: (state: DocumentStore) => state.activeDocument?.type === 'today',
 
   /**
    * Check if the active document is history
    */
-  isHistory: (state: DocumentStore) =>
-    state.activeDocument?.type === 'history',
+  isHistory: (state: DocumentStore) => state.activeDocument?.type === 'history',
 
   /**
    * Check if the active document has unsaved changes

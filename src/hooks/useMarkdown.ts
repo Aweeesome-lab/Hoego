@@ -187,19 +187,39 @@ export function useMarkdown() {
   const handleTaskCheckboxToggle = useCallback(
     async (listItem: { position?: Position | null }, nextChecked: boolean) => {
       if (isSaving) {
+        if (import.meta.env.DEV) {
+          console.warn('[hoego] 저장 중이므로 체크박스 토글 무시');
+        }
         return;
       }
 
       const offsets = resolveOffsets(listItem?.position ?? null);
       if (!offsets) {
+        if (import.meta.env.DEV) {
+          console.warn('[hoego] 체크박스 위치를 찾을 수 없습니다');
+        }
+        toast.error('체크박스 위치를 찾을 수 없습니다');
         return;
       }
 
       const previousContent = markdownContent;
       const { startOffset, endOffset } = offsets;
       const slice = previousContent.slice(startOffset, endOffset);
+
+      // Improved regex to match all checkbox formats: [ ], [x], [X]
+      const checkboxRegex = /\[(\s|x|X)\]/;
+      const match = slice.match(checkboxRegex);
+
+      if (!match) {
+        if (import.meta.env.DEV) {
+          console.warn('[hoego] 체크박스 마크다운을 찾을 수 없습니다:', slice);
+        }
+        return;
+      }
+
+      // Replace with the appropriate checkbox state
       const updatedSlice = slice.replace(
-        /\[( |x|X)\]/,
+        checkboxRegex,
         nextChecked ? '[x]' : '[ ]'
       );
 
@@ -216,6 +236,7 @@ export function useMarkdown() {
         return;
       }
 
+      // Optimistic update: Update UI immediately
       setMarkdownContent(nextContent);
 
       try {
@@ -229,12 +250,19 @@ export function useMarkdown() {
         }
 
         lastSavedRef.current = nextContent;
+
+        // if (import.meta.env.DEV) {
+        //   console.log('[hoego] 체크박스 상태 저장 성공:', nextChecked);
+        // }
       } catch (error) {
+        // Revert on error
         setMarkdownContent(previousContent);
         lastSavedRef.current = previousContent;
+
         if (import.meta.env.DEV) {
           console.error('[hoego] 체크박스 상태 저장 실패:', error);
         }
+
         toast.error(
           `체크박스 업데이트 실패: ${
             error instanceof Error ? error.message : String(error)
@@ -262,7 +290,13 @@ export function useMarkdown() {
       setMarkdownContent(editingContent);
     }
     prevIsEditingRef.current = isEditing;
-  }, [isEditing, markdownContent, editingContent, setEditingContent, setMarkdownContent]);
+  }, [
+    isEditing,
+    markdownContent,
+    editingContent,
+    setEditingContent,
+    setMarkdownContent,
+  ]);
 
   // 편집 중 자동 저장 (디바운스)
   useEffect(() => {

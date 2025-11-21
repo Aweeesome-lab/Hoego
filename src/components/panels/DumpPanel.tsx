@@ -1,9 +1,9 @@
 import React from 'react';
 
-import type { Components } from 'react-markdown';
-
-import { DumpPanelHeader } from './DumpPanelHeader';
 import { DumpContentArea } from './DumpContentArea';
+import { DumpPanelHeader } from './DumpPanelHeader';
+
+import type { Components } from 'react-markdown';
 
 interface DumpPanelProps {
   isDarkMode: boolean;
