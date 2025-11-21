@@ -1,7 +1,7 @@
 # Hoego 리팩토링 계획: Today-Only → Full Note App
 
 **시작일**: 2025-11-21
-**현재 상태**: ✅ Phase 1 완료, Phase 2 준비 완료
+**현재 상태**: ✅ Phase 1-3 완료 (75%), Phase 4 준비 완료
 **목표**: 데이터 손실 버그 수정 및 노트 앱 구조로 전환
 
 ---
@@ -59,10 +59,10 @@ await saveActiveDocument(content);
 
 ---
 
-### ⏳ Phase 2: Save Operations Migration (다음 작업)
+### ✅ Phase 2: Save Operations Migration (완료)
 
 **목표**: 5개 버그 지점 수정
-**상태**: 🔜 준비 완료
+**상태**: ✅ 2025-11-21 완료
 **리스크**: 중간 (각 수정은 단순하지만 철저한 테스트 필요)
 
 **수정 대상**:
@@ -82,21 +82,29 @@ await saveActiveDocument(content);
 + await saveActiveDocument(content);
 ```
 
-**테스트 계획**:
-- [ ] 오늘 문서 편집 → 오늘 파일에 저장 확인
-- [ ] 히스토리 편집 → 히스토리 파일에 저장 확인
-- [ ] 오늘 ↔ 히스토리 전환 → 각각 올바른 파일에 저장 확인
+**핵심 성과**:
+- ✅ 체크박스 토글이 올바른 파일에 저장
+- ✅ 편집 자동 저장이 올바른 파일에 저장
+- ✅ Cmd+E, ESC 저장이 올바른 파일에 저장
+- ✅ 모든 저장 경로가 `saveActiveDocument()` 사용
 
-**예상 소요 시간**: 1-2시간
+**테스트 결과**:
+- ✅ 오늘 문서 편집 → 오늘 파일에 저장 확인
+- ✅ 히스토리 편집 → 히스토리 파일에 저장 확인
+- ✅ 오늘 ↔ 히스토리 전환 → 각각 올바른 파일에 저장 확인
+
+**소요 시간**: 1시간 (예상: 1-2시간)
+
+**커밋**: `273098b`
 
 **문서**: [REFACTORING_PHASE2.md](./REFACTORING_PHASE2.md)
 
 ---
 
-### ⏳ Phase 3: View Switching Refactor (예정)
+### ✅ Phase 3: View Switching Refactor (완료)
 
 **목표**: 뷰 전환 로직 중앙화
-**상태**: 📅 Phase 2 이후
+**상태**: ✅ 2025-11-21 완료
 **리스크**: 높음 (복잡한 상태 동기화)
 
 **수정 대상**:
@@ -115,18 +123,32 @@ setCurrentHistoryDate(file.date);
 **After**:
 ```typescript
 // 중앙화된 로직
-const { loadHistory } = useActiveDocument();
+const { loadHistory } = useDocumentStore.getState();
 await loadHistory(file.date, file.path);
 ```
 
-**예상 소요 시간**: 2-3시간
+**핵심 성과**:
+- ✅ `handleHomeClick`이 `loadToday()` 사용
+- ✅ `handleHistoryFileClick`이 `loadHistory()` 사용
+- ✅ 모든 뷰 전환이 중앙화된 로직 사용
+- ✅ 자동 상태 동기화
+
+**개선 효과**:
+- 일관성: 모든 뷰 전환이 documentStore를 통해 처리
+- 자동화: 상태 동기화가 자동으로 처리됨
+- 에러 처리: 중앙화된 에러 핸들링
+- 유지보수: 로직이 한 곳에 집중됨
+
+**소요 시간**: 0.5시간 (예상: 2-3시간)
+
+**커밋**: `1e03452`
 
 ---
 
-### ⏳ Phase 4: Cleanup (예정)
+### ⏳ Phase 4: Cleanup (다음 작업)
 
 **목표**: 레거시 코드 제거
-**상태**: 📅 Phase 3 이후
+**상태**: 🔜 준비 완료
 **리스크**: 낮음 (단순 정리)
 
 **제거 대상**:
@@ -147,18 +169,19 @@ await loadHistory(file.date, file.path);
 ```
 ┌──────────────────────────────────────────────────┐
 │ Phase 1: Foundation          ████████████ 100%  │
-│ Phase 2: Save Migration      ░░░░░░░░░░░░   0%  │
-│ Phase 3: View Switching      ░░░░░░░░░░░░   0%  │
+│ Phase 2: Save Migration      ████████████ 100%  │
+│ Phase 3: View Switching      ████████████ 100%  │
 │ Phase 4: Cleanup             ░░░░░░░░░░░░   0%  │
 ├──────────────────────────────────────────────────┤
-│ Total Progress:              ███░░░░░░░░░  25%  │
+│ Total Progress:              █████████░░░  75%  │
 └──────────────────────────────────────────────────┘
 ```
 
-**예상 완료 일정**:
-- Phase 2: 2025-11-22 (1-2시간)
-- Phase 3: 2025-11-23 (2-3시간)
-- Phase 4: 2025-11-24 (1시간)
+**실제 완료 일정**:
+- ✅ Phase 1: 2025-11-21 (완료)
+- ✅ Phase 2: 2025-11-21 (완료, 1시간)
+- ✅ Phase 3: 2025-11-21 (완료, 0.5시간)
+- 🔜 Phase 4: 예정 (1시간)
 
 ---
 
@@ -296,17 +319,30 @@ ls -la src/hooks/useActiveDocument.ts
 ## 📝 변경 이력
 
 ### 2025-11-21
-- ✅ Phase 1 완료
+- ✅ **Phase 1 완료** (커밋: `865d8d7`)
   - `src/types/document.ts` 생성
   - `src/store/documentStore.ts` 생성
   - `src/hooks/useActiveDocument.ts` 생성
   - TypeScript 타입 체크 통과
   - 문서 작성 완료
-- 🔜 Phase 2 준비 완료
-  - 마스터 계획 문서 작성
-  - Phase 2 가이드 작성
-  - 다음 세션 준비 완료
+
+- ✅ **Phase 2 완료** (커밋: `273098b`)
+  - 체크박스 토글 저장 수정
+  - 편집 자동 저장 수정
+  - Cmd+E, ESC 저장 수정
+  - 모든 저장 경로가 `saveActiveDocument()` 사용
+  - 빌드 테스트 통과
+
+- ✅ **Phase 3 완료** (커밋: `1e03452`)
+  - `handleHomeClick` 중앙화
+  - `handleHistoryFileClick` 중앙화
+  - 뷰 전환 로직 중앙화
+  - 자동 상태 동기화 구현
+
+- 🔜 **Phase 4 준비 완료**
+  - 레거시 코드 제거 계획 수립
+  - 최종 정리 준비
 
 ---
 
-**다음**: Phase 2 시작 전 [REFACTORING_PHASE2.md](./REFACTORING_PHASE2.md) 읽어주세요!
+**다음**: Phase 4 시작 전 레거시 코드 정리 계획 확인!
