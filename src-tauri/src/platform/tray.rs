@@ -8,10 +8,10 @@ use crate::platform::window_manager::{open_settings_window, toggle_overlay};
 
 /// 시스템 트레이를 생성합니다
 pub fn build_tray() -> SystemTray {
-    let toggle_overlay = CustomMenuItem::new("toggle_overlay", "오버레이 열기");
-    let open_history_folder = CustomMenuItem::new("open_history_folder", "히스토리 폴더 열기");
-    let ai_settings = CustomMenuItem::new("ai_settings", "설정");
-    let quit = CustomMenuItem::new("quit", "종료");
+    let toggle_overlay = CustomMenuItem::new("toggle_overlay", "Hoego 열기");
+    let open_history_folder = CustomMenuItem::new("open_history_folder", "기록 폴더 열기");
+    let ai_settings = CustomMenuItem::new("ai_settings", "설정...\t⌘,");
+    let quit = CustomMenuItem::new("quit", "종료\t⌘Q");
 
     let menu = SystemTrayMenu::new()
         .add_item(toggle_overlay)

@@ -1,7 +1,7 @@
 use tauri::{AppHandle, GlobalShortcutManager, Manager};
 
 use crate::models::settings::AppSettingsState;
-use crate::platform::window_manager::toggle_overlay;
+use crate::platform::window_manager::{open_settings_window, toggle_overlay};
 
 /// 단축키가 사용 가능한지 테스트합니다 (충돌 검사)
 #[tauri::command]
@@ -71,11 +71,23 @@ pub fn register_shortcuts(app: &AppHandle) -> Result<(), String> {
     }) {
         Ok(_) => {
             tracing::info!("단축키 등록 성공: {}", shortcut);
-            Ok(())
         }
         Err(error) => {
             tracing::error!("단축키 등록 실패: {}", error);
-            Err(format!("'{}' 단축키를 등록할 수 없습니다. 이미 다른 앱에서 사용 중이거나 시스템 단축키일 수 있습니다", shortcut))
+            return Err(format!("'{}' 단축키를 등록할 수 없습니다. 이미 다른 앱에서 사용 중이거나 시스템 단축키일 수 있습니다", shortcut));
         }
     }
+
+    // 설정 창 단축키 (Cmd+,)
+    let settings_handle = app.clone();
+    if let Err(e) = manager.register("CommandOrControl+,", move || {
+        tracing::debug!("Cmd+, fired - 설정 창 열기");
+        if let Err(error) = open_settings_window(&settings_handle) {
+            tracing::error!("설정 창 열기 실패: {}", error);
+        }
+    }) {
+        tracing::warn!("설정 단축키 등록 실패 (무시됨): {}", e);
+    }
+
+    Ok(())
 }

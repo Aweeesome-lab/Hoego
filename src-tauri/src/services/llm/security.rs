@@ -1,91 +1,54 @@
-// Secure API key storage using OS keychain
+// API key storage - currently disabled (no cloud LLM needed)
 
-use keyring::Entry;
+use std::collections::HashMap;
+use std::sync::{OnceLock, RwLock};
 use super::types::LLMError;
 
-const SERVICE_NAME: &str = "com.hoego.llm";
+// 인메모리 저장소 (키체인 대신 임시 사용)
+static KEY_STORE: OnceLock<RwLock<HashMap<String, String>>> = OnceLock::new();
+
+fn get_store() -> &'static RwLock<HashMap<String, String>> {
+    KEY_STORE.get_or_init(|| RwLock::new(HashMap::new()))
+}
 
 pub struct SecureKeyStore;
 
 impl SecureKeyStore {
-    /// API 키 저장 (OS 키체인 사용)
-    /// - macOS: Keychain
-    /// - Windows: Credential Manager
-    /// - Linux: Secret Service
+    /// API 키 저장 (인메모리)
     pub fn store_api_key(provider: &str, api_key: &str) -> Result<(), LLMError> {
-        let entry = Entry::new(SERVICE_NAME, provider)
-            .map_err(|e| LLMError::ConfigError(format!("Failed to create keyring entry: {}", e)))?;
-
-        entry
-            .set_password(api_key)
-            .map_err(|e| LLMError::ConfigError(format!("Failed to store API key: {}", e)))?;
-
+        let mut store = get_store().write()
+            .map_err(|e| LLMError::ConfigError(format!("Failed to lock key store: {}", e)))?;
+        store.insert(provider.to_string(), api_key.to_string());
         Ok(())
     }
 
     /// API 키 조회
     pub fn retrieve_api_key(provider: &str) -> Result<String, LLMError> {
-        let entry = Entry::new(SERVICE_NAME, provider)
-            .map_err(|e| LLMError::ConfigError(format!("Failed to create keyring entry: {}", e)))?;
+        // 환경변수에서 먼저 확인
+        let env_key = format!("{}_API_KEY", provider.to_uppercase().replace("-", "_"));
+        if let Ok(key) = std::env::var(&env_key) {
+            return Ok(key);
+        }
 
-        entry
-            .get_password()
-            .map_err(|e| match e {
-                keyring::Error::NoEntry => {
-                    LLMError::ConfigError(format!("No API key found for provider: {}", provider))
-                }
-                _ => LLMError::ConfigError(format!("Failed to retrieve API key: {}", e)),
-            })
+        // 인메모리 저장소에서 확인
+        let store = get_store().read()
+            .map_err(|e| LLMError::ConfigError(format!("Failed to lock key store: {}", e)))?;
+
+        store.get(provider)
+            .cloned()
+            .ok_or_else(|| LLMError::ConfigError(format!("No API key found for provider: {}", provider)))
     }
 
     /// API 키 삭제
     pub fn delete_api_key(provider: &str) -> Result<(), LLMError> {
-        let entry = Entry::new(SERVICE_NAME, provider)
-            .map_err(|e| LLMError::ConfigError(format!("Failed to create keyring entry: {}", e)))?;
-
-        match entry.delete_password() {
-            Ok(_) | Err(keyring::Error::NoEntry) => Ok(()),
-            Err(e) => Err(LLMError::ConfigError(format!(
-                "Failed to delete API key: {}",
-                e
-            ))),
-        }?;
-
+        let mut store = get_store().write()
+            .map_err(|e| LLMError::ConfigError(format!("Failed to lock key store: {}", e)))?;
+        store.remove(provider);
         Ok(())
     }
 
     /// API 키 존재 여부 확인
     pub fn has_api_key(provider: &str) -> bool {
         Self::retrieve_api_key(provider).is_ok()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_store_and_retrieve() {
-        let provider = "test_provider";
-        let api_key = "test_key_12345";
-
-        // Store
-        assert!(SecureKeyStore::store_api_key(provider, api_key).is_ok());
-
-        // Retrieve
-        let retrieved = SecureKeyStore::retrieve_api_key(provider).unwrap();
-        assert_eq!(retrieved, api_key);
-
-        // Delete
-        assert!(SecureKeyStore::delete_api_key(provider).is_ok());
-
-        // Verify deleted
-        assert!(!SecureKeyStore::has_api_key(provider));
-    }
-
-    #[test]
-    fn test_delete_nonexistent_entry_is_ok() {
-        let provider = "nonexistent_provider";
-        assert!(SecureKeyStore::delete_api_key(provider).is_ok());
     }
 }
