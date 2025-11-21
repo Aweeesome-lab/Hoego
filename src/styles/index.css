@@ -98,6 +98,33 @@
     scrollbar-width: none; /* Firefox */
   }
 
+  /* Show scrollbar only on hover */
+  .scrollbar-auto {
+    scrollbar-width: none;
+  }
+  .scrollbar-auto::-webkit-scrollbar {
+    width: 6px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .scrollbar-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-auto::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+  }
+  .scrollbar-auto:hover::-webkit-scrollbar {
+    opacity: 1;
+  }
+  .scrollbar-auto:hover::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+  }
+  .scrollbar-auto:hover {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+  }
+
   /* Task list checkbox - override prose styles */
   .prose ul li.task-list-item,
   .prose ol li.task-list-item,

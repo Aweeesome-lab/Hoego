@@ -1,4 +1,3 @@
-import { Brain, Cloud } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import type { ModelOption, SelectedModel } from '@/types/model-selection';
@@ -105,19 +104,15 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
       disabled={loading}
     >
       <SelectTrigger
-        hideChevron
-        className={`h-8 w-8 rounded-full border p-0 shadow-none focus:ring-0 ${
+        className={`h-7 w-auto gap-1 border-none bg-transparent px-2 text-xs shadow-none focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
           isDarkMode
-            ? 'border-white/10 bg-[#0a0d13]/80 text-slate-400 hover:text-slate-200 hover:bg-white/5 hover:border-white/20'
-            : 'border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300'
+            ? 'text-slate-400 hover:text-slate-200'
+            : 'text-slate-500 hover:text-slate-700'
         }`}
-        title={currentOption?.displayName || '모델 선택'}
       >
-        {currentOption?.type === 'local' ? (
-          <Brain className="h-4 w-4" />
-        ) : (
-          <Cloud className="h-4 w-4" />
-        )}
+        <span className="truncate max-w-[100px]">
+          {currentOption?.displayName || '모델'}
+        </span>
       </SelectTrigger>
       <SelectContent
         align="end"

@@ -182,7 +182,7 @@ export const Sidebar = React.memo(function Sidebar({
           }`}
         >
           <Calendar className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-xs font-medium">Today</span>
+          <span className="text-xs font-medium">오늘 기록</span>
         </button>
 
         {/* History 섹션 헤더 */}

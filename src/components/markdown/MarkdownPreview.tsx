@@ -68,9 +68,9 @@ export function MarkdownPreview({
             }, 0);
           }
         }}
-        className={`w-full h-full p-4 font-mono text-sm resize-none focus:outline-none ${
+        className={`w-full h-full font-mono text-sm resize-none focus:outline-none ${
           isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'
-        } ${className}`}
+        } ${className || 'p-4'}`}
         style={{
           lineHeight: '1.6',
           tabSize: 2,
@@ -83,9 +83,9 @@ export function MarkdownPreview({
   return (
     <div
       ref={previewRef}
-      className={`w-full h-full overflow-y-auto p-4 ${
+      className={`w-full h-full overflow-y-auto scrollbar-auto ${
         isDarkMode ? 'bg-slate-900' : 'bg-white'
-      } ${className}`}
+      } ${className || 'p-4'}`}
     >
       <MarkdownRenderer
         content={content}

@@ -49,7 +49,7 @@ export const DumpPanel = React.memo(function DumpPanel({
       >
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
-            쏟아내기(dump)
+            쏟아내기
           </span>
           {currentDateLabel && (
             <span
@@ -85,21 +85,19 @@ export const DumpPanel = React.memo(function DumpPanel({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden px-6 py-4">
-        <div className="relative h-full w-full">
-          <MarkdownPreview
-            content={dumpContent}
-            isEditing={isEditing}
-            onContentChange={setDumpContent}
-            editorRef={editorRef}
-            onEnterKey={appendTimestampToLine}
-            isDarkMode={isDarkMode}
-            previewRef={markdownRef}
-            isSaving={isSaving}
-            onTaskToggle={onTaskToggle}
-            className={isEditing ? 'px-4 py-4' : ''}
-          />
-        </div>
+      <div className="flex-1 overflow-hidden">
+        <MarkdownPreview
+          content={dumpContent}
+          isEditing={isEditing}
+          onContentChange={setDumpContent}
+          editorRef={editorRef}
+          onEnterKey={appendTimestampToLine}
+          isDarkMode={isDarkMode}
+          previewRef={markdownRef}
+          isSaving={isSaving}
+          onTaskToggle={onTaskToggle}
+          className="px-10 py-6"
+        />
       </div>
     </section>
   );

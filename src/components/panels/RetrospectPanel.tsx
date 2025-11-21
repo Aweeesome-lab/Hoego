@@ -40,7 +40,7 @@ export function RetrospectPanel({
         }`}
       >
         <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">
-          회고하기(retrospect)
+          회고하기
         </span>
         <div className="flex items-center gap-2">
           {isSavingRetrospect && (

@@ -79,7 +79,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] flex-shrink-0">
-            정리하기(feedback)
+            정리하기
           </span>
           {/* 개인정보 보호 배지 (개발 모드 전용) */}
           {import.meta.env.DEV && showPiiInfo && (
@@ -144,7 +144,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
         </div>
       </div>
       <div
-        className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 scrollbar-auto"
         style={{ paddingBottom: '120px' }}
       >
         <div className="space-y-4 max-w-full">
