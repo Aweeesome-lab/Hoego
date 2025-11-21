@@ -28,6 +28,7 @@ import {
   saveMiniModePosition,
 } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
+import { useDocumentStore } from '@/store/documentStore';
 
 // Code splitting: lazy load panels that are conditionally rendered
 const AiPanel = React.lazy(() =>
@@ -357,7 +358,15 @@ export default function App() {
               if (newContent !== editingContent) {
                 setEditingContent(newContent);
               }
-              await saveTodayMarkdown(newContent);
+
+              // ✅ 변경: Active Document 사용
+              const { saveActiveDocument } = useDocumentStore.getState();
+              const result = await saveActiveDocument(newContent);
+
+              if (!result.success) {
+                throw new Error(result.error);
+              }
+
               lastSavedRef.current = newContent;
               await loadMarkdown();
             } catch (error) {
@@ -385,7 +394,15 @@ export default function App() {
             void (async () => {
               try {
                 setIsSaving(true);
-                await saveTodayMarkdown(editingContent);
+
+                // ✅ 변경: Active Document 사용
+                const { saveActiveDocument } = useDocumentStore.getState();
+                const result = await saveActiveDocument(editingContent);
+
+                if (!result.success) {
+                  throw new Error(result.error);
+                }
+
                 lastSavedRef.current = editingContent;
                 await loadMarkdown();
               } catch (error) {

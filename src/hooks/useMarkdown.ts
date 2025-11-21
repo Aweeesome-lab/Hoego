@@ -5,6 +5,7 @@ import type { Point, Position } from 'unist';
 
 import { getTodayMarkdown, saveTodayMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
+import { useDocumentStore } from '@/store/documentStore';
 
 // KST(HH:MM:SS) 계산 유틸리티
 function getKstHms() {
@@ -219,7 +220,14 @@ export function useMarkdown() {
 
       try {
         setIsSaving(true);
-        await saveTodayMarkdown(nextContent);
+        // ✅ 변경: Active Document 사용
+        const { saveActiveDocument } = useDocumentStore.getState();
+        const result = await saveActiveDocument(nextContent);
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+
         lastSavedRef.current = nextContent;
       } catch (error) {
         setMarkdownContent(previousContent);
@@ -267,7 +275,14 @@ export function useMarkdown() {
     debounceIdRef.current = window.setTimeout(async () => {
       try {
         setIsSaving(true);
-        await saveTodayMarkdown(editingContent);
+        // ✅ 변경: Active Document 사용
+        const { saveActiveDocument } = useDocumentStore.getState();
+        const result = await saveActiveDocument(editingContent);
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+
         lastSavedRef.current = editingContent;
       } catch (error) {
         if (import.meta.env.DEV)
