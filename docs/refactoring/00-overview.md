@@ -341,7 +341,7 @@ ls -la src/hooks/useActiveDocument.ts
   - 뷰 전환 로직 중앙화
   - 자동 상태 동기화 구현
 
-- ✅ **Phase 4 완료** (커밋: TBD)
+- ✅ **Phase 4 완료** (커밋: `d4f1e07`)
   - 레거시 히스토리 자동 저장 로직 제거
   - `historyDebounceIdRef` 제거
   - `saveHistoryMarkdown` import 제거
