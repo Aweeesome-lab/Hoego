@@ -165,9 +165,9 @@ export const Sidebar = React.memo(function Sidebar({
           </span>
         </div>
         <span
-          className={`text-xs font-medium tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}
+          className={`text-md font-serif font-semibold tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}
         >
-          Hoego
+          HOEGO
         </span>
       </div>
 
