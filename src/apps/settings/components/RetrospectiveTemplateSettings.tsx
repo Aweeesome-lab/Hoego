@@ -296,8 +296,8 @@ export function RetrospectiveTemplateSettings({
             type="submit"
             className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
               isDarkMode
-                ? 'bg-blue-500/20 text-blue-200 hover:bg-blue-500/30'
-                : 'bg-blue-600/10 text-blue-700 hover:bg-blue-600/20'
+                ? 'bg-[#5c8a6c]/20 text-matcha-200 hover:bg-[#5c8a6c]/30'
+                : 'bg-matcha/10 text-matcha-600 hover:bg-matcha/20'
             }`}
           >
             {editingId ? (

@@ -80,8 +80,8 @@ export function SettingsSidebar({
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] transition mb-0.5 ${
                 isActive
                   ? isDarkMode
-                    ? 'bg-blue-500/20 text-blue-400'
-                    : 'bg-blue-50 text-blue-600'
+                    ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                    : 'bg-matcha-50 text-matcha-600'
                   : isDarkMode
                     ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -109,8 +109,8 @@ export function SettingsSidebar({
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-[12px] transition ${
               themeMode === 'light'
                 ? isDarkMode
-                  ? 'bg-blue-500/20 text-blue-400'
-                  : 'bg-blue-50 text-blue-600'
+                  ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                  : 'bg-matcha-50 text-matcha-600'
                 : isDarkMode
                   ? 'text-slate-400 hover:bg-white/5'
                   : 'text-slate-600 hover:bg-slate-50'
@@ -124,8 +124,8 @@ export function SettingsSidebar({
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-[12px] transition ${
               themeMode === 'dark'
                 ? isDarkMode
-                  ? 'bg-blue-500/20 text-blue-400'
-                  : 'bg-blue-50 text-blue-600'
+                  ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                  : 'bg-matcha-50 text-matcha-600'
                 : isDarkMode
                   ? 'text-slate-400 hover:bg-white/5'
                   : 'text-slate-600 hover:bg-slate-50'
@@ -139,8 +139,8 @@ export function SettingsSidebar({
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-[12px] transition ${
               themeMode === 'system'
                 ? isDarkMode
-                  ? 'bg-blue-500/20 text-blue-400'
-                  : 'bg-blue-50 text-blue-600'
+                  ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                  : 'bg-matcha-50 text-matcha-600'
                 : isDarkMode
                   ? 'text-slate-400 hover:bg-white/5'
                   : 'text-slate-600 hover:bg-slate-50'

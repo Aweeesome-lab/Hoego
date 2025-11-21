@@ -377,7 +377,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
         <div className="flex items-start gap-3 mb-4">
           <Keyboard
             className={`h-5 w-5 mt-0.5 ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-600'
+              isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
             }`}
           />
           <div className="flex-1">
@@ -404,8 +404,8 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
             <div
               className={`rounded-lg border p-4 ${
                 isDarkMode
-                  ? 'bg-blue-500/10 border-blue-500/30'
-                  : 'bg-blue-50 border-blue-200'
+                  ? 'bg-[#5c8a6c]/10 border-[#5c8a6c]/30'
+                  : 'bg-matcha-50 border-matcha-200'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -414,8 +414,8 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
                     <kbd
                       className={`px-3 py-2 text-[14px] font-semibold rounded-md shadow-sm ${
                         isDarkMode
-                          ? 'bg-slate-800 text-blue-400 border border-blue-500/30'
-                          : 'bg-white text-blue-600 border border-blue-300'
+                          ? 'bg-slate-800 text-matcha-300 border border-[#5c8a6c]/30'
+                          : 'bg-white text-matcha-600 border border-matcha-300'
                       }`}
                     >
                       {key}
@@ -455,8 +455,8 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                     : 'bg-red-50 text-red-600 border border-red-200'
                   : isDarkMode
-                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
+                    ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30 border border-[#5c8a6c]/30'
+                    : 'bg-matcha-50 text-matcha-600 hover:bg-matcha-100 border border-matcha-200'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isRecording ? '녹화 중...' : isSaving ? '저장 중...' : '변경'}
@@ -507,7 +507,7 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
         <div className="flex items-start gap-3 mb-4">
           <FolderOpen
             className={`h-5 w-5 mt-0.5 ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-600'
+              isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
             }`}
           />
           <div className="flex-1">
@@ -545,8 +545,8 @@ export function GeneralSettings({ isDarkMode }: GeneralSettingsProps) {
               disabled={isSaving}
               className={`px-4 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 isDarkMode
-                  ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200'
+                  ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30 border border-[#5c8a6c]/30'
+                  : 'bg-matcha-50 text-matcha-600 hover:bg-matcha-100 border border-matcha-200'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               변경

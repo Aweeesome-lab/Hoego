@@ -230,8 +230,8 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
                     }}
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-xs font-medium transition ${
                       isDarkMode
-                        ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                        ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30'
+                        : 'bg-matcha text-white hover:bg-matcha-dark'
                     }`}
                   >
                     <Settings className="h-3.5 w-3.5" />
@@ -243,7 +243,7 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2
                     className={`h-8 w-8 animate-spin mb-4 ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                      isDarkMode ? 'text-matcha-300' : 'text-matcha'
                     }`}
                   />
                   <p
@@ -333,8 +333,8 @@ export const NoteSummarizer: React.FC<NoteSummarizerProps> = ({
                       onClick={handleInsert}
                       className={`flex-1 py-2 rounded-md text-xs font-medium transition ${
                         isDarkMode
-                          ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                          ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30'
+                          : 'bg-matcha text-white hover:bg-matcha-dark'
                       }`}
                     >
                       노트에 추가

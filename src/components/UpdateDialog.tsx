@@ -40,7 +40,7 @@ export function UpdateDialog() {
           <button
             onClick={downloadAndInstall}
             disabled={downloading}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-matcha text-white rounded hover:bg-matcha-dark disabled:opacity-50"
           >
             {downloading ? '다운로드 중...' : '지금 업데이트'}
           </button>

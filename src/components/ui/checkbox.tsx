@@ -127,7 +127,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               flex items-center justify-center
               ${
                 isChecked
-                  ? 'bg-blue-600 border-blue-600'
+                  ? 'bg-matcha border-matcha'
                   : 'border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600'
               }
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}

@@ -362,7 +362,7 @@ export function ModelsContent() {
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                           : isInstalled
                             ? 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
-                            : 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30'
+                            : 'bg-[#5c8a6c]/20 text-matcha-300 border border-[#5c8a6c]/30 hover:bg-[#5c8a6c]/30'
                       } disabled:opacity-60`}
                       onClick={() => {
                         void (async () => {
@@ -434,11 +434,11 @@ export function ModelsContent() {
                       {installingEngine && installing === p.id && (
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-xs font-medium text-blue-300">
+                            <span className="text-xs font-medium text-matcha-300">
                               1/2: 엔진 설치 중...
                             </span>
                             {engineProgress && engineProgress.total > 0 && (
-                              <span className="text-xs font-mono text-blue-400">
+                              <span className="text-xs font-mono text-matcha-300">
                                 {Math.floor(
                                   (engineProgress.received /
                                     engineProgress.total) *
@@ -451,7 +451,7 @@ export function ModelsContent() {
                           <div className="relative h-3 w-full overflow-hidden rounded-full bg-white/10">
                             {engineProgress && engineProgress.total > 0 ? (
                               <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-[#5c8a6c] to-[#7aa888] transition-all duration-300"
                                 style={{
                                   width: `${Math.floor(
                                     (engineProgress.received /
@@ -461,7 +461,7 @@ export function ModelsContent() {
                                 }}
                               />
                             ) : (
-                              <div className="h-full w-1/3 bg-gradient-to-r from-blue-500/50 to-cyan-500/50 animate-pulse" />
+                              <div className="h-full w-1/3 bg-gradient-to-r from-[#5c8a6c]/50 to-[#7aa888]/50 animate-pulse" />
                             )}
                           </div>
                           <div className="mt-1 text-[10px] text-slate-400">
@@ -671,14 +671,14 @@ export function ModelsContent() {
             <textarea
               value={testNote}
               onChange={(e) => setTestNote(e.target.value)}
-              className="w-full h-28 resize-none rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
+              className="w-full h-28 resize-none rounded-lg border border-white/10 bg-black/30 p-3 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5c8a6c]/50 focus:border-transparent transition-all"
               placeholder="테스트할 텍스트를 입력하세요..."
             />
             <div className="mt-3 flex items-center gap-3">
               <button
                 className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
                   running && !summarizing
-                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30'
+                    ? 'bg-[#5c8a6c]/20 text-matcha-300 border border-[#5c8a6c]/30 hover:bg-[#5c8a6c]/30'
                     : summarizing
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse'
                       : 'bg-white/5 text-slate-400 border border-white/10 cursor-not-allowed'

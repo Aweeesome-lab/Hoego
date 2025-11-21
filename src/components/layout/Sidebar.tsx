@@ -8,6 +8,7 @@ interface SidebarProps {
   isOpen: boolean;
   historyFiles: HistoryFileInfo[];
   isLoadingHistory: boolean;
+  selectedDate?: string; // YYYYMMDD format
   onToggle: () => void;
   onHomeClick?: () => void;
   onSettingsClick?: () => void;
@@ -52,6 +53,7 @@ export const Sidebar = React.memo(function Sidebar({
   isOpen,
   historyFiles,
   isLoadingHistory,
+  selectedDate,
   onHomeClick,
   onSettingsClick,
   onHistoryFileClick,
@@ -177,8 +179,8 @@ export const Sidebar = React.memo(function Sidebar({
           onClick={onHomeClick}
           className={`w-full flex items-center gap-2 px-6 py-2 mb-1 text-left transition-all duration-150 ${
             isDarkMode
-              ? 'hover:bg-slate-800/60 text-slate-300 hover:text-slate-100'
-              : 'hover:bg-slate-100/80 text-slate-700 hover:text-slate-900'
+              ? 'hover:bg-[#5c8a6c]/15 text-slate-300 hover:text-matcha-300'
+              : 'hover:bg-matcha-50 text-slate-700 hover:text-matcha-600'
           }`}
         >
           <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -273,23 +275,30 @@ export const Sidebar = React.memo(function Sidebar({
                           {/* Files within month */}
                           {expandedMonths.has(monthKey) && (
                             <div className="ml-4 space-y-0.5 py-0.5">
-                              {files.map((file) => (
-                                <button
-                                  key={file.filename}
-                                  type="button"
-                                  onClick={() => onHistoryFileClick?.(file)}
-                                  className={`w-full text-left px-2 py-1 rounded transition-all duration-150 truncate ${
-                                    isDarkMode
-                                      ? 'hover:bg-slate-800/60 text-slate-500 hover:text-slate-300'
-                                      : 'hover:bg-slate-100/80 text-slate-500 hover:text-slate-700'
-                                  }`}
-                                  title={file.title}
-                                >
-                                  <div className="text-[11px] truncate">
-                                    {file.title}
-                                  </div>
-                                </button>
-                              ))}
+                              {files.map((file) => {
+                                const isSelected = selectedDate === file.date;
+                                return (
+                                  <button
+                                    key={file.filename}
+                                    type="button"
+                                    onClick={() => onHistoryFileClick?.(file)}
+                                    className={`w-full text-left px-2 py-1 rounded transition-all duration-150 truncate ${
+                                      isSelected
+                                        ? isDarkMode
+                                          ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                                          : 'bg-matcha-50 text-matcha-600'
+                                        : isDarkMode
+                                          ? 'hover:bg-[#5c8a6c]/15 text-slate-500 hover:text-matcha-300'
+                                          : 'hover:bg-matcha-50 text-slate-500 hover:text-matcha-600'
+                                    }`}
+                                    title={file.title}
+                                  >
+                                    <div className="text-[11px] truncate">
+                                      {file.title}
+                                    </div>
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -312,8 +321,8 @@ export const Sidebar = React.memo(function Sidebar({
           onClick={onSettingsClick}
           className={`w-full flex items-center gap-2 px-6 py-2 transition-all duration-150 ${
             isDarkMode
-              ? 'hover:bg-slate-800/60 text-slate-400 hover:text-slate-200'
-              : 'hover:bg-slate-100/80 text-slate-600 hover:text-slate-800'
+              ? 'hover:bg-[#5c8a6c]/15 text-slate-400 hover:text-matcha-300'
+              : 'hover:bg-matcha-50 text-slate-600 hover:text-matcha-600'
           }`}
         >
           <Settings className="h-3.5 w-3.5 shrink-0" />

@@ -254,8 +254,8 @@ export function PromptSettings({ isDarkMode }: PromptSettingsProps) {
               disabled={isSaving}
               className={`flex items-center gap-1.5 px-4 py-1.5 text-[12px] rounded-md transition ${
                 isDarkMode
-                  ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 disabled:opacity-50'
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50'
+                  ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30 disabled:opacity-50'
+                  : 'bg-matcha-50 text-matcha-600 hover:bg-matcha-100 disabled:opacity-50'
               }`}
             >
               <Save className="h-3.5 w-3.5" />

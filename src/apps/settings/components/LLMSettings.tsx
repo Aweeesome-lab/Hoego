@@ -169,18 +169,18 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
       <div
         className={`p-5 rounded-xl border ${
           isDarkMode
-            ? 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30'
-            : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'
+            ? 'bg-gradient-to-br from-[#5c8a6c]/10 to-[#7aa888]/10 border-[#5c8a6c]/30'
+            : 'bg-gradient-to-br from-matcha-50 to-matcha-100 border-matcha-200'
         }`}
       >
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles
-              className={`h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+              className={`h-4 w-4 ${isDarkMode ? 'text-matcha-300' : 'text-matcha-500'}`}
             />
             <span
               className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
-                isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
               }`}
             >
               로컬 AI 모델
@@ -219,16 +219,11 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
           </div>
 
           <div
-            className={`flex items-center gap-4 text-[11px] ${
+            className={`text-[11px] ${
               isDarkMode ? 'text-slate-500' : 'text-slate-400'
             }`}
           >
             <span>크기: {formatBytes(fixedModel.size)}</span>
-            <span>양자화: {fixedModel.quantization}</span>
-            <span>
-              최소 RAM:{' '}
-              {formatBytes(fixedModel.requirements.min_ram * 1024 * 1024)}
-            </span>
           </div>
 
           {/* Action Buttons */}
@@ -249,7 +244,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
               <div className="flex items-center gap-2">
                 <Loader2
                   className={`h-4 w-4 animate-spin ${
-                    isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                    isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
                   }`}
                 />
                 <span
@@ -263,8 +258,8 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
                 onClick={() => void handleDownload()}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition ${
                   isDarkMode
-                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                    ? 'bg-[#5c8a6c]/20 text-matcha-300 hover:bg-[#5c8a6c]/30'
+                    : 'bg-matcha text-white hover:bg-matcha-dark'
                 }`}
               >
                 <Download className="h-3.5 w-3.5" />
@@ -283,7 +278,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
               >
                 <div
                   className={`h-full transition-all ${
-                    isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+                    isDarkMode ? 'bg-matcha-300' : 'bg-matcha'
                   }`}
                   style={{ width: `${downloadProgress.percentage}%` }}
                 />
@@ -374,7 +369,7 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
         >
           <div
             className={`h-full transition-all ${
-              isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
+              isDarkMode ? 'bg-matcha-300' : 'bg-matcha'
             }`}
             style={{
               width: `${Math.min((storageUsed / (10 * 1024 * 1024 * 1024)) * 100, 100)}%`,
@@ -392,28 +387,26 @@ export const LLMSettings: React.FC<LLMSettingsProps> = ({
       <div
         className={`p-4 rounded-xl border ${
           isDarkMode
-            ? 'bg-blue-500/10 border-blue-500/20'
-            : 'bg-blue-50 border-blue-200'
+            ? 'bg-[#5c8a6c]/10 border-[#5c8a6c]/20'
+            : 'bg-matcha-50 border-matcha-200'
         }`}
       >
         <div className="flex items-start gap-3">
           <Info
-            className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+            className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isDarkMode ? 'text-matcha-300' : 'text-matcha-500'}`}
           />
           <div className="space-y-2">
             <p
-              className={`text-xs font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}
+              className={`text-xs font-medium ${isDarkMode ? 'text-matcha-300' : 'text-matcha-600'}`}
             >
-              Qwen 2.5 3B 모델 정보
+              로컬 AI 모델 안내
             </p>
             <ul
               className={`text-[11px] space-y-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}
             >
-              <li>• 한국어 요약 및 회고 작성에 최적화된 모델입니다</li>
+              <li>• 한국어 요약 및 회고 작성에 최적화되어 있습니다</li>
               <li>• 완전 오프라인으로 작동하여 개인정보가 보호됩니다</li>
               <li>• 다운로드가 중단되어도 자동으로 이어받기됩니다</li>
-              <li>• GPU가 있으면 더 빠른 속도로 작동합니다</li>
-              <li>• 최소 4GB RAM 권장, 8GB 이상에서 최적 성능</li>
             </ul>
           </div>
         </div>

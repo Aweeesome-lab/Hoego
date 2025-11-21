@@ -210,6 +210,7 @@ export default function App() {
         isOpen={isSidebarOpen}
         historyFiles={historyFiles}
         isLoadingHistory={isLoadingHistory}
+        selectedDate={currentHistoryDate}
         onToggle={toggleSidebar}
         onHomeClick={handleHomeClick}
         onSettingsClick={handleSettingsClick}

@@ -19,7 +19,7 @@ const badgeVariants = cva(
           'border-transparent bg-green-500 text-white hover:bg-green-500/80',
         warning:
           'border-transparent bg-yellow-500 text-white hover:bg-yellow-500/80',
-        info: 'border-transparent bg-blue-500 text-white hover:bg-blue-500/80',
+        info: 'border-transparent bg-matcha text-white hover:bg-matcha/80',
         // Subtle variants (from StatusBadge)
         'subtle-default':
           'border-transparent bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/20',
@@ -30,7 +30,7 @@ const badgeVariants = cva(
         'subtle-error':
           'border-transparent bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50',
         'subtle-info':
-          'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50',
+          'border-transparent bg-matcha-100 text-matcha-600 hover:bg-matcha-200 dark:bg-[#5c8a6c]/30 dark:text-matcha-300 dark:hover:bg-[#5c8a6c]/50',
       },
       size: {
         default: 'px-2.5 py-0.5 text-xs',
@@ -89,7 +89,7 @@ function Badge({
     'subtle-success': 'bg-green-500 dark:bg-green-400',
     'subtle-warning': 'bg-yellow-500 dark:bg-yellow-400',
     'subtle-error': 'bg-red-500 dark:bg-red-400',
-    'subtle-info': 'bg-blue-500 dark:bg-blue-400',
+    'subtle-info': 'bg-matcha dark:bg-matcha-300',
   }[variant || 'default'];
 
   return (

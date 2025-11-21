@@ -55,6 +55,18 @@ const config: Config = {
         'caption-sm': ['0.6875rem', { lineHeight: '0.875rem', fontWeight: '400' }],
       },
       colors: {
+        matcha: {
+          DEFAULT: 'var(--matcha)',
+          light: 'var(--matcha-light)',
+          dark: 'var(--matcha-dark)',
+          50: 'var(--matcha-50)',
+          100: 'var(--matcha-100)',
+          200: 'var(--matcha-200)',
+          300: 'var(--matcha-300)',
+          400: 'var(--matcha-400)',
+          500: 'var(--matcha-500)',
+          600: 'var(--matcha-600)',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

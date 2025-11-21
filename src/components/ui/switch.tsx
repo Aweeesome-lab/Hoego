@@ -125,7 +125,7 @@ export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
               transition-colors duration-200
               cursor-pointer
               relative
-              ${checked ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
+              ${checked ? 'bg-matcha' : 'bg-gray-200 dark:bg-gray-700'}
               ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               ${className}
             `}

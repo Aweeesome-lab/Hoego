@@ -139,8 +139,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                 className={`pr-3 py-1.5 text-xs cursor-pointer ${
                   currentValueString === getValueString(option)
                     ? isDarkMode
-                      ? 'bg-blue-500/20 text-blue-300'
-                      : 'bg-blue-50 text-blue-700'
+                      ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                      : 'bg-matcha-50 text-matcha-600'
                     : ''
                 }`}
               >
@@ -176,8 +176,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ isDarkMode }) => {
                 className={`pr-3 py-1.5 text-xs cursor-pointer ${
                   currentValueString === getValueString(option)
                     ? isDarkMode
-                      ? 'bg-blue-500/20 text-blue-300'
-                      : 'bg-blue-50 text-blue-700'
+                      ? 'bg-[#5c8a6c]/20 text-matcha-300'
+                      : 'bg-matcha-50 text-matcha-600'
                     : ''
                 }`}
               >

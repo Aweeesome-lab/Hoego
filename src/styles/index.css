@@ -13,24 +13,36 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 242 70% 55%;
-    --primary-foreground: 210 40% 98%;
+    /* Matcha color palette */
+    --matcha: #5c8a6c;
+    --matcha-light: #7aa888;
+    --matcha-dark: #4a7058;
+    --matcha-50: #f0f7f2;
+    --matcha-100: #e0f0e4;
+    --matcha-200: #c2e0ca;
+    --matcha-300: #94c8a2;
+    --matcha-400: #5c8a6c;
+    --matcha-500: #4a7058;
+    --matcha-600: #3d5c48;
 
-    --secondary: 215 19% 65%;
+    --primary: 142 22% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 142 15% 65%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 215 25% 85%;
-    --muted-foreground: 215 19% 35%;
+    --muted: 142 15% 92%;
+    --muted-foreground: 142 10% 40%;
 
-    --accent: 242 70% 55%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 22% 45%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 25% 85%;
-    --input: 215 25% 85%;
-    --ring: 242 70% 55%;
+    --border: 142 15% 88%;
+    --input: 142 15% 88%;
+    --ring: 142 22% 45%;
 
     --radius: 0.9rem;
   }
@@ -81,9 +93,9 @@
   .bg-overlay {
     background-image: linear-gradient(
       160deg,
-      #e0f2fe 0%,
+      #e8f5e9 0%,
       #f8fafc 38%,
-      #ede9fe 100%
+      #e0f2e9 100%
     );
   }
 

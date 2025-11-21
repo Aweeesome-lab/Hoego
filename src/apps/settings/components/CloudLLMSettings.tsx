@@ -177,8 +177,8 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
               className={`relative p-4 rounded-xl border text-left transition ${
                 activeProvider === provider
                   ? isDarkMode
-                    ? 'bg-blue-500/20 border-blue-500/50'
-                    : 'bg-blue-50 border-blue-200'
+                    ? 'bg-[#5c8a6c]/20 border-[#5c8a6c]/50'
+                    : 'bg-matcha-50 border-matcha-200'
                   : isDarkMode
                     ? 'bg-white/5 border-white/10 hover:bg-white/10'
                     : 'bg-white border-slate-200 hover:border-slate-300'
@@ -188,8 +188,8 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
                 className={`text-[13px] font-medium mb-1 ${
                   activeProvider === provider
                     ? isDarkMode
-                      ? 'text-blue-300'
-                      : 'text-blue-700'
+                      ? 'text-matcha-300'
+                      : 'text-matcha-600'
                     : isDarkMode
                       ? 'text-slate-300'
                       : 'text-slate-700'
@@ -312,27 +312,27 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
             <div
               className={`p-3 rounded-lg border ${
                 isDarkMode
-                  ? 'bg-blue-500/10 border-blue-500/30'
-                  : 'bg-blue-50 border-blue-200'
+                  ? 'bg-[#5c8a6c]/10 border-[#5c8a6c]/30'
+                  : 'bg-matcha-50 border-matcha-200'
               }`}
             >
               <div className="flex items-start gap-2">
                 <Cloud
                   className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                    isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                    isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
                   }`}
                 />
                 <div>
                   <p
                     className={`text-[12px] font-medium mb-1 ${
-                      isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                      isDarkMode ? 'text-matcha-300' : 'text-matcha-600'
                     }`}
                   >
                     API 키 발급 방법
                   </p>
                   <ol
                     className={`text-[11px] space-y-0.5 list-decimal list-inside ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                      isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
                     }`}
                   >
                     <li>
@@ -346,7 +346,7 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`inline-flex items-center gap-1 mt-2 text-[11px] font-medium hover:underline ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                      isDarkMode ? 'text-matcha-300' : 'text-matcha-500'
                     }`}
                   >
                     {currentProvider.name} API 키 발급하기
@@ -455,8 +455,8 @@ export const CloudLLMSettings: React.FC<CloudLLMSettingsProps> = ({
                 disabled={!apiKey || loading}
                 className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition ${
                   isDarkMode
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:bg-blue-500/50 disabled:text-white/50'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 disabled:text-white/70'
+                    ? 'bg-matcha text-white hover:bg-matcha-dark disabled:bg-matcha/50 disabled:text-white/50'
+                    : 'bg-matcha text-white hover:bg-matcha-dark disabled:bg-matcha-300 disabled:text-white/70'
                 }`}
               >
                 저장
