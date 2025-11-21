@@ -203,31 +203,27 @@ pub fn toggle_overlay(window: &Window) -> tauri::Result<()> {
         )
     });
 
-    // 5. 현재 윈도우의 실제 크기 가져오기
-    let window_size = match window.inner_size() {
-        Ok(size) => size,
-        Err(e) => {
-            eprintln!("[hoego] 윈도우 크기를 가져올 수 없습니다: {}", e);
-            // Fallback: 기본 크기 사용
-            tauri::PhysicalSize {
-                width: 1000,
-                height: 700,
-            }
-        }
-    };
+    // 5. 현재 윈도우의 논리 크기 가져오기
+    // NOTE: inner_size()는 윈도우가 있는 모니터의 scale 기준 physical 크기
+    // 타겟 모니터가 아닌 윈도우 자체의 scale_factor로 논리 크기 계산
+    let window_scale = window.scale_factor().unwrap_or(1.0);
+    let window_size = window.inner_size().unwrap_or(tauri::PhysicalSize {
+        width: 1000,
+        height: 700,
+    });
 
-    // 6. 모니터/창 크기를 모두 '논리 좌표계'로 변환해서 중앙 좌표 계산
+    // 윈도우 크기를 논리 좌표계로 변환 (윈도우의 scale factor 사용)
+    let window_width_logical = window_size.width as f64 / window_scale;
+    let window_height_logical = window_size.height as f64 / window_scale;
+
+    // 윈도우 크기를 기반으로 모드 감지 (높이가 100px 이하면 mini 모드)
+    let is_mini_mode = window_height_logical <= 100.0;
+
+    // 6. 타겟 모니터 크기를 논리 좌표계로 변환
     let origin_x_logical = origin_x as f64 / scale_factor;
     let origin_y_logical = origin_y as f64 / scale_factor;
     let width_logical = width as f64 / scale_factor;
     let height_logical = height as f64 / scale_factor;
-
-    // 윈도우 크기를 논리 좌표계로 변환
-    let window_width_logical = window_size.width as f64 / scale_factor;
-    let window_height_logical = window_size.height as f64 / scale_factor;
-
-    // 윈도우 크기를 기반으로 모드 감지 (높이가 100px 이하면 mini 모드)
-    let is_mini_mode = window_height_logical <= 100.0;
 
     let center_x_logical = origin_x_logical + width_logical / 2.0;
 
