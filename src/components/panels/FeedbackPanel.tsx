@@ -148,22 +148,22 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
             <MarkdownPreview
               content={streamingAiText}
               isDarkMode={isDarkMode}
-              className="px-10 py-6"
+              className="px-10 py-6 pb-24"
             />
           ) : (
-            <div className="px-10 py-6">
+            <div className="px-10 py-6 pb-24">
               <ThinkingIndicator isDarkMode={isDarkMode} />
             </div>
           )
         ) : summariesError ? (
-          <div className="px-10 py-6">
+          <div className="px-10 py-6 pb-24">
             <p className="text-sm font-semibold text-red-400">
               AI 피드백을 불러오지 못했어요.
             </p>
             <p className="text-xs text-red-300 mt-1">{summariesError}</p>
           </div>
         ) : aiSummaries.length === 0 ? (
-          <div className="px-10 py-6">
+          <div className="px-10 py-6 pb-24">
             <p
               className={`text-sm ${
                 isDarkMode ? 'text-slate-200' : 'text-slate-500'
@@ -179,7 +179,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
               selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
             }
             isDarkMode={isDarkMode}
-            className="px-10 py-6"
+            className="px-10 py-6 pb-24"
           />
         )}
       </div>

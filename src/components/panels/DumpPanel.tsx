@@ -96,7 +96,7 @@ export const DumpPanel = React.memo(function DumpPanel({
           previewRef={markdownRef}
           isSaving={isSaving}
           onTaskToggle={onTaskToggle}
-          className="px-10 py-6"
+          className="px-10 py-6 pb-24"
         />
       </div>
     </section>
