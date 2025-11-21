@@ -23,7 +23,6 @@ import {
   hideOverlayWindow,
   appendHistoryEntry,
   onHistoryUpdated,
-  getHistoryMarkdown,
   saveHistoryMarkdown,
   saveMiniModePosition,
 } from '@/lib/tauri';
@@ -473,33 +472,48 @@ export default function App() {
   // Sidebar handlers
   const handleHomeClick = React.useCallback(() => {
     void (async () => {
-      // 편집 중이면 먼저 저장
-      if (isEditing && markdownContent !== lastSavedRef.current) {
-        try {
+      try {
+        // 편집 중이면 먼저 저장
+        if (isEditing && markdownContent !== lastSavedRef.current) {
           setIsSaving(true);
-          await saveTodayMarkdown(markdownContent);
-          lastSavedRef.current = markdownContent;
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('[hoego] 저장 실패:', error);
+          // ✅ 변경: Active Document 사용
+          const { saveActiveDocument } = useDocumentStore.getState();
+          const result = await saveActiveDocument(markdownContent);
+
+          if (!result.success) {
+            throw new Error(result.error);
           }
-          toast.error('저장에 실패했습니다.');
-        } finally {
+
+          lastSavedRef.current = markdownContent;
           setIsSaving(false);
         }
+
+        // 오늘 날짜로 돌아가기
+        setCurrentHistoryDate(null);
+
+        // 편집 모드 종료
+        if (isEditing) {
+          setIsEditing(false);
+        }
+
+        // ✅ 변경: loadToday 사용
+        const { loadToday } = useDocumentStore.getState();
+        await loadToday();
+
+        // appStore도 업데이트 (기존 동작 유지)
+        const { activeDocument } = useDocumentStore.getState();
+        if (activeDocument) {
+          setMarkdownContent(activeDocument.content);
+          setEditingContent(activeDocument.content);
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[hoego] 오늘 문서 로드 실패:', error);
+        }
+        toast.error('오늘 문서를 불러오는데 실패했습니다.');
       }
-
-      // 오늘 날짜로 돌아가기
-      setCurrentHistoryDate(null);
-
-      // 편집 모드 종료
-      if (isEditing) {
-        setIsEditing(false);
-      }
-
-      await loadMarkdown();
     })();
-  }, [loadMarkdown, isEditing, setIsEditing, markdownContent, lastSavedRef, saveTodayMarkdown, setIsSaving]);
+  }, [isEditing, setIsEditing, markdownContent, lastSavedRef, setIsSaving, setMarkdownContent, setEditingContent]);
 
   const handleSettingsClick = React.useCallback(() => {
     void (async () => {
@@ -520,18 +534,17 @@ export default function App() {
         try {
           // 편집 중이면 먼저 저장
           if (isEditing && markdownContent !== lastSavedRef.current) {
-            try {
-              setIsSaving(true);
-              await saveTodayMarkdown(markdownContent);
-              lastSavedRef.current = markdownContent;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.error('[hoego] 저장 실패:', error);
-              }
-              toast.error('저장에 실패했습니다.');
-            } finally {
-              setIsSaving(false);
+            setIsSaving(true);
+            // ✅ 변경: Active Document 사용
+            const { saveActiveDocument } = useDocumentStore.getState();
+            const result = await saveActiveDocument(markdownContent);
+
+            if (!result.success) {
+              throw new Error(result.error);
             }
+
+            lastSavedRef.current = markdownContent;
+            setIsSaving(false);
           }
 
           setIsLoadingHistoryContent(true);
@@ -542,10 +555,16 @@ export default function App() {
             setIsEditing(false);
           }
 
-          // 선택된 날짜의 마크다운 로드
-          const content = await getHistoryMarkdown(file.path);
-          setMarkdownContent(content);
-          setEditingContent(content); // 편집 콘텐츠도 함께 업데이트
+          // ✅ 변경: loadHistory 사용
+          const { loadHistory } = useDocumentStore.getState();
+          await loadHistory(file.date, file.path);
+
+          // appStore도 업데이트 (기존 동작 유지)
+          const { activeDocument } = useDocumentStore.getState();
+          if (activeDocument) {
+            setMarkdownContent(activeDocument.content);
+            setEditingContent(activeDocument.content);
+          }
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error('[hoego] Failed to load history:', error);
@@ -556,7 +575,7 @@ export default function App() {
         }
       })();
     },
-    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, markdownContent, lastSavedRef, saveTodayMarkdown, setIsSaving]
+    [setMarkdownContent, setEditingContent, isEditing, setIsEditing, markdownContent, lastSavedRef, setIsSaving]
   );
 
   // Cleanup streaming on unmount
