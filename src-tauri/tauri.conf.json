@@ -99,7 +99,7 @@
     "bundle": {
       "active": true,
       "identifier": "com.tony.hoego",
-      "targets": "all",
+      "targets": ["app", "dmg"],
       "icon": ["icons/icon.png"]
     },
     "security": {
