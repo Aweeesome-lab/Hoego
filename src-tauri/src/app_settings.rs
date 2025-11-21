@@ -130,7 +130,7 @@ pub fn update_quick_note_shortcut(
     drop(settings);
 
     // 단축키 재등록 - 실패해도 설정은 저장됨
-    if let Err(e) = crate::shortcuts::register_shortcuts(&app) {
+    if let Err(e) = crate::platform::shortcuts::register_shortcuts(&app) {
         tracing::warn!("단축키 재등록 실패: {}", e);
         // 실패 메시지를 반환하되, 설정은 이미 저장되었음을 명시
         return Err(format!("단축키 등록 실패: {}. 설정은 저장되었습니다. 다른 단축키를 시도해보세요.", e));

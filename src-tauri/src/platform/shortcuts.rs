@@ -1,7 +1,7 @@
 use tauri::{AppHandle, GlobalShortcutManager, Manager};
 
 use crate::app_settings::AppSettingsState;
-use crate::window_manager::toggle_overlay;
+use crate::platform::window_manager::toggle_overlay;
 
 /// 단축키가 사용 가능한지 테스트합니다 (충돌 검사)
 #[tauri::command]

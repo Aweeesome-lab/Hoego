@@ -1,8 +1,8 @@
 [package]
 name = "hoego"
-version = "0.3.0"
+version = "0.1.0"
 edition = "2021"
-description = "Ambient time tracker overlay built with Tauri"
+description = "AI-powered journaling and retrospective app with Dump-Feedback-Retrospect workflow"
 authors = ["Tony"]
 
 [build-dependencies]

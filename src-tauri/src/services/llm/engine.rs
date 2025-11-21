@@ -123,16 +123,16 @@ impl LlamaCppEngine {
         #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
         {
             // Embed all required files
-            let embedded_binary = include_bytes!("../../binaries/build/bin/llama-server");
-            let embedded_libggml_base = include_bytes!("../../binaries/build/bin/libggml-base.dylib");
-            let embedded_libggml_blas = include_bytes!("../../binaries/build/bin/libggml-blas.dylib");
-            let embedded_libggml_cpu = include_bytes!("../../binaries/build/bin/libggml-cpu.dylib");
-            let embedded_libggml_metal = include_bytes!("../../binaries/build/bin/libggml-metal.dylib");
-            let embedded_libggml_rpc = include_bytes!("../../binaries/build/bin/libggml-rpc.dylib");
-            let embedded_libggml = include_bytes!("../../binaries/build/bin/libggml.dylib");
-            let embedded_libllama = include_bytes!("../../binaries/build/bin/libllama.dylib");
-            let embedded_libmtmd = include_bytes!("../../binaries/build/bin/libmtmd.dylib");
-            let embedded_metal_shader = include_bytes!("../../binaries/build/bin/ggml-metal.metal");
+            let embedded_binary = include_bytes!("../../../binaries/build/bin/llama-server");
+            let embedded_libggml_base = include_bytes!("../../../binaries/build/bin/libggml-base.dylib");
+            let embedded_libggml_blas = include_bytes!("../../../binaries/build/bin/libggml-blas.dylib");
+            let embedded_libggml_cpu = include_bytes!("../../../binaries/build/bin/libggml-cpu.dylib");
+            let embedded_libggml_metal = include_bytes!("../../../binaries/build/bin/libggml-metal.dylib");
+            let embedded_libggml_rpc = include_bytes!("../../../binaries/build/bin/libggml-rpc.dylib");
+            let embedded_libggml = include_bytes!("../../../binaries/build/bin/libggml.dylib");
+            let embedded_libllama = include_bytes!("../../../binaries/build/bin/libllama.dylib");
+            let embedded_libmtmd = include_bytes!("../../../binaries/build/bin/libmtmd.dylib");
+            let embedded_metal_shader = include_bytes!("../../../binaries/build/bin/ggml-metal.metal");
 
             // Write binary
             std::fs::write(target_path, embedded_binary)?;
@@ -508,7 +508,7 @@ impl LlamaCppEngine {
     // OpenAI-compatible chat completions path using llama.cpp server
     pub async fn chat_complete(
         &mut self,
-        messages: Vec<crate::llm::prompts::ChatMessage>,
+        messages: Vec<super::prompts::ChatMessage>,
         max_tokens: Option<usize>,
         temperature: Option<f32>,
     ) -> Result<String, Box<dyn std::error::Error>> {
@@ -629,7 +629,7 @@ impl LlamaCppEngine {
     // OpenAI 호환 Chat Completions SSE 스트리밍
     pub async fn chat_complete_stream(
         &mut self,
-        messages: Vec<crate::llm::prompts::ChatMessage>,
+        messages: Vec<super::prompts::ChatMessage>,
         max_tokens: Option<usize>,
         temperature: Option<f32>,
         mut on_delta: impl FnMut(&str) + Send,

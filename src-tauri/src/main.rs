@@ -1,15 +1,20 @@
 mod ai_summary;
 mod app_settings;
 mod history;
-mod link_preview;
-mod llm;
 mod model_selection;
-mod pii_masker;
-mod shortcuts;
-mod tray;
-mod utils;
 mod weekly_data;
-mod window_manager;
+
+// Re-export library modules for legacy code in this binary
+pub use hoego::utils;
+pub use hoego::services;
+pub use hoego::platform;
+
+// Use new module structure
+use platform::shortcuts::{register_shortcuts};
+use platform::tray::{build_tray, handle_tray_event};
+use platform::window_manager;
+use services::llm;
+use utils::link_preview;
 
 use std::sync::Arc;
 use tauri::{Manager, WindowEvent};
@@ -24,13 +29,10 @@ use history::{
     save_today_markdown,
     HistoryState,
 };
-use shortcuts::{register_shortcuts, test_shortcut_available};
-use tray::{build_tray, handle_tray_event};
 use weekly_data::get_week_data;
 use window_manager::{
-    ensure_accessibility_permission, get_window_position, hide_main_window, open_llm_settings,
-    open_settings_window_command, set_window_corner_radius, set_window_position,
-    set_window_visible_on_all_workspaces, toggle_overlay_window,
+    ensure_accessibility_permission, set_window_corner_radius,
+    set_window_visible_on_all_workspaces,
 };
 
 // LLM Command Handlers
@@ -299,12 +301,12 @@ fn main() {
             cancel_ai_feedback_stream,
             list_ai_summaries,
             open_history_folder,
-            hide_main_window,
-            toggle_overlay_window,
-            set_window_position,
-            get_window_position,
-            open_llm_settings,
-            open_settings_window_command,
+            window_manager::hide_main_window,
+            window_manager::toggle_overlay_window,
+            window_manager::set_window_position,
+            window_manager::get_window_position,
+            window_manager::open_llm_settings,
+            window_manager::open_settings_window_command,
             // Weekly dashboard commands
             get_week_data,
             // LLM commands
@@ -348,7 +350,7 @@ fn main() {
             app_settings::update_documents_path,
             app_settings::reset_app_settings,
             // Shortcut test command
-            test_shortcut_available
+            platform::shortcuts::test_shortcut_available
         ])
         .setup(|app| {
             let state = app.state::<HistoryState>();

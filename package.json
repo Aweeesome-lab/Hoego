@@ -1,8 +1,8 @@
 {
   "name": "hoego",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "type": "module",
-  "description": "Hoego — ambient time tracker overlay built with Tauri",
+  "description": "Hoego — AI-powered journaling and retrospective app with Dump-Feedback-Retrospect workflow",
   "scripts": {
     "dev": "tauri dev",
     "build": "node scripts/build.mjs",

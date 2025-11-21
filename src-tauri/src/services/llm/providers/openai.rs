@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::mpsc;
 
-use crate::llm::traits::CloudLLMProvider;
-use crate::llm::types::*;
+use crate::services::llm::traits::CloudLLMProvider;
+use crate::services::llm::types::*;
 
 pub struct OpenAIProvider {
     client: Client,

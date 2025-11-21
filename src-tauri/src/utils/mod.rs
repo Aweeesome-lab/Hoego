@@ -1,6 +1,20 @@
+// utils/mod.rs
+// Utility functions and helpers
+
+pub mod datetime;
+pub mod link_preview;
+pub mod pii_masker;
+
+// Re-export commonly used utilities
+pub use datetime::*;
+pub use link_preview::*;
+pub use pii_masker::*;
+
+// Legacy utilities (from old utils.rs)
+// TODO: Move these to appropriate modules
+use std::path::PathBuf;
 use time::{Date, OffsetDateTime, Weekday};
 use time::macros::format_description;
-use std::path::PathBuf;
 
 /// 문서 폴더 경로를 가져옵니다
 pub fn document_dir() -> Result<PathBuf, String> {
@@ -22,7 +36,6 @@ pub fn summaries_directory_path() -> Result<PathBuf, String> {
     base.push("summaries");
     Ok(base)
 }
-
 
 /// 현재 로컬 시간을 반환합니다
 pub fn current_local_time() -> Result<OffsetDateTime, String> {
