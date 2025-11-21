@@ -139,10 +139,10 @@ export default function App() {
     void loadMarkdown();
   }, [loadMarkdown]);
 
-  // Load AI summaries on mount
+  // Load AI summaries on mount and when selected date changes
   React.useEffect(() => {
     void loadAiSummaries();
-  }, [loadAiSummaries]);
+  }, [currentHistoryDate, loadAiSummaries]);
 
   // Load history files on mount and when sidebar opens
   React.useEffect(() => {
@@ -175,12 +175,33 @@ export default function App() {
     void initCloudProvider();
   }, []);
 
+  // Refs for latest functions and state (to avoid stale closures in event listeners)
+  const loadMarkdownRef = React.useRef(loadMarkdown);
+  const loadAiSummariesRef = React.useRef(loadAiSummaries);
+  const currentHistoryDateRef = React.useRef(currentHistoryDate);
+
+  React.useEffect(() => {
+    loadMarkdownRef.current = loadMarkdown;
+  }, [loadMarkdown]);
+
+  React.useEffect(() => {
+    loadAiSummariesRef.current = loadAiSummaries;
+  }, [loadAiSummaries]);
+
+  React.useEffect(() => {
+    currentHistoryDateRef.current = currentHistoryDate;
+  }, [currentHistoryDate]);
+
   // History update listener
   React.useEffect(() => {
     let unsubscribe: (() => void) | null = null;
     void onHistoryUpdated(() => {
-      void loadMarkdown();
-      void loadAiSummaries();
+      // 히스토리 모드가 아닐 때만 오늘 dump 로드
+      // 히스토리 모드에서는 이미 해당 날짜의 콘텐츠가 로드되어 있음
+      if (!currentHistoryDateRef.current) {
+        void loadMarkdownRef.current();
+      }
+      void loadAiSummariesRef.current();
     }).then((unsub) => {
       unsubscribe = unsub;
     });
@@ -190,7 +211,7 @@ export default function App() {
         unsubscribe();
       }
     };
-  }, [loadMarkdown, loadAiSummaries]);
+  }, []); // No dependencies - listener registered once, refs always point to latest
 
   // Focus input field
   React.useEffect(() => {
@@ -405,7 +426,22 @@ export default function App() {
       if (isSyncing) return;
       try {
         setIsSyncing(true);
-        await loadMarkdown();
+
+        // 히스토리 모드면 해당 날짜의 문서를 다시 로드, 아니면 오늘 문서 로드
+        if (currentHistoryDate) {
+          const { activeDocument, loadHistory } = useDocumentStore.getState();
+          if (activeDocument?.filePath) {
+            await loadHistory(currentHistoryDate, activeDocument.filePath);
+            const { activeDocument: reloaded } = useDocumentStore.getState();
+            if (reloaded) {
+              setMarkdownContent(reloaded.content);
+              setEditingContent(reloaded.content);
+            }
+          }
+        } else {
+          await loadMarkdown();
+        }
+
         await loadAiSummaries();
       } catch (error) {
         if (import.meta.env.DEV)
@@ -414,7 +450,7 @@ export default function App() {
         setIsSyncing(false);
       }
     })();
-  }, [isSyncing, loadMarkdown, loadAiSummaries]);
+  }, [isSyncing, loadMarkdown, loadAiSummaries, currentHistoryDate, setMarkdownContent, setEditingContent]);
 
   const handlePipelineExecution = React.useCallback(() => {
     void (async () => {
@@ -525,6 +561,7 @@ export default function App() {
           if (activeDocument) {
             setMarkdownContent(activeDocument.content);
             setEditingContent(activeDocument.content);
+            lastSavedRef.current = activeDocument.content; // 자동 저장 방지를 위해 ref도 업데이트
           }
         } catch (error) {
           if (import.meta.env.DEV) {
