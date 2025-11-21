@@ -28,13 +28,6 @@ export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
             <span>J</span>
           </span>
         </span>
-        <span className="inline-flex items-center gap-2" title="편집 모드 토글">
-          <span className="tracking-normal">편집</span>
-          <span className="inline-flex items-center gap-1">
-            <span>⌘</span>
-            <span>E</span>
-          </span>
-        </span>
         <span className="inline-flex items-center gap-2" title="AI 패널 토글">
           <span className="tracking-normal">AI</span>
           <span className="inline-flex items-center gap-1">
