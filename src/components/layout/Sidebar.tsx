@@ -10,7 +10,6 @@ interface SidebarProps {
   isLoadingHistory: boolean;
   selectedDate?: string; // YYYYMMDD format
   onToggle: () => void;
-  onHomeClick?: () => void;
   onSettingsClick?: () => void;
   onHistoryFileClick?: (file: HistoryFileInfo) => void;
 }
@@ -54,7 +53,6 @@ export const Sidebar = React.memo(function Sidebar({
   historyFiles,
   isLoadingHistory,
   selectedDate,
-  onHomeClick,
   onSettingsClick,
   onHistoryFileClick,
 }: SidebarProps) {
@@ -173,20 +171,6 @@ export const Sidebar = React.memo(function Sidebar({
 
       {/* 메뉴 섹션 */}
       <div className="flex-1 overflow-y-auto py-2">
-        {/* Today 버튼 */}
-        <button
-          type="button"
-          onClick={onHomeClick}
-          className={`w-full flex items-center gap-2 px-6 py-2 mb-1 text-left transition-all duration-150 ${
-            isDarkMode
-              ? 'hover:bg-[#5c8a6c]/15 text-slate-300 hover:text-matcha-300'
-              : 'hover:bg-matcha-50 text-slate-700 hover:text-matcha-600'
-          }`}
-        >
-          <Calendar className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-xs font-medium">오늘 기록</span>
-        </button>
-
         {/* History 섹션 헤더 */}
         <div
           className={`px-6 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wider ${

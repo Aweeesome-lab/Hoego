@@ -12,6 +12,7 @@ import type { TaskListItemProps } from '../types';
  * - 저장 중 비활성화
  * - 다크모드 지원
  * - 호버/클릭 애니메이션
+ * - 낙관적 업데이트는 상위 컴포넌트에서 처리 (성능 최적화)
  *
  * @param checked - 체크 상태
  * @param onToggle - 토글 핸들러
@@ -26,15 +27,6 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
   isDarkMode,
   disabled,
 }: TaskListItemProps) {
-  // Optimistic update: local state for immediate UI response
-  const [optimisticChecked, setOptimisticChecked] = React.useState(checked);
-  const [isToggling, setIsToggling] = React.useState(false);
-
-  // Sync with prop changes
-  React.useEffect(() => {
-    setOptimisticChecked(checked);
-  }, [checked]);
-
   // Filter out default GFM checkbox from children
   const filteredChildren = React.useMemo(() => {
     const childArray = React.Children.toArray(children);
@@ -48,26 +40,12 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
     });
   }, [children]);
 
-  const handleToggle = React.useCallback(async () => {
-    if (disabled || isToggling) return;
+  const handleToggle = React.useCallback(() => {
+    if (disabled) return;
 
-    const newChecked = !optimisticChecked;
-
-    // Optimistic update: update UI immediately
-    setOptimisticChecked(newChecked);
-    setIsToggling(true);
-
-    try {
-      // Save in background
-      await onToggle();
-    } catch (error) {
-      // Rollback on error
-      console.error('Failed to toggle task:', error);
-      setOptimisticChecked(checked);
-    } finally {
-      setIsToggling(false);
-    }
-  }, [checked, optimisticChecked, disabled, isToggling, onToggle]);
+    // Parent handles optimistic update - just trigger the callback
+    void onToggle();
+  }, [disabled, onToggle]);
 
   return (
     <li
@@ -75,26 +53,26 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
       onMouseDown={(e) => e.stopPropagation()}
     >
       <Checkbox.Root
-        className={`mt-[3px] flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all duration-200 ${
+        className={`mt-[3px] flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all duration-150 ${
           isDarkMode
             ? 'border-slate-500 bg-slate-800/60 data-[state=checked]:border-emerald-400 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/25'
             : 'border-slate-300 bg-white shadow-sm data-[state=checked]:border-emerald-500 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/20'
         } ${
-          disabled || isToggling
+          disabled
             ? 'opacity-50 cursor-not-allowed'
             : 'cursor-pointer hover:border-emerald-400 hover:scale-105 active:scale-95 data-[state=checked]:hover:shadow-emerald-500/40'
         }`}
-        checked={optimisticChecked}
-        disabled={disabled || isToggling}
+        checked={checked}
+        disabled={disabled}
         onCheckedChange={handleToggle}
         onClick={(e) => {
           // Prevent double-triggering
           e.stopPropagation();
         }}
-        aria-label={optimisticChecked ? '작업 완료됨' : '작업 미완료'}
-        aria-checked={optimisticChecked}
+        aria-label={checked ? '작업 완료됨' : '작업 미완료'}
+        aria-checked={checked}
       >
-        <Checkbox.Indicator className="animate-in zoom-in-75 duration-150">
+        <Checkbox.Indicator className="animate-in zoom-in-75 duration-100">
           <Check
             className="h-3.5 w-3.5 text-white drop-shadow-sm"
             strokeWidth={3}
@@ -102,8 +80,8 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
         </Checkbox.Indicator>
       </Checkbox.Root>
       <span
-        className={`flex-1 select-text break-words transition-all duration-200 ${
-          optimisticChecked
+        className={`flex-1 select-text break-words transition-all duration-150 ${
+          checked
             ? `line-through decoration-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`
             : isDarkMode
               ? 'text-slate-200'

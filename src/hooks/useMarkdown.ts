@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 import type { Point, Position } from 'unist';
@@ -10,6 +10,8 @@ import { useDocumentStore } from '@/store/documentStore';
 export function useMarkdown() {
   // Zustand store selectors
   const markdownContent = useAppStore((state) => state.markdownContent);
+  const isEditing = useAppStore((state) => state.isEditing);
+  const editingContent = useAppStore((state) => state.editingContent);
   const isSaving = useAppStore((state) => state.isSaving);
   const isSyncing = useAppStore((state) => state.isSyncing);
 
@@ -23,6 +25,7 @@ export function useMarkdown() {
   // Refs
   const markdownRef = useRef<HTMLDivElement | null>(null);
   const lastSavedRef = useRef<string>('');
+  const debounceIdRef = useRef<number | null>(null);
 
   // 마크다운 로드 함수
   const loadMarkdown = useCallback(async () => {
@@ -186,11 +189,13 @@ export function useMarkdown() {
 
       try {
         setIsSaving(true);
-        const { saveActiveDocument } = useDocumentStore.getState();
-        const result = await saveActiveDocument(nextContent);
+        // Save to the correct file using documentStore
+        const saveResult = await useDocumentStore
+          .getState()
+          .saveActiveDocument(nextContent);
 
-        if (!result.success) {
-          throw new Error(result.error);
+        if (!saveResult.success) {
+          throw new Error(saveResult.error || 'Save failed');
         }
 
         lastSavedRef.current = nextContent;
@@ -230,6 +235,57 @@ export function useMarkdown() {
       setIsSyncing(false);
     }
   }, [loadMarkdown, setIsSyncing]);
+
+  // Auto-save for edit mode
+  useEffect(() => {
+    if (!isEditing) return;
+    if (editingContent === lastSavedRef.current) return;
+
+    // Clear existing timeout
+    if (debounceIdRef.current) {
+      clearTimeout(debounceIdRef.current);
+    }
+
+    // Set new timeout for auto-save
+    debounceIdRef.current = window.setTimeout(() => {
+      void (async () => {
+        try {
+          setIsSaving(true);
+          const saveResult = await useDocumentStore
+            .getState()
+            .saveActiveDocument(editingContent);
+
+          if (!saveResult.success) {
+            throw new Error(saveResult.error || 'Save failed');
+          }
+
+          setMarkdownContent(editingContent);
+          lastSavedRef.current = editingContent;
+
+          if (import.meta.env.DEV) {
+            console.log('[hoego] 자동 저장 완료');
+          }
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.error('[hoego] 자동 저장 실패:', error);
+          }
+          toast.error(
+            `자동 저장 실패: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        } finally {
+          setIsSaving(false);
+        }
+      })();
+    }, 2000); // 2초 디바운스
+
+    return () => {
+      if (debounceIdRef.current) {
+        clearTimeout(debounceIdRef.current);
+      }
+    };
+  }, [isEditing, editingContent, setIsSaving, setMarkdownContent]);
 
   // Wrap setters to support SetStateAction
   const wrappedSetMarkdownContent = useCallback(

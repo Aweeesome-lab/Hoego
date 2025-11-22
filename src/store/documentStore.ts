@@ -7,7 +7,7 @@ import {
   saveTodayMarkdown,
   saveHistoryMarkdown,
 } from '@/lib/tauri';
-import { getCurrentDateKey } from '@/types/document';
+import { getCurrentDateKey, isToday } from '@/types/document';
 
 /**
  * Document Store Actions
@@ -151,10 +151,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     set({ isSaving: true, lastError: null });
 
     try {
-      // Route to correct save function based on document type
-      if (activeDocument.type === 'today') {
+      // Check if the document date is today
+      // If it is, always use saveTodayMarkdown regardless of document type
+      if (isToday(activeDocument.date)) {
         await saveTodayMarkdown(contentToSave);
-      } else if (activeDocument.type === 'history' && activeDocument.filePath) {
+      } else if (activeDocument.filePath) {
+        // For history documents, use saveHistoryMarkdown
         await saveHistoryMarkdown(activeDocument.filePath, contentToSave);
       } else {
         throw new Error(

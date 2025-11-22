@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 
 import { appendHistoryEntry } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
+import { useAppStore } from '@/store';
 import { useDocumentStore } from '@/store/documentStore';
 
 interface HistoryFile {
@@ -181,6 +182,15 @@ export function useAppHandlers({
   const handleHomeClick = useCallback(() => {
     void (async () => {
       try {
+        // 편집 모드라면 먼저 저장하고 종료
+        const { isEditing, editingContent, setIsEditing } =
+          useAppStore.getState();
+        if (isEditing) {
+          const { saveActiveDocument } = useDocumentStore.getState();
+          await saveActiveDocument(editingContent);
+          setIsEditing(false);
+        }
+
         // 오늘 날짜로 돌아가기
         setCurrentHistoryDate(null);
 
@@ -223,6 +233,16 @@ export function useAppHandlers({
       void (async () => {
         try {
           setIsLoadingHistoryContent(true);
+
+          // 편집 모드라면 먼저 저장하고 종료
+          const { isEditing, editingContent, setIsEditing } =
+            useAppStore.getState();
+          if (isEditing) {
+            const { saveActiveDocument } = useDocumentStore.getState();
+            await saveActiveDocument(editingContent);
+            setIsEditing(false);
+          }
+
           setCurrentHistoryDate(file.date);
 
           const { loadHistory } = useDocumentStore.getState();

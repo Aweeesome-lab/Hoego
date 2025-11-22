@@ -1,6 +1,8 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 
+import type { Position } from 'unist';
+
 import {
   Header,
   MiniHeader,
@@ -38,6 +40,7 @@ const RetrospectPanel = React.lazy(() =>
 
 export default function App() {
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const editorRef = React.useRef<HTMLTextAreaElement | null>(null);
   const splitRef = React.useRef<HTMLDivElement | null>(null);
 
   // Use custom hooks for state management
@@ -107,7 +110,6 @@ export default function App() {
     handleManualSync,
     handlePipelineExecution,
     handlePipelineCancellation,
-    handleHomeClick,
     handleSettingsClick,
     handleHistoryFileClick,
   } = useAppHandlers({
@@ -148,6 +150,14 @@ export default function App() {
     setIsRetrospectPanelExpanded,
   });
 
+  // Memoize task toggle handler to prevent unnecessary re-renders
+  const handleTaskToggle = React.useCallback(
+    async (position: Position, checked: boolean) => {
+      await handleTaskCheckboxToggle({ position }, checked);
+    },
+    [handleTaskCheckboxToggle]
+  );
+
   // Mini 모드: 입력창만 표시
   if (viewMode === 'mini') {
     return (
@@ -187,7 +197,6 @@ export default function App() {
         isLoadingHistory={isLoadingHistory}
         selectedDate={currentHistoryDate || undefined}
         onToggle={toggleSidebar}
-        onHomeClick={handleHomeClick}
         onSettingsClick={handleSettingsClick}
         onHistoryFileClick={handleHistoryFileClick}
       />
@@ -225,11 +234,10 @@ export default function App() {
               isLoadingHistoryContent ? '로딩 중...' : markdownContent
             }
             markdownRef={markdownRef}
+            editorRef={editorRef}
             currentDateLabel={currentHistoryDate || undefined}
             isSaving={isSaving}
-            onTaskToggle={async (position, checked) => {
-              await handleTaskCheckboxToggle({ position }, checked);
-            }}
+            onTaskToggle={handleTaskToggle}
           />
 
           <React.Suspense fallback={<div className="flex flex-1" />}>
