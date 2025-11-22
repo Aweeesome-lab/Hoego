@@ -151,6 +151,18 @@ const config: Config = {
                 padding: '0',
               },
             },
+            // Task list 지원
+            'ul.contains-task-list': {
+              paddingLeft: '0',
+              listStyle: 'none',
+            },
+            'li.task-list-item': {
+              paddingLeft: '0',
+              listStyle: 'none',
+            },
+            'li.task-list-item::marker': {
+              content: 'none',
+            },
           },
         },
         invert: {
