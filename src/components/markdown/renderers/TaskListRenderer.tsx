@@ -26,26 +26,33 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
   isDarkMode,
   disabled,
 }: TaskListItemProps) {
+  // Filter out default GFM checkbox from children
+  const filteredChildren = React.useMemo(() => {
+    const childArray = React.Children.toArray(children);
+    return childArray.filter((child) => {
+      // Remove input[type="checkbox"] elements
+      if (React.isValidElement(child) && child.type === 'input') {
+        const props = child.props as any;
+        return props.type !== 'checkbox';
+      }
+      return true;
+    });
+  }, [children]);
+
   return (
     <li
-      className="task-list-item !list-none !ml-0 !pl-0 flex items-start gap-2.5 leading-relaxed text-[13px] break-words transition-opacity duration-150"
-      style={{
-        listStyle: 'none',
-        paddingLeft: 0,
-        marginTop: '2px',
-        marginBottom: '2px',
-      }}
+      className="task-list-item flex items-start gap-2.5 my-0.5 leading-relaxed text-[13px] break-words transition-opacity duration-150"
       onMouseDown={(e) => e.stopPropagation()}
     >
       <Checkbox.Root
-        className={`mt-[3px] flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all duration-200 cursor-pointer ${
+        className={`mt-[3px] flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all duration-200 ${
           isDarkMode
             ? 'border-slate-500 bg-slate-800/60 data-[state=checked]:border-emerald-400 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/25'
             : 'border-slate-300 bg-white shadow-sm data-[state=checked]:border-emerald-500 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/20'
         } ${
           disabled
             ? 'opacity-50 cursor-not-allowed'
-            : 'hover:border-emerald-400 hover:scale-105 active:scale-95 data-[state=checked]:hover:shadow-emerald-500/40'
+            : 'cursor-pointer hover:border-emerald-400 hover:scale-105 active:scale-95 data-[state=checked]:hover:shadow-emerald-500/40'
         }`}
         checked={checked}
         disabled={disabled}
@@ -78,7 +85,7 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
               : 'text-slate-700'
         }`}
       >
-        {children}
+        {filteredChildren}
       </span>
     </li>
   );

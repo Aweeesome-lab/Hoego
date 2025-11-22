@@ -1,4 +1,4 @@
-import { isValidElement, useMemo } from 'react';
+import React, { isValidElement, useMemo } from 'react';
 
 import {
   HeadingRenderer,
@@ -127,13 +127,40 @@ export function useMarkdownComponents({
           {children}
         </OrderedListRenderer>
       ),
-      li: ({ children, node }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      li: ({ children, node, ...props }: any) => {
         const listItem = node as unknown as TaskListItem;
 
-        // Task list item
-        if (listItem.checked !== undefined && listItem.checked !== null) {
-          const isChecked = Boolean(listItem.checked);
+        // Method 1: Check props.checked (react-markdown v8+)
+        const { checked } = props;
+        let isTaskList = checked !== null && checked !== undefined;
+        let isChecked = Boolean(checked);
 
+        // Method 2: Check node properties (remark-gfm adds to AST)
+        if (!isTaskList && listItem.checked !== undefined) {
+          isTaskList = true;
+          isChecked = Boolean(listItem.checked);
+        }
+
+        // Method 3: Check children for checkbox (fallback)
+        if (!isTaskList) {
+          const childArray = React.Children.toArray(children);
+          const checkboxChild = childArray.find((child) => {
+            if (React.isValidElement(child) && child.type === 'input') {
+              const childProps = child.props as any;
+              return childProps.type === 'checkbox';
+            }
+            return false;
+          });
+
+          if (checkboxChild && React.isValidElement(checkboxChild)) {
+            isTaskList = true;
+            const checkboxProps = checkboxChild.props as any;
+            isChecked = Boolean(checkboxProps.checked);
+          }
+        }
+
+        if (isTaskList) {
           return (
             <TaskListItemRenderer
               checked={isChecked}
@@ -153,6 +180,9 @@ export function useMarkdownComponents({
         // Regular list item
         return <ListItemRenderer>{children}</ListItemRenderer>;
       },
+
+      // DON'T override input - let it render so li can detect it in children
+      // TaskListItemRenderer will filter it out later
 
       // Code
       code: ({ children, className }) => {
