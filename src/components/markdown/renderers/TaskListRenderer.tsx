@@ -26,6 +26,15 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
   isDarkMode,
   disabled,
 }: TaskListItemProps) {
+  // Optimistic update: local state for immediate UI response
+  const [optimisticChecked, setOptimisticChecked] = React.useState(checked);
+  const [isToggling, setIsToggling] = React.useState(false);
+
+  // Sync with prop changes
+  React.useEffect(() => {
+    setOptimisticChecked(checked);
+  }, [checked]);
+
   // Filter out default GFM checkbox from children
   const filteredChildren = React.useMemo(() => {
     const childArray = React.Children.toArray(children);
@@ -39,6 +48,27 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
     });
   }, [children]);
 
+  const handleToggle = React.useCallback(async () => {
+    if (disabled || isToggling) return;
+
+    const newChecked = !optimisticChecked;
+
+    // Optimistic update: update UI immediately
+    setOptimisticChecked(newChecked);
+    setIsToggling(true);
+
+    try {
+      // Save in background
+      await onToggle();
+    } catch (error) {
+      // Rollback on error
+      console.error('Failed to toggle task:', error);
+      setOptimisticChecked(checked);
+    } finally {
+      setIsToggling(false);
+    }
+  }, [checked, optimisticChecked, disabled, isToggling, onToggle]);
+
   return (
     <li
       className="task-list-item flex items-start gap-2.5 my-0.5 leading-relaxed text-[13px] break-words transition-opacity duration-150"
@@ -50,24 +80,19 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
             ? 'border-slate-500 bg-slate-800/60 data-[state=checked]:border-emerald-400 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/25'
             : 'border-slate-300 bg-white shadow-sm data-[state=checked]:border-emerald-500 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-emerald-500 data-[state=checked]:to-emerald-600 data-[state=checked]:shadow-lg data-[state=checked]:shadow-emerald-500/20'
         } ${
-          disabled
+          disabled || isToggling
             ? 'opacity-50 cursor-not-allowed'
             : 'cursor-pointer hover:border-emerald-400 hover:scale-105 active:scale-95 data-[state=checked]:hover:shadow-emerald-500/40'
         }`}
-        checked={checked}
-        disabled={disabled}
-        onCheckedChange={(value) => {
-          const nextChecked = value === true;
-          if (nextChecked !== checked && !disabled) {
-            void onToggle();
-          }
-        }}
+        checked={optimisticChecked}
+        disabled={disabled || isToggling}
+        onCheckedChange={handleToggle}
         onClick={(e) => {
           // Prevent double-triggering
           e.stopPropagation();
         }}
-        aria-label={checked ? '작업 완료됨' : '작업 미완료'}
-        aria-checked={checked}
+        aria-label={optimisticChecked ? '작업 완료됨' : '작업 미완료'}
+        aria-checked={optimisticChecked}
       >
         <Checkbox.Indicator className="animate-in zoom-in-75 duration-150">
           <Check
@@ -78,7 +103,7 @@ export const TaskListItemRenderer = React.memo(function TaskListItemRenderer({
       </Checkbox.Root>
       <span
         className={`flex-1 select-text break-words transition-all duration-200 ${
-          checked
+          optimisticChecked
             ? `line-through decoration-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`
             : isDarkMode
               ? 'text-slate-200'
