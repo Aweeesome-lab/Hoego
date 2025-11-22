@@ -15,7 +15,7 @@ interface BlockquoteRendererProps {
  * - [!WARNING] - 경고
  * - [!IMPORTANT] - 중요
  */
-export function BlockquoteRenderer({
+export const BlockquoteRenderer = React.memo(function BlockquoteRenderer({
   children,
   isDarkMode,
   ...props
@@ -115,4 +115,4 @@ export function BlockquoteRenderer({
       {children}
     </blockquote>
   );
-}
+});

@@ -65,6 +65,46 @@
   body {
     @apply bg-transparent text-foreground antialiased;
   }
+
+  /* Accessibility: Focus indicators */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  }
+
+  /* Accessibility: High contrast mode support */
+  @media (prefers-contrast: high) {
+    * {
+      --tw-ring-opacity: 1;
+    }
+  }
+
+  /* Accessibility: Reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Accessibility: Improved link focus for keyboard navigation */
+  a:focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 rounded-sm;
+  }
+
+  /* Accessibility: Button focus for keyboard navigation */
+  button:focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 rounded-md;
+  }
+
+  /* Accessibility: Input focus */
+  input:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 rounded-md;
+  }
 }
 
 @layer components {

@@ -1,4 +1,8 @@
+import { useRef, useCallback } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { MarkdownToolbar } from './MarkdownToolbar';
 
 import type { MarkdownPreviewProps } from './types';
 
@@ -31,51 +35,115 @@ export function MarkdownPreview({
   isSaving = false,
   previewRef,
 }: MarkdownPreviewProps) {
+  // Helper function to insert formatting around selected text
+  const insertFormatting = useCallback(
+    (before: string, after: string, placeholder: string = 'text') => {
+      if (!isEditing || !editorRef?.current || !onContentChange) return;
+
+      const textarea = editorRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.slice(start, end);
+
+      const textToInsert = selectedText || placeholder;
+      const newText =
+        content.slice(0, start) + before + textToInsert + after + content.slice(end);
+
+      onContentChange(newText);
+
+      // Set cursor position after formatting
+      setTimeout(() => {
+        const newCursorStart = start + before.length;
+        const newCursorEnd = newCursorStart + textToInsert.length;
+        textarea.focus();
+        textarea.setSelectionRange(newCursorStart, newCursorEnd);
+      }, 0);
+    },
+    [content, isEditing, editorRef, onContentChange]
+  );
+
+  // Keyboard shortcuts for markdown formatting
+  useHotkeys(
+    'mod+b',
+    (e) => {
+      e.preventDefault();
+      insertFormatting('**', '**', 'bold text');
+    },
+    { enabled: isEditing },
+    [insertFormatting, isEditing]
+  );
+
+  useHotkeys(
+    'mod+i',
+    (e) => {
+      e.preventDefault();
+      insertFormatting('*', '*', 'italic text');
+    },
+    { enabled: isEditing },
+    [insertFormatting, isEditing]
+  );
+
+  useHotkeys(
+    'mod+k',
+    (e) => {
+      e.preventDefault();
+      insertFormatting('[', '](url)', 'link text');
+    },
+    { enabled: isEditing },
+    [insertFormatting, isEditing]
+  );
+
   // 편집 모드
   if (isEditing) {
     return (
-      <textarea
-        ref={editorRef}
-        value={content}
-        onChange={(e) => onContentChange?.(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && onEnterKey) {
-            e.preventDefault();
-            const textarea = e.currentTarget;
-            const cursorPosition = textarea.selectionStart;
-            const textBeforeCursor = content.slice(0, cursorPosition);
-            const textAfterCursor = content.slice(cursorPosition);
+      <div className="flex flex-col w-full h-full">
+        {/* Markdown Toolbar */}
+        <MarkdownToolbar onFormat={insertFormatting} isDarkMode={isDarkMode} />
 
-            // 현재 줄의 시작 위치 찾기
-            const lineStart = textBeforeCursor.lastIndexOf('\n') + 1;
-            const currentLine = textBeforeCursor.slice(lineStart);
+        {/* Editor */}
+        <textarea
+          ref={editorRef}
+          value={content}
+          onChange={(e) => onContentChange?.(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnterKey) {
+              e.preventDefault();
+              const textarea = e.currentTarget;
+              const cursorPosition = textarea.selectionStart;
+              const textBeforeCursor = content.slice(0, cursorPosition);
+              const textAfterCursor = content.slice(cursorPosition);
 
-            // Enter 키 핸들러 호출하여 타임스탬프 추가된 줄 받기
-            const processedLine = onEnterKey(currentLine);
+              // 현재 줄의 시작 위치 찾기
+              const lineStart = textBeforeCursor.lastIndexOf('\n') + 1;
+              const currentLine = textBeforeCursor.slice(lineStart);
 
-            // 콘텐츠 업데이트: 현재 줄을 processedLine으로 교체하고 개행 추가
-            const newContent = `${content.slice(
-              0,
-              lineStart
-            )}${processedLine}\n${textAfterCursor}`;
+              // Enter 키 핸들러 호출하여 타임스탬프 추가된 줄 받기
+              const processedLine = onEnterKey(currentLine);
 
-            onContentChange?.(newContent);
+              // 콘텐츠 업데이트: 현재 줄을 processedLine으로 교체하고 개행 추가
+              const newContent = `${content.slice(
+                0,
+                lineStart
+              )}${processedLine}\n${textAfterCursor}`;
 
-            // 커서 위치 업데이트 (다음 프레임에서)
-            setTimeout(() => {
-              const newCursorPos = lineStart + processedLine.length + 1; // +1 for newline
-              textarea.setSelectionRange(newCursorPos, newCursorPos);
-            }, 0);
-          }
-        }}
-        className={`w-full h-full font-mono text-sm resize-none focus:outline-none ${
-          isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'
-        } ${className || 'p-4'}`}
-        style={{
-          lineHeight: '1.6',
-          tabSize: 2,
-        }}
-      />
+              onContentChange?.(newContent);
+
+              // 커서 위치 업데이트 (다음 프레임에서)
+              setTimeout(() => {
+                const newCursorPos = lineStart + processedLine.length + 1; // +1 for newline
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+              }, 0);
+            }
+          }}
+          className={`flex-1 w-full font-mono text-sm resize-none focus:outline-none ${
+            isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'
+          } ${className || 'p-4'}`}
+          style={{
+            lineHeight: '1.6',
+            tabSize: 2,
+          }}
+        />
+      </div>
     );
   }
 

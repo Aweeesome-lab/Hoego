@@ -2,6 +2,11 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { ExternalLink } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
+import {
+  getCachedLinkMetadata,
+  cacheLinkMetadata,
+} from '../../lib/link-preview-cache';
+
 import type { LinkMetadata } from '../../types/tauri-commands';
 
 interface LinkPreviewCardProps {
@@ -14,7 +19,7 @@ interface LinkPreviewCardProps {
  * LinkPreviewCard component
  * Displays a rich preview card for links with metadata
  */
-export function LinkPreviewCard({
+export const LinkPreviewCard = React.memo(function LinkPreviewCard({
   href,
   children,
   isDarkMode,
@@ -31,11 +36,22 @@ export function LinkPreviewCard({
       return;
     }
 
-    // Fetch metadata
+    // Check cache first
+    const cached = getCachedLinkMetadata(href);
+    if (cached) {
+      setMetadata(cached);
+      setLoading(false);
+      return;
+    }
+
+    // Fetch metadata if not cached
     fetchLinkMetadata(href)
       .then((data) => {
         setMetadata(data);
         setLoading(false);
+
+        // Cache the result
+        cacheLinkMetadata(href, data);
       })
       .catch(() => {
         setError(true);
@@ -159,7 +175,7 @@ export function LinkPreviewCard({
       </div>
     </a>
   );
-}
+});
 
 /**
  * Fetch link metadata using Tauri backend

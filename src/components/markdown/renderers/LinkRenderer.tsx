@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { LazyLoad } from '../LazyLoad';
 import { LinkPreviewCard } from '../LinkPreviewCard';
 
 import type { LinkRendererProps } from '../types';
@@ -15,7 +16,7 @@ import type { LinkRendererProps } from '../types';
  * @param href - 링크 URL
  * @param isDarkMode - 다크모드 여부
  */
-export function LinkRenderer({
+export const LinkRenderer = React.memo(function LinkRenderer({
   children,
   href,
   isDarkMode,
@@ -77,12 +78,12 @@ export function LinkRenderer({
       {children}
     </a>
   );
-}
+});
 
 /**
  * 이미지 렌더러
  */
-export function ImageRenderer({
+export const ImageRenderer = React.memo(function ImageRenderer({
   isDarkMode,
   ...props
 }: Pick<LinkRendererProps, 'isDarkMode'> &
@@ -97,4 +98,4 @@ export function ImageRenderer({
       alt={props.alt || ''}
     />
   );
-}
+});

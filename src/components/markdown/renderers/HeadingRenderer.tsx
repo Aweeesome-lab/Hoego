@@ -14,7 +14,7 @@ import type { HeadingRendererProps } from '../types';
  * @param children - 헤딩 내용
  * @param isDarkMode - 다크모드 여부
  */
-export function HeadingRenderer({
+export const HeadingRenderer = React.memo(function HeadingRenderer({
   level,
   children,
   isDarkMode,
@@ -49,4 +49,4 @@ export function HeadingRenderer({
     { ...props, className: styles[level] },
     children
   );
-}
+});

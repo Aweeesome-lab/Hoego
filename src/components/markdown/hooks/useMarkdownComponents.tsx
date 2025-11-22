@@ -22,6 +22,12 @@ import {
   LinkRenderer,
   ImageRenderer,
 } from '../renderers';
+import {
+  FootnoteReferenceRenderer,
+  FootnoteDefinitionRenderer,
+  FootnoteItemRenderer,
+  FootnoteBackReferenceRenderer,
+} from '../renderers/FootnoteRenderer';
 
 import type { TaskListItem } from '../types';
 import type { Components } from 'react-markdown';
@@ -207,6 +213,32 @@ export function useMarkdownComponents({
         </LinkRenderer>
       ),
       img: (props) => <ImageRenderer isDarkMode={isDarkMode} {...props} />,
+
+      // Footnotes
+      sup: ({ children, ...props }) => {
+        // Check if this is a footnote reference (has data-footnote-ref attribute)
+        if ('data-footnote-ref' in props || props.id?.startsWith('fnref-')) {
+          return (
+            <FootnoteReferenceRenderer isDarkMode={isDarkMode} {...props}>
+              {children}
+            </FootnoteReferenceRenderer>
+          );
+        }
+        // Regular superscript
+        return <sup {...props}>{children}</sup>;
+      },
+      section: ({ children, ...props }) => {
+        // Check if this is the footnotes section
+        if ('data-footnotes' in props) {
+          return (
+            <FootnoteDefinitionRenderer isDarkMode={isDarkMode} {...props}>
+              {children}
+            </FootnoteDefinitionRenderer>
+          );
+        }
+        // Regular section
+        return <section {...props}>{children}</section>;
+      },
     }),
     [isDarkMode, isSaving, onTaskToggle]
   );

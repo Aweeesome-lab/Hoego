@@ -8,7 +8,7 @@ interface TableRendererProps {
 /**
  * 테이블 렌더러
  */
-export function TableRenderer({
+export const TableRenderer = React.memo(function TableRenderer({
   children,
   isDarkMode,
   ...props
@@ -25,12 +25,12 @@ export function TableRenderer({
       </table>
     </div>
   );
-}
+});
 
 /**
  * 테이블 헤더 렌더러
  */
-export function TableHeaderRenderer({
+export const TableHeaderRenderer = React.memo(function TableHeaderRenderer({
   children,
   isDarkMode,
   ...props
@@ -43,23 +43,23 @@ export function TableHeaderRenderer({
       {children}
     </thead>
   );
-}
+});
 
 /**
  * 테이블 바디 렌더러
  */
-export function TableBodyRenderer({
+export const TableBodyRenderer = React.memo(function TableBodyRenderer({
   children,
   ...props
 }: Omit<TableRendererProps, 'isDarkMode'> &
   React.HTMLAttributes<HTMLTableSectionElement>) {
   return <tbody {...props}>{children}</tbody>;
-}
+});
 
 /**
  * 테이블 행 렌더러
  */
-export function TableRowRenderer({
+export const TableRowRenderer = React.memo(function TableRowRenderer({
   children,
   isDarkMode,
   ...props
@@ -72,12 +72,12 @@ export function TableRowRenderer({
       {children}
     </tr>
   );
-}
+});
 
 /**
  * 테이블 헤더 셀 렌더러
  */
-export function TableHeaderCellRenderer({
+export const TableHeaderCellRenderer = React.memo(function TableHeaderCellRenderer({
   children,
   isDarkMode,
   ...props
@@ -92,12 +92,12 @@ export function TableHeaderCellRenderer({
       {children}
     </th>
   );
-}
+});
 
 /**
  * 테이블 데이터 셀 렌더러
  */
-export function TableDataCellRenderer({
+export const TableDataCellRenderer = React.memo(function TableDataCellRenderer({
   children,
   isDarkMode,
   ...props
@@ -110,4 +110,4 @@ export function TableDataCellRenderer({
       {children}
     </td>
   );
-}
+});

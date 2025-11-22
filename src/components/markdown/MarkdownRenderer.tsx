@@ -1,6 +1,6 @@
 import 'katex/dist/katex.min.css';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 import { DEFAULT_REMARK_PLUGINS, DEFAULT_REHYPE_PLUGINS } from './config';
@@ -30,6 +30,11 @@ export const MarkdownRenderer = React.memo(function MarkdownRenderer({
   className = '',
   isSaving = false,
 }: MarkdownRendererProps) {
+  // Memoize plugins to prevent unnecessary re-initialization
+  const remarkPlugins = useMemo(() => DEFAULT_REMARK_PLUGINS, []);
+  const rehypePlugins = useMemo(() => DEFAULT_REHYPE_PLUGINS, []);
+
+  // Memoize components based on dependencies
   const components = useMarkdownComponents({
     isDarkMode,
     isSaving,
@@ -39,8 +44,8 @@ export const MarkdownRenderer = React.memo(function MarkdownRenderer({
   return (
     <ReactMarkdown
       className={`markdown-renderer ${className}`}
-      remarkPlugins={DEFAULT_REMARK_PLUGINS}
-      rehypePlugins={DEFAULT_REHYPE_PLUGINS}
+      remarkPlugins={remarkPlugins}
+      rehypePlugins={rehypePlugins}
       components={components}
     >
       {content}
