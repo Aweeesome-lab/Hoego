@@ -195,21 +195,22 @@ export function useAppHandlers({
   const handleHomeClick = useCallback(() => {
     void (async () => {
       try {
-        // 편집 중이면 먼저 저장
+        // 편집 중이면 먼저 현재 문서에 저장하고 편집 모드 종료
         if (isEditing && editingContent !== lastSavedRef.current) {
           setIsSaving(true);
-          await saveTodayMarkdown(editingContent);
+          const { saveActiveDocument } = useDocumentStore.getState();
+          await saveActiveDocument(editingContent);
           lastSavedRef.current = editingContent;
           setIsSaving(false);
         }
 
-        // 오늘 날짜로 돌아가기
-        setCurrentHistoryDate(null);
-
-        // 편집 모드 종료
+        // 편집 모드 종료 (날짜 변경 전에 종료)
         if (isEditing) {
           setIsEditing(false);
         }
+
+        // 오늘 날짜로 돌아가기
+        setCurrentHistoryDate(null);
 
         const { loadToday } = useDocumentStore.getState();
         await loadToday();
@@ -239,12 +240,13 @@ export function useAppHandlers({
 
   const handleToggleEdit = useCallback(() => {
     if (isEditing) {
-      // 편집 종료 시 저장
+      // 편집 종료 시 현재 활성 문서에 저장
       if (editingContent !== lastSavedRef.current) {
         void (async () => {
           try {
             setIsSaving(true);
-            await saveTodayMarkdown(editingContent);
+            const { saveActiveDocument } = useDocumentStore.getState();
+            await saveActiveDocument(editingContent);
 
             lastSavedRef.current = editingContent;
             setMarkdownContent(editingContent);
@@ -298,21 +300,22 @@ export function useAppHandlers({
 
       void (async () => {
         try {
-          // 편집 중이면 먼저 저장
+          // 편집 중이면 먼저 현재 문서에 저장하고 편집 모드 종료
           if (isEditing && editingContent !== lastSavedRef.current) {
             setIsSaving(true);
-            await saveTodayMarkdown(editingContent);
+            const { saveActiveDocument } = useDocumentStore.getState();
+            await saveActiveDocument(editingContent);
             lastSavedRef.current = editingContent;
             setIsSaving(false);
           }
 
-          setIsLoadingHistoryContent(true);
-          setCurrentHistoryDate(file.date);
-
-          // 편집 모드 종료
+          // 편집 모드 종료 (날짜 변경 전에 종료)
           if (isEditing) {
             setIsEditing(false);
           }
+
+          setIsLoadingHistoryContent(true);
+          setCurrentHistoryDate(file.date);
 
           const { loadHistory } = useDocumentStore.getState();
           await loadHistory(file.date, file.path);
