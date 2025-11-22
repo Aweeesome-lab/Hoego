@@ -394,7 +394,18 @@ fn main() {
                     // 모든 데스크톱에서 보이도록 설정 (macOS Spaces)
                     set_window_visible_on_all_workspaces(&window);
                 }
-                window.hide()?;
+
+                // 최초 실행 시에는 창을 보여주고, 이후에는 숨김
+                if storage_service::is_first_launch() {
+                    tracing::info!("최초 실행 - 창 표시");
+                    window.center()?;
+                    window.show()?;
+                    window.set_focus()?;
+                    // 최초 실행 마커 생성
+                    let _ = storage_service::mark_first_launch_done();
+                } else {
+                    window.hide()?;
+                }
             }
 
             Ok(())

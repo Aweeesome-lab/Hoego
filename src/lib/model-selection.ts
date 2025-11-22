@@ -3,7 +3,7 @@
  * Manages unified model selection for both local and cloud LLMs
  */
 
-import { CloudLLMClient } from './cloud-llm';
+// import { CloudLLMClient } from './cloud-llm'; // TODO: Beta 후 활성화
 import { llmApi } from './llm';
 
 import type { SelectedModel, ModelOption } from '@/types/model-selection';
@@ -11,7 +11,7 @@ import type { SelectedModel, ModelOption } from '@/types/model-selection';
 import {
   SELECTED_MODEL_KEY,
   DEFAULT_MODEL,
-  CLOUD_MODELS,
+  // CLOUD_MODELS, // TODO: Beta 후 활성화
 } from '@/types/model-selection';
 
 /**
@@ -23,6 +23,12 @@ export function getSelectedModel(): SelectedModel {
     if (!stored) return DEFAULT_MODEL;
 
     const parsed = JSON.parse(stored) as SelectedModel;
+
+    // TODO: Beta 기간 동안 클라우드 모델 비활성화 - 로컬로 fallback
+    if (parsed.type === 'cloud') {
+      return DEFAULT_MODEL;
+    }
+
     return parsed;
   } catch (error) {
     console.error('[Model Selection] Failed to load selected model:', error);
@@ -71,24 +77,24 @@ export async function getAllModelOptions(): Promise<ModelOption[]> {
       });
     }
 
-    // Get cloud models (GPT + Gemini only)
-    const providers = ['openai', 'gemini'] as const;
-
-    for (const provider of providers) {
-      const hasApiKey = await CloudLLMClient.hasApiKey(provider);
-      const models = CLOUD_MODELS[provider];
-
-      for (const model of models) {
-        options.push({
-          id: model.id,
-          type: 'cloud',
-          displayName: model.displayName,
-          provider,
-          description: hasApiKey ? model.description : '⚠️ API 키 필요',
-          isAvailable: hasApiKey,
-        });
-      }
-    }
+    // TODO: Beta 테스트 후 클라우드 모델 활성화
+    // const providers = ['openai', 'gemini'] as const;
+    //
+    // for (const provider of providers) {
+    //   const hasApiKey = await CloudLLMClient.hasApiKey(provider);
+    //   const models = CLOUD_MODELS[provider];
+    //
+    //   for (const model of models) {
+    //     options.push({
+    //       id: model.id,
+    //       type: 'cloud',
+    //       displayName: model.displayName,
+    //       provider,
+    //       description: hasApiKey ? model.description : '⚠️ API 키 필요',
+    //       isAvailable: hasApiKey,
+    //     });
+    //   }
+    // }
   } catch (error) {
     console.error('[Model Selection] Failed to load model options:', error);
   }

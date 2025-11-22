@@ -8,8 +8,9 @@ import {
   Footer,
   Sidebar,
 } from '@/components/layout';
-import { UpdateDialog } from '@/components/UpdateDialog';
+import { OnboardingModal, useOnboarding } from '@/components/OnboardingModal';
 import { DumpPanel } from '@/components/panels';
+import { UpdateDialog } from '@/components/UpdateDialog';
 import {
   useTheme,
   useMarkdown,
@@ -107,6 +108,7 @@ export default function App() {
   } = useSidebar();
 
   const { viewMode, switchToExpanded, switchToMini } = useViewMode();
+  const { showOnboarding, completeOnboarding } = useOnboarding();
 
   const selectedSummary = React.useMemo(
     () => aiSummaries[selectedSummaryIndex] ?? null,
@@ -321,6 +323,14 @@ export default function App() {
         />
 
         <UpdateDialog />
+
+        {/* Onboarding Modal */}
+        {showOnboarding && (
+          <OnboardingModal
+            isDarkMode={isDarkMode}
+            onComplete={completeOnboarding}
+          />
+        )}
       </div>
 
       {/* Floating Mini Bar - positioned at bottom */}

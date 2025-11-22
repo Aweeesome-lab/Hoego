@@ -9,7 +9,6 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectSeparator,
 } from '@/components/ui/select';
 import {
   getAllModelOptions,
