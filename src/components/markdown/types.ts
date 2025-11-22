@@ -1,5 +1,8 @@
 /**
  * Markdown 렌더러 타입 정의
+ *
+ * 표준 prose 스타일을 기본으로 사용하며,
+ * 특수 기능이 필요한 컴포넌트만 타입 정의
  */
 
 import type { Components } from 'react-markdown';
@@ -16,7 +19,17 @@ export interface MarkdownViewerProps {
 }
 
 // ============================================================================
-// 체크박스 관련 타입
+// 공통 Props
+// ============================================================================
+
+export interface BaseComponentProps {
+  children?: React.ReactNode;
+  node?: any;
+  isDarkMode?: boolean;
+}
+
+// ============================================================================
+// Task List (체크박스 토글 기능)
 // ============================================================================
 
 export interface Position {
@@ -39,48 +52,27 @@ export interface TaskToggleResult {
   error?: string;
 }
 
-// ============================================================================
-// 컴포넌트 Props 타입
-// ============================================================================
-
-export interface BaseComponentProps {
-  children?: React.ReactNode;
-  node?: any;
-  isDarkMode?: boolean;
+export interface ListItemProps extends BaseComponentProps {
+  checked?: boolean | null;
+  index?: number;
 }
 
-export interface HeadingProps extends BaseComponentProps {
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
-}
+// ============================================================================
+// Code (syntax highlighting)
+// ============================================================================
 
 export interface CodeProps extends BaseComponentProps {
   inline?: boolean;
   className?: string;
 }
 
-export interface LinkProps extends BaseComponentProps {
-  href?: string;
-  title?: string;
-}
+// ============================================================================
+// Mermaid 다이어그램
+// ============================================================================
 
-export interface ImageProps extends BaseComponentProps {
-  src?: string;
-  alt?: string;
-  title?: string;
-}
-
-export interface ListProps extends BaseComponentProps {
-  ordered?: boolean;
-  start?: number;
-}
-
-export interface ListItemProps extends BaseComponentProps {
-  checked?: boolean | null;
-  index?: number;
-}
-
-export interface TableProps extends BaseComponentProps {
-  align?: ('left' | 'right' | 'center' | null)[];
+export interface MermaidProps {
+  chart: string;
+  isDarkMode?: boolean;
 }
 
 // ============================================================================
@@ -88,12 +80,3 @@ export interface TableProps extends BaseComponentProps {
 // ============================================================================
 
 export type MarkdownComponents = Components;
-
-// ============================================================================
-// Mermaid 다이어그램 타입
-// ============================================================================
-
-export interface MermaidProps {
-  chart: string;
-  isDarkMode?: boolean;
-}

@@ -26,6 +26,11 @@ export function TaskListItem({ children, checked, node, isDarkMode }: ListItemPr
   let isChecked: boolean | null = checked ?? null;
   let isTaskList = checked !== undefined && checked !== null;
 
+  // 디버깅: checked 값 확인
+  if (isTaskList) {
+    console.log('TaskListItem - checked prop:', checked, 'isChecked:', isChecked);
+  }
+
   // 2단계: 노드에서 checked 확인 (remark-gfm)
   if (!isTaskList && node && 'checked' in node && node.checked !== undefined) {
     isChecked = Boolean(node.checked);
@@ -77,31 +82,38 @@ export function TaskListItem({ children, checked, node, isDarkMode }: ListItemPr
     void toggleTaskCheckbox(position, nextChecked);
   }, [isSaving, isChecked, node?.position, toggleTaskCheckbox]);
 
-  // 체크박스 스타일
+  // 체크박스 스타일 - 개선된 디자인
   const checkboxBaseStyle = `
-    mt-1 flex h-[18px] w-[18px] min-w-[18px] flex-shrink-0
-    items-center justify-center rounded
+    mt-0.5 flex h-5 w-5 min-w-[20px] flex-shrink-0
+    items-center justify-center rounded-md
     border-2 transition-all duration-200
     focus:outline-none focus:ring-2 focus:ring-offset-2
+    shadow-sm
   `;
 
   const checkboxColorStyle = isDarkMode
     ? `
-      border-gray-500 bg-gray-800/60
+      border-gray-600 bg-gray-900/80
       data-[state=checked]:border-emerald-400
       data-[state=checked]:bg-gradient-to-br
       data-[state=checked]:from-emerald-500
       data-[state=checked]:to-emerald-600
-      hover:border-gray-400
+      data-[state=checked]:shadow-md
+      data-[state=checked]:shadow-emerald-500/20
+      hover:border-gray-500
+      hover:bg-gray-800/90
       focus:ring-emerald-500
     `
     : `
-      border-gray-400 bg-white
+      border-gray-300 bg-white
       data-[state=checked]:border-emerald-500
       data-[state=checked]:bg-gradient-to-br
       data-[state=checked]:from-emerald-400
       data-[state=checked]:to-emerald-500
-      hover:border-gray-500
+      data-[state=checked]:shadow-md
+      data-[state=checked]:shadow-emerald-500/20
+      hover:border-gray-400
+      hover:bg-gray-50
       focus:ring-emerald-400
     `;
 

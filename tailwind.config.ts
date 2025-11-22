@@ -119,10 +119,63 @@ const config: Config = {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out'
-      }
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: 'inherit',
+            a: {
+              color: '#3b82f6',
+              '&:hover': {
+                color: '#2563eb',
+              },
+            },
+            code: {
+              color: 'inherit',
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: '0.25rem',
+              padding: '0.125rem 0.25rem',
+              fontWeight: '400',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+            pre: {
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              code: {
+                backgroundColor: 'transparent',
+                padding: '0',
+              },
+            },
+          },
+        },
+        invert: {
+          css: {
+            color: 'inherit',
+            a: {
+              color: '#60a5fa',
+              '&:hover': {
+                color: '#3b82f6',
+              },
+            },
+            code: {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            },
+            pre: {
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            },
+          },
+        },
+      },
     }
   },
-  plugins: []
+  plugins: [
+    require('@tailwindcss/typography'),
+  ]
 };
 
 export default config;
