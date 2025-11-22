@@ -31,8 +31,8 @@ export function RetrospectPanel({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden px-6 py-4 pb-24">
-        <div className="relative h-full w-full overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-6 py-4 pb-24">
           <MarkdownViewer
             content={
               retrospectContent ||

@@ -142,28 +142,25 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-hidden">
-        {isPipelineRunning ? (
-          streamingAiText ? (
-            <MarkdownViewer
-              content={streamingAiText}
-              isDarkMode={isDarkMode}
-              className="px-10 py-6 pb-24"
-            />
-          ) : (
-            <div className="px-10 py-6 pb-24">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-10 py-6 pb-24">
+          {isPipelineRunning ? (
+            streamingAiText ? (
+              <MarkdownViewer
+                content={streamingAiText}
+                isDarkMode={isDarkMode}
+              />
+            ) : (
               <ThinkingIndicator isDarkMode={isDarkMode} />
-            </div>
-          )
-        ) : summariesError ? (
-          <div className="px-10 py-6 pb-24">
-            <p className="text-sm font-semibold text-red-400">
-              AI 피드백을 불러오지 못했어요.
-            </p>
-            <p className="text-xs text-red-300 mt-1">{summariesError}</p>
-          </div>
-        ) : aiSummaries.length === 0 ? (
-          <div className="px-10 py-6 pb-24">
+            )
+          ) : summariesError ? (
+            <>
+              <p className="text-sm font-semibold text-red-400">
+                AI 피드백을 불러오지 못했어요.
+              </p>
+              <p className="text-xs text-red-300 mt-1">{summariesError}</p>
+            </>
+          ) : aiSummaries.length === 0 ? (
             <p
               className={`text-sm ${
                 isDarkMode ? 'text-slate-200' : 'text-slate-500'
@@ -172,16 +169,15 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
               오늘 작성된 AI 피드백이 없습니다. &ldquo;AI 피드백&rdquo; 버튼을
               눌러 요약을 생성해보세요.
             </p>
-          </div>
-        ) : (
-          <MarkdownViewer
-            content={
-              selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
-            }
-            isDarkMode={isDarkMode}
-            className="px-10 py-6 pb-24"
-          />
-        )}
+          ) : (
+            <MarkdownViewer
+              content={
+                selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
+              }
+              isDarkMode={isDarkMode}
+            />
+          )}
+        </div>
       </div>
     </section>
   );
