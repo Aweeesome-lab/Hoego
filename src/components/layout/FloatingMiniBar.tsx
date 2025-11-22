@@ -93,12 +93,18 @@ export function FloatingMiniBar({
               }
             }}
             placeholder="생각을 쏟아내보세요."
-            className={`h-16 w-full rounded-lg border-0 text-[13px] focus:outline-none focus:ring-0 px-3 py-4 pr-8 resize-none bg-transparent scrollbar-hide ${
+            className={`h-16 w-full text-[13px] px-3 py-4 pr-8 resize-none bg-transparent scrollbar-hide ${
               isDarkMode
                 ? 'text-slate-100 placeholder:text-slate-500'
                 : 'text-slate-900 placeholder:text-slate-400'
             }`}
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none',
+            }}
             autoFocus
           />
 
