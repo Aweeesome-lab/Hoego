@@ -108,7 +108,18 @@
 }
 
 @layer components {
-  /* Prose customizations handled in tailwind.config.ts */
+  /* Task list - override prose default padding */
+  .prose ul.contains-task-list {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    list-style: none !important;
+  }
+
+  .prose li.task-list-item {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    list-style: none !important;
+  }
 }
 
 @layer utilities {

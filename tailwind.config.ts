@@ -177,16 +177,25 @@ const config: Config = {
             'li::marker': {
               color: theme('colors.gray.500'),
             },
-            // Task lists - remove bullets
+            // Task lists - remove bullets and padding
             'ul.contains-task-list': {
+              listStyleType: 'none',
+              paddingLeft: 0,
+              marginLeft: 0,
+            },
+            'ul.contains-task-list > li': {
               listStyleType: 'none',
               paddingLeft: '0',
             },
             'li.task-list-item': {
               listStyleType: 'none',
               paddingLeft: '0',
+              marginLeft: '0',
             },
             'li.task-list-item::marker': {
+              content: '""',
+            },
+            'li.task-list-item::before': {
               content: '""',
             },
           },
