@@ -1,31 +1,30 @@
 /**
- * Markdown Viewer - 메인 렌더러 컴포넌트
+ * Markdown Viewer - 최소한의 설정으로 마크다운 렌더링
  */
 
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-import { useComponents } from './hooks/useComponents';
-import { rehypePlugins, remarkPlugins } from './plugins';
-import type { MarkdownViewerProps } from './types';
+export interface MarkdownViewerProps {
+  content: string;
+  className?: string;
+  isDarkMode?: boolean;
+}
 
 /**
  * 마크다운 뷰어 컴포넌트
  *
- * @param content - 렌더링할 마크다운 텍스트
- * @param className - 추가 CSS 클래스
- * @param isDarkMode - 다크모드 활성화 여부
- * @param onContentChange - 콘텐츠 변경 핸들러 (체크박스 토글 시)
+ * - @tailwindcss/typography prose 클래스 사용
+ * - remark-gfm으로 GitHub Flavored Markdown 지원
+ * - 커스텀 컴포넌트 없이 기본 렌더링
  */
 export function MarkdownViewer({
   content,
   className = '',
   isDarkMode = false,
-  onContentChange,
 }: MarkdownViewerProps) {
-  const components = useComponents({ isDarkMode, onContentChange });
-
   return (
     <div
       className={`
@@ -34,13 +33,7 @@ export function MarkdownViewer({
         ${className}
       `}
     >
-      <ReactMarkdown
-        remarkPlugins={remarkPlugins}
-        rehypePlugins={rehypePlugins}
-        components={components}
-      >
-        {content}
-      </ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );
 }

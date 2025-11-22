@@ -120,107 +120,14 @@ const config: Config = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out'
       },
-      typography: ({ theme }: any) => ({
+      typography: {
         DEFAULT: {
           css: {
             maxWidth: 'none',
             color: 'inherit',
-            // Links
-            a: {
-              color: theme('colors.blue.600'),
-              textDecoration: 'underline',
-              fontWeight: '500',
-              '&:hover': {
-                color: theme('colors.blue.700'),
-              },
-            },
-            // Inline code
-            code: {
-              color: 'inherit',
-              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              borderRadius: '0.25rem',
-              padding: '0.125rem 0.25rem',
-              fontWeight: '400',
-              fontSize: '0.875em',
-            },
-            'code::before': {
-              content: '""',
-            },
-            'code::after': {
-              content: '""',
-            },
-            // Code blocks
-            pre: {
-              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              borderRadius: '0.375rem',
-              padding: '1rem',
-              code: {
-                backgroundColor: 'transparent',
-                borderRadius: '0',
-                padding: '0',
-                fontSize: '0.875rem',
-              },
-            },
-            // Lists
-            ul: {
-              listStyleType: 'disc',
-              paddingLeft: '1.625rem',
-            },
-            ol: {
-              listStyleType: 'decimal',
-              paddingLeft: '1.625rem',
-            },
-            li: {
-              marginTop: '0.25rem',
-              marginBottom: '0.25rem',
-            },
-            'li::marker': {
-              color: theme('colors.gray.500'),
-            },
-            // Task lists - remove bullets and padding
-            'ul.contains-task-list': {
-              listStyleType: 'none',
-              paddingLeft: 0,
-              marginLeft: 0,
-            },
-            'ul.contains-task-list > li': {
-              listStyleType: 'none',
-              paddingLeft: '0',
-            },
-            'li.task-list-item': {
-              listStyleType: 'none',
-              paddingLeft: '0',
-              marginLeft: '0',
-            },
-            'li.task-list-item::marker': {
-              content: '""',
-            },
-            'li.task-list-item::before': {
-              content: '""',
-            },
           },
         },
-        invert: {
-          css: {
-            color: 'inherit',
-            a: {
-              color: theme('colors.blue.400'),
-              '&:hover': {
-                color: theme('colors.blue.300'),
-              },
-            },
-            code: {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            },
-            pre: {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            },
-            'li::marker': {
-              color: theme('colors.gray.400'),
-            },
-          },
-        },
-      }),
+      },
     }
   },
   plugins: [
