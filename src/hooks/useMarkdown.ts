@@ -34,6 +34,9 @@ export function useMarkdown() {
       setMarkdownContent(data.content);
       lastSavedRef.current = data.content;
 
+      // Initialize documentStore with today's document
+      await useDocumentStore.getState().loadToday();
+
       // 마지막 시간 추출
       const lines = data.content.split('\n');
       let latestMinute = '';
@@ -134,6 +137,14 @@ export function useMarkdown() {
 
   const handleTaskCheckboxToggle = useCallback(
     async (listItem: { position?: Position | null }, nextChecked: boolean) => {
+      if (import.meta.env.DEV) {
+        console.log('[hoego] handleTaskCheckboxToggle called', {
+          listItem,
+          nextChecked,
+          isSaving,
+        });
+      }
+
       if (isSaving) {
         if (import.meta.env.DEV) {
           console.warn('[hoego] 저장 중이므로 체크박스 토글 무시');
@@ -144,7 +155,10 @@ export function useMarkdown() {
       const offsets = resolveOffsets(listItem?.position ?? null);
       if (!offsets) {
         if (import.meta.env.DEV) {
-          console.warn('[hoego] 체크박스 위치를 찾을 수 없습니다');
+          console.warn('[hoego] 체크박스 위치를 찾을 수 없습니다', {
+            position: listItem?.position,
+            markdownContentLength: markdownContent.length,
+          });
         }
         toast.error('체크박스 위치를 찾을 수 없습니다');
         return;
@@ -187,21 +201,35 @@ export function useMarkdown() {
       // Optimistic update: Update UI immediately
       setMarkdownContent(nextContent);
 
+      // Also update documentStore content for consistency
+      const documentStore = useDocumentStore.getState();
+      if (documentStore.activeDocument) {
+        documentStore.updateContent(nextContent);
+      }
+
       try {
         setIsSaving(true);
         // Save to the correct file using documentStore
-        const saveResult = await useDocumentStore
-          .getState()
-          .saveActiveDocument(nextContent);
+        const saveResult = await documentStore.saveActiveDocument(nextContent);
 
         if (!saveResult.success) {
           throw new Error(saveResult.error || 'Save failed');
         }
 
         lastSavedRef.current = nextContent;
+
+        if (import.meta.env.DEV) {
+          console.log('[hoego] 체크박스 상태 저장 완료');
+        }
       } catch (error) {
         // Revert on error
         setMarkdownContent(previousContent);
+
+        // Revert documentStore as well
+        if (documentStore.activeDocument) {
+          documentStore.updateContent(previousContent);
+        }
+
         lastSavedRef.current = previousContent;
 
         if (import.meta.env.DEV) {

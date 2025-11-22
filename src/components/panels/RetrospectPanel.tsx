@@ -1,4 +1,4 @@
-import { MarkdownPreview } from '@/components/markdown';
+import { MarkdownViewer } from '@/components/markdown';
 
 interface RetrospectPanelProps {
   isDarkMode: boolean;
@@ -32,8 +32,8 @@ export function RetrospectPanel({
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden px-6 py-4 pb-24">
-        <div className="relative h-full w-full">
-          <MarkdownPreview
+        <div className="relative h-full w-full overflow-y-auto">
+          <MarkdownViewer
             content={
               retrospectContent ||
               '## ✍️ 회고 미리보기\n\n내용을 작성하면 이 영역에서 마크다운이 적용된 회고를 실시간으로 확인할 수 있어요.'

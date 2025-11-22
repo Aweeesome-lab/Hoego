@@ -113,8 +113,14 @@
   .prose ol li {
     margin-top: 4px !important;
     margin-bottom: 0 !important;
+  }
+
+  /* Task list items only - remove padding */
+  .prose ul.contains-task-list li,
+  .prose li.task-list-item {
     padding: 0 !important;
   }
+
   .prose ul > li:first-child,
   .prose ol > li:first-child {
     margin-top: 0 !important;
@@ -177,28 +183,17 @@
     scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
   }
 
-  /* Task list checkbox - simplified approach based on GFM standards */
-  /* Remove bullet points from task list items */
-  .task-list-item,
-  li.task-list-item {
-    list-style-type: none !important;
-  }
-
-  /* Remove marker pseudo-element */
-  .task-list-item::marker {
-    display: none !important;
-  }
-
-  /* Task list container */
-  .contains-task-list,
-  ul.contains-task-list {
-    list-style-type: none !important;
+  /* Task list - simple and clean */
+  .contains-task-list {
     padding-left: 0 !important;
   }
 
+  .task-list-item {
+    list-style-type: none !important;
+  }
+
   /* Hide default GFM checkbox - we use custom Radix UI Checkbox */
-  .task-list-item > input[type='checkbox'],
-  li.task-list-item > input[type='checkbox'] {
+  .task-list-item > input[type='checkbox'] {
     display: none !important;
   }
 

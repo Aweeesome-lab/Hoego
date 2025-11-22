@@ -2,9 +2,7 @@ import { Pencil, Eye } from 'lucide-react';
 import React from 'react';
 import toast from 'react-hot-toast';
 
-import type { Position } from 'unist';
-
-import { MarkdownPreview } from '@/components/markdown';
+import { MarkdownViewer } from '@/components/markdown';
 import { Button, Badge } from '@/components/ui';
 import { useAppStore } from '@/store';
 import { useDocumentStore } from '@/store/documentStore';
@@ -16,7 +14,6 @@ interface DumpPanelProps {
   editorRef: React.RefObject<HTMLTextAreaElement>;
   currentDateLabel?: string;
   isSaving: boolean;
-  onTaskToggle?: (position: Position, checked: boolean) => Promise<void>;
 }
 
 export const DumpPanel = React.memo(function DumpPanel({
@@ -26,7 +23,6 @@ export const DumpPanel = React.memo(function DumpPanel({
   editorRef,
   currentDateLabel,
   isSaving,
-  onTaskToggle,
 }: DumpPanelProps) {
   const isEditing = useAppStore((state) => state.isEditing);
   const editingContent = useAppStore((state) => state.editingContent);
@@ -207,14 +203,13 @@ export const DumpPanel = React.memo(function DumpPanel({
             spellCheck={false}
           />
         ) : (
-          <MarkdownPreview
-            content={dumpContent}
-            isDarkMode={isDarkMode}
-            previewRef={markdownRef}
-            isSaving={isSaving}
-            onTaskToggle={onTaskToggle}
-            className="px-10 py-6 pb-24"
-          />
+          <div ref={markdownRef} className="h-full overflow-y-auto">
+            <MarkdownViewer
+              content={dumpContent}
+              isDarkMode={isDarkMode}
+              className="px-10 py-6 pb-24"
+            />
+          </div>
         )}
       </div>
     </section>

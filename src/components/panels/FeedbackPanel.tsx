@@ -6,7 +6,7 @@ import type { PipelineStage } from '@/store';
 
 import { ModelSelector } from '@/components/ai/ModelSelector';
 import { ThinkingIndicator } from '@/components/ai/thinking';
-import { MarkdownPreview } from '@/components/markdown';
+import { MarkdownViewer } from '@/components/markdown';
 import { Button } from '@/components/ui';
 import { useAppStore } from '@/store';
 
@@ -145,7 +145,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
       <div className="flex-1 overflow-hidden">
         {isPipelineRunning ? (
           streamingAiText ? (
-            <MarkdownPreview
+            <MarkdownViewer
               content={streamingAiText}
               isDarkMode={isDarkMode}
               className="px-10 py-6 pb-24"
@@ -174,7 +174,7 @@ export const FeedbackPanel = React.memo(function FeedbackPanel({
             </p>
           </div>
         ) : (
-          <MarkdownPreview
+          <MarkdownViewer
             content={
               selectedSummary?.content?.trim() || '요약 내용이 없습니다.'
             }

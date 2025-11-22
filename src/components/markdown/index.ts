@@ -1,18 +1,9 @@
-// Main components
-export { MarkdownRenderer } from './MarkdownRenderer';
-export { MarkdownPreview } from './MarkdownPreview';
+/**
+ * Markdown Viewer - Main Exports
+ */
 
-// Renderers (internal, but exported for advanced use)
-export * from './renderers';
-
-// Hooks
-export * from './hooks';
+// Main component
+export { MarkdownViewer } from './MarkdownViewer';
 
 // Types
-export * from './types';
-
-// Config
-export * from './config';
-
-// LinkPreviewCard (legacy)
-export { LinkPreviewCard } from './LinkPreviewCard';
+export type { MarkdownViewerProps } from './types';

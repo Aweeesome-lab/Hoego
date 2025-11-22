@@ -1,8 +1,6 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 
-import type { Position } from 'unist';
-
 import {
   Header,
   MiniHeader,
@@ -70,7 +68,6 @@ export default function App() {
     isSaving,
     lastSavedRef,
     loadMarkdown,
-    handleTaskCheckboxToggle,
   } = useMarkdown();
 
   const {
@@ -149,14 +146,6 @@ export default function App() {
     setIsFeedbackPanelExpanded,
     setIsRetrospectPanelExpanded,
   });
-
-  // Memoize task toggle handler to prevent unnecessary re-renders
-  const handleTaskToggle = React.useCallback(
-    async (position: Position, checked: boolean) => {
-      await handleTaskCheckboxToggle({ position }, checked);
-    },
-    [handleTaskCheckboxToggle]
-  );
 
   // Mini 모드: 입력창만 표시
   if (viewMode === 'mini') {
@@ -237,7 +226,6 @@ export default function App() {
             editorRef={editorRef}
             currentDateLabel={currentHistoryDate || undefined}
             isSaving={isSaving}
-            onTaskToggle={handleTaskToggle}
           />
 
           <React.Suspense fallback={<div className="flex flex-1" />}>
