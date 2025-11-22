@@ -52,6 +52,7 @@ export function useComponents({
       // Task list 아이템 (체크박스 토글 기능)
       li: (props: any) => {
         const isTaskList = props.checked !== undefined && props.checked !== null;
+
         if (isTaskList) {
           return TaskListItem({ ...props, isDarkMode });
         }

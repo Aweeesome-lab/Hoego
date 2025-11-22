@@ -108,31 +108,7 @@
 }
 
 @layer components {
-  /* Override prose list item spacing for consistent line height */
-  .prose ul li,
-  .prose ol li {
-    margin-top: 4px !important;
-    margin-bottom: 0 !important;
-  }
-
-  /* Task list items only - remove padding */
-  .prose ul.contains-task-list li,
-  .prose li.task-list-item {
-    padding: 0 !important;
-  }
-
-  .prose ul > li:first-child,
-  .prose ol > li:first-child {
-    margin-top: 0 !important;
-  }
-  .prose ul ul,
-  .prose ul ol,
-  .prose ol ul,
-  .prose ol ol {
-    margin-top: 4px !important;
-    margin-bottom: 0 !important;
-    padding-left: 1.25rem !important;
-  }
+  /* Prose customizations handled in tailwind.config.ts */
 }
 
 @layer utilities {
@@ -181,15 +157,6 @@
   .scrollbar-auto:hover {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
-  }
-
-  /* Task list - simple and clean */
-  .contains-task-list {
-    padding-left: 0 !important;
-  }
-
-  .task-list-item {
-    list-style-type: none !important;
   }
 
   /* Hide default GFM checkbox - we use custom Radix UI Checkbox */

@@ -26,11 +26,6 @@ export function TaskListItem({ children, checked, node, isDarkMode }: ListItemPr
   let isChecked: boolean | null = checked ?? null;
   let isTaskList = checked !== undefined && checked !== null;
 
-  // 디버깅: checked 값 확인
-  if (isTaskList) {
-    console.log('TaskListItem - checked prop:', checked, 'isChecked:', isChecked);
-  }
-
   // 2단계: 노드에서 checked 확인 (remark-gfm)
   if (!isTaskList && node && 'checked' in node && node.checked !== undefined) {
     isChecked = Boolean(node.checked);
