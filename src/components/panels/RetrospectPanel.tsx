@@ -6,14 +6,12 @@ interface RetrospectPanelProps {
   isDarkMode: boolean;
   isRetrospectPanelExpanded: boolean;
   retrospectContent: string;
-  isSavingRetrospect: boolean;
 }
 
 export function RetrospectPanel({
   isDarkMode,
   isRetrospectPanelExpanded,
   retrospectContent,
-  isSavingRetrospect,
 }: RetrospectPanelProps) {
   if (!isRetrospectPanelExpanded) return null;
 

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 
-import { appendHistoryEntry, saveTodayMarkdown } from '@/lib/tauri';
+import { appendHistoryEntry } from '@/lib/tauri';
 import { openSettingsWindow } from '@/services/settingsService';
 import { useDocumentStore } from '@/store/documentStore';
 
@@ -23,16 +23,10 @@ interface UseAppHandlersOptions {
   setIsSyncing: (value: boolean) => void;
   currentHistoryDate: string | null;
   setMarkdownContent: (content: string) => void;
-  setEditingContent: (content: string) => void;
   loadAiSummaries: () => Promise<void>;
   handleRunPipeline: () => Promise<void>;
   handleCancelPipeline: () => Promise<void>;
-  isEditing: boolean;
-  setIsEditing: (isEditing: boolean) => void;
-  editingContent: string;
   lastSavedRef: React.MutableRefObject<string>;
-  setIsSaving: (isSaving: boolean) => void;
-  markdownContent: string;
   setCurrentHistoryDate: (date: string | null) => void;
   setIsLoadingHistoryContent: (loading: boolean) => void;
 }
@@ -64,16 +58,10 @@ export function useAppHandlers({
   setIsSyncing,
   currentHistoryDate,
   setMarkdownContent,
-  setEditingContent,
   loadAiSummaries,
   handleRunPipeline,
   handleCancelPipeline,
-  isEditing,
-  setIsEditing,
-  editingContent,
   lastSavedRef,
-  setIsSaving,
-  markdownContent,
   setCurrentHistoryDate,
   setIsLoadingHistoryContent,
 }: UseAppHandlersOptions) {
@@ -155,7 +143,6 @@ export function useAppHandlers({
             const { activeDocument: reloaded } = useDocumentStore.getState();
             if (reloaded) {
               setMarkdownContent(reloaded.content);
-              setEditingContent(reloaded.content);
             }
           }
         } else {
@@ -176,7 +163,6 @@ export function useAppHandlers({
     loadAiSummaries,
     currentHistoryDate,
     setMarkdownContent,
-    setEditingContent,
     setIsSyncing,
   ]);
 
@@ -195,20 +181,6 @@ export function useAppHandlers({
   const handleHomeClick = useCallback(() => {
     void (async () => {
       try {
-        // 편집 중이면 먼저 현재 문서에 저장하고 편집 모드 종료
-        if (isEditing && editingContent !== lastSavedRef.current) {
-          setIsSaving(true);
-          const { saveActiveDocument } = useDocumentStore.getState();
-          await saveActiveDocument(editingContent);
-          lastSavedRef.current = editingContent;
-          setIsSaving(false);
-        }
-
-        // 편집 모드 종료 (날짜 변경 전에 종료)
-        if (isEditing) {
-          setIsEditing(false);
-        }
-
         // 오늘 날짜로 돌아가기
         setCurrentHistoryDate(null);
 
@@ -218,7 +190,6 @@ export function useAppHandlers({
         const { activeDocument } = useDocumentStore.getState();
         if (activeDocument) {
           setMarkdownContent(activeDocument.content);
-          setEditingContent(activeDocument.content);
         }
       } catch (error) {
         if (import.meta.env.DEV) {
@@ -227,56 +198,7 @@ export function useAppHandlers({
         toast.error('오늘 문서를 불러오는데 실패했습니다.');
       }
     })();
-  }, [
-    isEditing,
-    setIsEditing,
-    editingContent,
-    lastSavedRef,
-    setIsSaving,
-    setMarkdownContent,
-    setEditingContent,
-    setCurrentHistoryDate,
-  ]);
-
-  const handleToggleEdit = useCallback(() => {
-    if (isEditing) {
-      // 편집 종료 시 현재 활성 문서에 저장
-      if (editingContent !== lastSavedRef.current) {
-        void (async () => {
-          try {
-            setIsSaving(true);
-            const { saveActiveDocument } = useDocumentStore.getState();
-            await saveActiveDocument(editingContent);
-
-            lastSavedRef.current = editingContent;
-            setMarkdownContent(editingContent);
-          } catch (error) {
-            if (import.meta.env.DEV) {
-              console.error('[hoego] 저장 실패:', error);
-            }
-          } finally {
-            setIsSaving(false);
-            setIsEditing(false);
-          }
-        })();
-      } else {
-        setIsEditing(false);
-      }
-    } else {
-      // 편집 시작
-      setEditingContent(markdownContent);
-      setIsEditing(true);
-    }
-  }, [
-    isEditing,
-    editingContent,
-    markdownContent,
-    lastSavedRef,
-    setIsSaving,
-    setIsEditing,
-    setMarkdownContent,
-    setEditingContent,
-  ]);
+  }, [setMarkdownContent, setCurrentHistoryDate]);
 
   const handleSettingsClick = useCallback(() => {
     void (async () => {
@@ -300,20 +222,6 @@ export function useAppHandlers({
 
       void (async () => {
         try {
-          // 편집 중이면 먼저 현재 문서에 저장하고 편집 모드 종료
-          if (isEditing && editingContent !== lastSavedRef.current) {
-            setIsSaving(true);
-            const { saveActiveDocument } = useDocumentStore.getState();
-            await saveActiveDocument(editingContent);
-            lastSavedRef.current = editingContent;
-            setIsSaving(false);
-          }
-
-          // 편집 모드 종료 (날짜 변경 전에 종료)
-          if (isEditing) {
-            setIsEditing(false);
-          }
-
           setIsLoadingHistoryContent(true);
           setCurrentHistoryDate(file.date);
 
@@ -323,7 +231,6 @@ export function useAppHandlers({
           const { activeDocument } = useDocumentStore.getState();
           if (activeDocument) {
             setMarkdownContent(activeDocument.content);
-            setEditingContent(activeDocument.content);
             lastSavedRef.current = activeDocument.content;
           }
         } catch (error) {
@@ -339,12 +246,7 @@ export function useAppHandlers({
     [
       currentHistoryDate,
       setMarkdownContent,
-      setEditingContent,
-      isEditing,
-      setIsEditing,
-      editingContent,
       lastSavedRef,
-      setIsSaving,
       setIsLoadingHistoryContent,
       setCurrentHistoryDate,
     ]
@@ -356,7 +258,6 @@ export function useAppHandlers({
     handlePipelineExecution,
     handlePipelineCancellation,
     handleHomeClick,
-    handleToggleEdit,
     handleSettingsClick,
     handleHistoryFileClick,
   };

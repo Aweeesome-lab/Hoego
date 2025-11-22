@@ -64,16 +64,9 @@ export default function App() {
     setMarkdownContent,
     lastMinute,
     setLastMinute,
-    isEditing,
-    setIsEditing,
-    editingContent,
-    setEditingContent,
     isSaving,
-    setIsSaving,
-    editorRef,
     lastSavedRef,
     loadMarkdown,
-    appendTimestampToLine,
     handleTaskCheckboxToggle,
   } = useMarkdown();
 
@@ -90,14 +83,7 @@ export default function App() {
     handleCancelPipeline,
   } = useAiPipeline(currentHistoryDate);
 
-  const {
-    retrospectContent,
-    setRetrospectContent,
-    retrospectRef,
-    isSavingRetrospect,
-    isEditingRetrospect,
-    setIsEditingRetrospect,
-  } = useRetrospect({ currentHistoryDate });
+  const { retrospectContent } = useRetrospect({ currentHistoryDate });
 
   const {
     isSidebarOpen,
@@ -122,7 +108,6 @@ export default function App() {
     handlePipelineExecution,
     handlePipelineCancellation,
     handleHomeClick,
-    handleToggleEdit,
     handleSettingsClick,
     handleHistoryFileClick,
   } = useAppHandlers({
@@ -136,16 +121,10 @@ export default function App() {
     setIsSyncing,
     currentHistoryDate,
     setMarkdownContent,
-    setEditingContent,
     loadAiSummaries,
     handleRunPipeline,
     handleCancelPipeline,
-    isEditing,
-    setIsEditing,
-    editingContent,
     lastSavedRef,
-    setIsSaving,
-    markdownContent,
     setCurrentHistoryDate,
     setIsLoadingHistoryContent,
   });
@@ -167,12 +146,6 @@ export default function App() {
     toggleSidebar,
     setIsFeedbackPanelExpanded,
     setIsRetrospectPanelExpanded,
-    isEditing,
-    setIsEditing,
-    editingContent,
-    setIsSaving,
-    lastSavedRef,
-    loadMarkdown,
   });
 
   // Mini 모드: 입력창만 표시
@@ -212,7 +185,7 @@ export default function App() {
         isOpen={isSidebarOpen}
         historyFiles={historyFiles}
         isLoadingHistory={isLoadingHistory}
-        selectedDate={currentHistoryDate}
+        selectedDate={currentHistoryDate || undefined}
         onToggle={toggleSidebar}
         onHomeClick={handleHomeClick}
         onSettingsClick={handleSettingsClick}
@@ -248,20 +221,11 @@ export default function App() {
         >
           <DumpPanel
             isDarkMode={isDarkMode}
-            isEditing={isEditing}
             dumpContent={
-              isLoadingHistoryContent
-                ? '로딩 중...'
-                : isEditing
-                  ? editingContent
-                  : markdownContent
+              isLoadingHistoryContent ? '로딩 중...' : markdownContent
             }
-            setDumpContent={isEditing ? setEditingContent : setMarkdownContent}
             markdownRef={markdownRef}
-            editorRef={editorRef}
-            appendTimestampToLine={appendTimestampToLine}
-            currentDateLabel={currentHistoryDate ?? undefined}
-            onToggleEdit={handleToggleEdit}
+            currentDateLabel={currentHistoryDate || undefined}
             isSaving={isSaving}
             onTaskToggle={async (position, checked) => {
               await handleTaskCheckboxToggle({ position }, checked);
@@ -288,11 +252,6 @@ export default function App() {
               isDarkMode={isDarkMode}
               isRetrospectPanelExpanded={isRetrospectPanelExpanded}
               retrospectContent={retrospectContent}
-              setRetrospectContent={setRetrospectContent}
-              retrospectRef={retrospectRef}
-              isSavingRetrospect={isSavingRetrospect}
-              isEditingRetrospect={isEditingRetrospect}
-              setIsEditingRetrospect={setIsEditingRetrospect}
             />
           </React.Suspense>
         </div>

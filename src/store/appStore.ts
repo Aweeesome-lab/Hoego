@@ -55,16 +55,6 @@ interface MarkdownSlice {
   markdownContent: string;
 
   /**
-   * 편집 모드 활성화 여부
-   */
-  isEditing: boolean;
-
-  /**
-   * 편집 중인 마크다운 내용
-   */
-  editingContent: string;
-
-  /**
    * 저장 중 상태
    */
   isSaving: boolean;
@@ -79,18 +69,6 @@ interface MarkdownSlice {
    * @param content - 마크다운 내용
    */
   setMarkdownContent: (content: string) => void;
-
-  /**
-   * 편집 모드 상태 변경
-   * @param isEditing - 편집 모드 여부
-   */
-  setIsEditing: (isEditing: boolean) => void;
-
-  /**
-   * 편집 중인 내용 설정
-   * @param content - 편집 중인 내용
-   */
-  setEditingContent: (content: string) => void;
 
   /**
    * 저장 중 상태 변경
@@ -476,13 +454,9 @@ export const useAppStore = create<AppStore>()(
 
       // Markdown Slice
       markdownContent: '',
-      isEditing: false,
-      editingContent: '',
       isSaving: false,
       isSyncing: false,
       setMarkdownContent: (content) => set({ markdownContent: content }),
-      setIsEditing: (isEditing) => set({ isEditing }),
-      setEditingContent: (content) => set({ editingContent: content }),
       setIsSaving: (isSaving) => set({ isSaving }),
       setIsSyncing: (isSyncing) => set({ isSyncing }),
 
