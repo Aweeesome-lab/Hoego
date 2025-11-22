@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { AboutSettings } from './components/AboutSettings';
-import { CloudLLMSettings } from './components/CloudLLMSettings';
+// TODO: Beta 테스트 후 클라우드 LLM 활성화
+// import { CloudLLMSettings } from './components/CloudLLMSettings';
 import { GeneralSettings } from './components/GeneralSettings';
 import { LLMSettings } from './components/LLMSettings';
 import { SettingsSidebar, sidebarItems } from './components/SettingsSidebar';

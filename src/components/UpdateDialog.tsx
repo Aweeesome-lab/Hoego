@@ -1,4 +1,3 @@
-import React from 'react';
 import { useUpdater } from '../hooks/useUpdater';
 
 export function UpdateDialog() {

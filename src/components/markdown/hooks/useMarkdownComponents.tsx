@@ -25,8 +25,6 @@ import {
 import {
   FootnoteReferenceRenderer,
   FootnoteDefinitionRenderer,
-  FootnoteItemRenderer,
-  FootnoteBackReferenceRenderer,
 } from '../renderers/FootnoteRenderer';
 
 import type { TaskListItem } from '../types';

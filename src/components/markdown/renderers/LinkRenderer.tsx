@@ -1,7 +1,6 @@
 import { ExternalLink } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { LazyLoad } from '../LazyLoad';
 import { LinkPreviewCard } from '../LinkPreviewCard';
 
 import type { LinkRendererProps } from '../types';

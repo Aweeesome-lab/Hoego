@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { MarkdownPreview } from '@/components/markdown';
 
 interface RetrospectPanelProps {
