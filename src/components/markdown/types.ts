@@ -29,35 +29,6 @@ export interface BaseComponentProps {
 }
 
 // ============================================================================
-// Task List (체크박스 토글 기능)
-// ============================================================================
-
-export interface Position {
-  line: number;
-  column: number;
-  offset: number;
-}
-
-export interface TaskListItemProps {
-  checked: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  isDarkMode?: boolean;
-  disabled?: boolean;
-}
-
-export interface TaskToggleResult {
-  success: boolean;
-  newContent: string;
-  error?: string;
-}
-
-export interface ListItemProps extends BaseComponentProps {
-  checked?: boolean | null;
-  index?: number;
-}
-
-// ============================================================================
 // Code (syntax highlighting)
 // ============================================================================
 
