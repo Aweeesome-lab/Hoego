@@ -31,16 +31,16 @@ export function Code({
   // 코드 내용
   const code = String(children).replace(/\n$/, '');
 
-  // 인라인 코드
+  // 인라인 코드 (antigravity 스타일)
   if (inline || !language) {
     return (
       <code
         className={`
           px-1.5 py-0.5 rounded
-          font-mono text-sm
+          font-mono text-[13px]
           ${isDarkMode
-            ? 'bg-gray-800 text-pink-400'
-            : 'bg-gray-100 text-pink-600'
+            ? 'bg-gray-800/60 text-orange-400'
+            : 'bg-orange-50 text-orange-600'
           }
         `}
       >

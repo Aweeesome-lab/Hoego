@@ -5,12 +5,12 @@
 import type { BaseComponentProps } from '../types';
 
 /**
- * 단락 (Paragraph)
+ * 단락 (Paragraph) - antigravity 스타일
  */
 export function Paragraph({ children, isDarkMode }: BaseComponentProps) {
   return (
     <p className={`
-      mb-4 leading-7
+      mb-4 leading-relaxed
       ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}
     `}>
       {children}

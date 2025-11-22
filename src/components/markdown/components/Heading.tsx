@@ -18,19 +18,19 @@ export function Heading({ level = 1, children, isDarkMode }: HeadingProps) {
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-');
 
-  // 레벨별 스타일
+  // 레벨별 스타일 (antigravity)
   const styles = {
-    1: 'text-3xl font-bold mt-8 mb-4 pb-2 border-b',
-    2: 'text-2xl font-bold mt-6 mb-3 pb-2 border-b',
-    3: 'text-xl font-semibold mt-5 mb-2',
-    4: 'text-lg font-semibold mt-4 mb-2',
-    5: 'text-base font-semibold mt-3 mb-2',
-    6: 'text-sm font-semibold mt-2 mb-1',
+    1: 'text-3xl font-bold mt-10 mb-6 pb-3 border-b',
+    2: 'text-2xl font-bold mt-8 mb-4 pb-2',
+    3: 'text-xl font-semibold mt-6 mb-3',
+    4: 'text-lg font-semibold mt-5 mb-2',
+    5: 'text-base font-semibold mt-4 mb-2',
+    6: 'text-sm font-semibold mt-3 mb-2',
   };
 
   const borderColor = isDarkMode
-    ? 'border-gray-700'
-    : 'border-gray-200';
+    ? 'border-gray-700/50'
+    : 'border-gray-300';
 
   return (
     <Tag
