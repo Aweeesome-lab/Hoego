@@ -1,153 +1,27 @@
-import { useRef, useCallback } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { MarkdownToolbar } from './MarkdownToolbar';
 
 import type { MarkdownPreviewProps } from './types';
 
 /**
  * 마크다운 프리뷰 컴포넌트
  *
- * 편집 모드와 프리뷰 모드를 전환할 수 있는 마크다운 프리뷰 컴포넌트입니다.
- * - 편집 모드: textarea로 마크다운을 직접 편집
- * - 프리뷰 모드: MarkdownRenderer로 렌더링된 마크다운 표시
+ * 마크다운을 렌더링하여 표시하는 읽기 전용 프리뷰 컴포넌트입니다.
  *
  * @param content - 마크다운 콘텐츠
- * @param isEditing - 편집 모드 여부
- * @param onContentChange - 콘텐츠 변경 핸들러
- * @param editorRef - 에디터 ref
- * @param onEnterKey - Enter 키 핸들러
  * @param isDarkMode - 다크모드 여부
  * @param onTaskToggle - Task list 체크박스 토글 핸들러
  * @param className - 추가 CSS 클래스
  * @param isSaving - 저장 중 상태
+ * @param previewRef - 프리뷰 컨테이너 ref
  */
 export function MarkdownPreview({
   content,
-  isEditing = false,
-  onContentChange,
-  editorRef,
-  onEnterKey,
   isDarkMode = false,
   onTaskToggle,
   className = '',
   isSaving = false,
   previewRef,
 }: MarkdownPreviewProps) {
-  // Helper function to insert formatting around selected text
-  const insertFormatting = useCallback(
-    (before: string, after: string, placeholder: string = 'text') => {
-      if (!isEditing || !editorRef?.current || !onContentChange) return;
-
-      const textarea = editorRef.current;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selectedText = content.slice(start, end);
-
-      const textToInsert = selectedText || placeholder;
-      const newText =
-        content.slice(0, start) + before + textToInsert + after + content.slice(end);
-
-      onContentChange(newText);
-
-      // Set cursor position after formatting
-      setTimeout(() => {
-        const newCursorStart = start + before.length;
-        const newCursorEnd = newCursorStart + textToInsert.length;
-        textarea.focus();
-        textarea.setSelectionRange(newCursorStart, newCursorEnd);
-      }, 0);
-    },
-    [content, isEditing, editorRef, onContentChange]
-  );
-
-  // Keyboard shortcuts for markdown formatting
-  useHotkeys(
-    'mod+b',
-    (e) => {
-      e.preventDefault();
-      insertFormatting('**', '**', 'bold text');
-    },
-    { enabled: isEditing },
-    [insertFormatting, isEditing]
-  );
-
-  useHotkeys(
-    'mod+i',
-    (e) => {
-      e.preventDefault();
-      insertFormatting('*', '*', 'italic text');
-    },
-    { enabled: isEditing },
-    [insertFormatting, isEditing]
-  );
-
-  useHotkeys(
-    'mod+k',
-    (e) => {
-      e.preventDefault();
-      insertFormatting('[', '](url)', 'link text');
-    },
-    { enabled: isEditing },
-    [insertFormatting, isEditing]
-  );
-
-  // 편집 모드
-  if (isEditing) {
-    return (
-      <div className="flex flex-col w-full h-full">
-        {/* Markdown Toolbar */}
-        <MarkdownToolbar onFormat={insertFormatting} isDarkMode={isDarkMode} />
-
-        {/* Editor */}
-        <textarea
-          ref={editorRef}
-          value={content}
-          onChange={(e) => onContentChange?.(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && onEnterKey) {
-              e.preventDefault();
-              const textarea = e.currentTarget;
-              const cursorPosition = textarea.selectionStart;
-              const textBeforeCursor = content.slice(0, cursorPosition);
-              const textAfterCursor = content.slice(cursorPosition);
-
-              // 현재 줄의 시작 위치 찾기
-              const lineStart = textBeforeCursor.lastIndexOf('\n') + 1;
-              const currentLine = textBeforeCursor.slice(lineStart);
-
-              // Enter 키 핸들러 호출하여 타임스탬프 추가된 줄 받기
-              const processedLine = onEnterKey(currentLine);
-
-              // 콘텐츠 업데이트: 현재 줄을 processedLine으로 교체하고 개행 추가
-              const newContent = `${content.slice(
-                0,
-                lineStart
-              )}${processedLine}\n${textAfterCursor}`;
-
-              onContentChange?.(newContent);
-
-              // 커서 위치 업데이트 (다음 프레임에서)
-              setTimeout(() => {
-                const newCursorPos = lineStart + processedLine.length + 1; // +1 for newline
-                textarea.setSelectionRange(newCursorPos, newCursorPos);
-              }, 0);
-            }
-          }}
-          className={`flex-1 w-full font-mono text-sm resize-none focus:outline-none ${
-            isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'
-          } ${className || 'p-4'}`}
-          style={{
-            lineHeight: '1.6',
-            tabSize: 2,
-          }}
-        />
-      </div>
-    );
-  }
-
-  // 프리뷰 모드
   return (
     <div
       ref={previewRef}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 import { getRetrospectMarkdown, saveRetrospectMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
@@ -20,11 +20,7 @@ export function useRetrospect({ currentHistoryDate }: UseRetrospectOptions) {
   );
 
   // Refs
-  const retrospectRef = useRef<HTMLTextAreaElement | null>(null);
   const retrospectDebounceIdRef = useRef<number | null>(null);
-
-  // Local state - 편집 모드
-  const [isEditingRetrospect, setIsEditingRetrospect] = useState(true); // 기본값: 편집 모드
 
   // 날짜 변경 시 해당 날짜의 회고 로드
   useEffect(() => {
@@ -77,9 +73,6 @@ export function useRetrospect({ currentHistoryDate }: UseRetrospectOptions) {
   return {
     retrospectContent,
     setRetrospectContent,
-    retrospectRef,
     isSavingRetrospect,
-    isEditingRetrospect,
-    setIsEditingRetrospect,
   };
 }

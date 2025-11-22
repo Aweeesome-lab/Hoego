@@ -25,17 +25,9 @@ export interface MarkdownRendererProps {
 }
 
 /**
- * 마크다운 프리뷰 Props (편집 모드 포함)
+ * 마크다운 프리뷰 Props (읽기 전용)
  */
 export interface MarkdownPreviewProps extends MarkdownRendererProps {
-  /** 편집 모드 여부 */
-  isEditing?: boolean;
-  /** 편집 모드 콘텐츠 변경 핸들러 */
-  onContentChange?: (content: string) => void;
-  /** 에디터 ref */
-  editorRef?: React.RefObject<HTMLTextAreaElement>;
-  /** Enter 키 핸들러 (타임스탬프 추가 등) */
-  onEnterKey?: (currentLine: string) => string;
   /** 프리뷰 컨테이너 ref */
   previewRef?: React.RefObject<HTMLDivElement>;
 }

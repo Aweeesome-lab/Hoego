@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 
 import type { Point, Position } from 'unist';
@@ -7,39 +7,22 @@ import { getTodayMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
 import { useDocumentStore } from '@/store/documentStore';
 
-// KST(HH:MM:SS) 계산 유틸리티
-function getKstHms() {
-  const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const kst = new Date(utcMs + 9 * 60 * 60000);
-  const hh = String(kst.getHours()).padStart(2, '0');
-  const mm = String(kst.getMinutes()).padStart(2, '0');
-  const ss = String(kst.getSeconds()).padStart(2, '0');
-  return { hh, mm, ss };
-}
-
 export function useMarkdown() {
   // Zustand store selectors
   const markdownContent = useAppStore((state) => state.markdownContent);
-  const isEditing = useAppStore((state) => state.isEditing);
-  const editingContent = useAppStore((state) => state.editingContent);
   const isSaving = useAppStore((state) => state.isSaving);
   const isSyncing = useAppStore((state) => state.isSyncing);
 
   const setMarkdownContent = useAppStore((state) => state.setMarkdownContent);
-  const setIsEditing = useAppStore((state) => state.setIsEditing);
-  const setEditingContent = useAppStore((state) => state.setEditingContent);
   const setIsSaving = useAppStore((state) => state.setIsSaving);
   const setIsSyncing = useAppStore((state) => state.setIsSyncing);
 
-  // Local state (not in Zustand)
+  // Local state
   const [lastMinute, setLastMinute] = useState('');
 
   // Refs
   const markdownRef = useRef<HTMLDivElement | null>(null);
-  const editorRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSavedRef = useRef<string>('');
-  const debounceIdRef = useRef<number | null>(null);
 
   // 마크다운 로드 함수
   const loadMarkdown = useCallback(async () => {
@@ -86,44 +69,6 @@ export function useMarkdown() {
       );
     }
   }, [setMarkdownContent]);
-
-  const appendTimestampToLine = useCallback((line: string) => {
-    const trimmedLine = line.replace(/\s+$/, '');
-    if (!trimmedLine) {
-      return trimmedLine;
-    }
-
-    const tsRegex = /\(\d{2}:\d{2}:\d{2}\)\s*$/;
-    if (tsRegex.test(trimmedLine)) {
-      return trimmedLine;
-    }
-
-    const normalized = trimmedLine.trim();
-    if (
-      !normalized ||
-      normalized.startsWith('#') ||
-      normalized.startsWith('>') ||
-      normalized.startsWith('```')
-    ) {
-      return trimmedLine;
-    }
-
-    const bulletMatch = normalized.match(/^[-*+]\s+/);
-    const orderedMatch = normalized.match(/^\d+\.\s+/);
-    let content = normalized;
-    if (bulletMatch) {
-      content = normalized.slice(bulletMatch[0].length);
-    } else if (orderedMatch) {
-      content = normalized.slice(orderedMatch[0].length);
-    }
-
-    if (!content.trim()) {
-      return trimmedLine;
-    }
-
-    const { hh, mm, ss } = getKstHms();
-    return `${trimmedLine} (${hh}:${mm}:${ss})`;
-  }, []);
 
   const getOffsetFromPoint = useCallback(
     (point?: Point | null) => {
@@ -241,7 +186,6 @@ export function useMarkdown() {
 
       try {
         setIsSaving(true);
-        // ✅ 변경: Active Document 사용
         const { saveActiveDocument } = useDocumentStore.getState();
         const result = await saveActiveDocument(nextContent);
 
@@ -250,10 +194,6 @@ export function useMarkdown() {
         }
 
         lastSavedRef.current = nextContent;
-
-        // if (import.meta.env.DEV) {
-        //   console.log('[hoego] 체크박스 상태 저장 성공:', nextChecked);
-        // }
       } catch (error) {
         // Revert on error
         setMarkdownContent(previousContent);
@@ -274,64 +214,6 @@ export function useMarkdown() {
     },
     [isSaving, markdownContent, resolveOffsets, setMarkdownContent, setIsSaving]
   );
-
-  // 편집 모드 진입/종료 시 내용 동기화
-  const prevIsEditingRef = useRef(isEditing);
-  useEffect(() => {
-    // 편집 모드로 전환되는 순간 (false → true)
-    if (isEditing && !prevIsEditingRef.current) {
-      // 편집 모드 진입 시 markdownContent를 editingContent로 복사
-      setEditingContent(markdownContent);
-      setTimeout(() => editorRef.current?.focus(), 50);
-    }
-    // 편집 모드에서 벗어나는 순간 (true → false)
-    else if (!isEditing && prevIsEditingRef.current) {
-      // 편집 모드 종료 시 editingContent를 markdownContent로 동기화
-      setMarkdownContent(editingContent);
-    }
-    prevIsEditingRef.current = isEditing;
-  }, [
-    isEditing,
-    markdownContent,
-    editingContent,
-    setEditingContent,
-    setMarkdownContent,
-  ]);
-
-  // 편집 중 자동 저장 (디바운스)
-  useEffect(() => {
-    if (!isEditing) return;
-    if (editingContent === lastSavedRef.current) return;
-
-    if (debounceIdRef.current) {
-      clearTimeout(debounceIdRef.current);
-    }
-    debounceIdRef.current = window.setTimeout(async () => {
-      try {
-        setIsSaving(true);
-        // ✅ 변경: Active Document 사용
-        const { saveActiveDocument } = useDocumentStore.getState();
-        const result = await saveActiveDocument(editingContent);
-
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-
-        lastSavedRef.current = editingContent;
-      } catch (error) {
-        if (import.meta.env.DEV)
-          console.error('[hoego] 자동 저장 실패:', error);
-      } finally {
-        setIsSaving(false);
-      }
-    }, 600);
-
-    return () => {
-      if (debounceIdRef.current) {
-        clearTimeout(debounceIdRef.current);
-      }
-    };
-  }, [isEditing, editingContent, setIsSaving]);
 
   // 수동 동기화 핸들러
   const handleManualSync = useCallback(async () => {
@@ -359,23 +241,6 @@ export function useMarkdown() {
     [markdownContent, setMarkdownContent]
   );
 
-  const wrappedSetEditingContent = useCallback(
-    (value: React.SetStateAction<string>) => {
-      const newValue =
-        typeof value === 'function' ? value(editingContent) : value;
-      setEditingContent(newValue);
-    },
-    [editingContent, setEditingContent]
-  );
-
-  const wrappedSetIsEditing = useCallback(
-    (value: React.SetStateAction<boolean>) => {
-      const newValue = typeof value === 'function' ? value(isEditing) : value;
-      setIsEditing(newValue);
-    },
-    [isEditing, setIsEditing]
-  );
-
   const wrappedSetIsSaving = useCallback(
     (value: React.SetStateAction<boolean>) => {
       const newValue = typeof value === 'function' ? value(isSaving) : value;
@@ -390,17 +255,11 @@ export function useMarkdown() {
     setMarkdownContent: wrappedSetMarkdownContent,
     lastMinute,
     setLastMinute,
-    isEditing,
-    setIsEditing: wrappedSetIsEditing,
-    editingContent,
-    setEditingContent: wrappedSetEditingContent,
     isSaving,
     setIsSaving: wrappedSetIsSaving,
     isSyncing,
-    editorRef,
     lastSavedRef,
     loadMarkdown,
-    appendTimestampToLine,
     handleTaskCheckboxToggle,
     handleManualSync,
   };
