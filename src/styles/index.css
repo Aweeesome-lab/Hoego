@@ -155,3 +155,42 @@
     scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
   }
 }
+
+/* Task list checkbox styling - mixed checkbox/bullet support */
+
+/* Container: no default padding, no list style */
+.prose :where(ul.contains-task-list):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+/* Checkbox items: no indentation, no bullets */
+.prose :where(li.task-list-item):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  list-style: none !important;
+}
+
+/* Remove checkbox item markers */
+.prose :where(li.task-list-item)::before {
+  content: none !important;
+  display: none !important;
+}
+
+.prose :where(li.task-list-item)::marker {
+  content: none !important;
+}
+
+/* Regular bullet items: align text with checkboxes using text-indent trick */
+.prose :where(ul.contains-task-list > li:not(.task-list-item)):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  margin-left: 1.2em !important;
+  padding-left: 1.2em !important;
+  text-indent: -1.2em !important;
+}
+
+/* Bullet marker: match text color for all depths */
+.prose :where(ul.contains-task-list li:not(.task-list-item))::marker {
+  color: rgb(115 115 115) !important;
+}
