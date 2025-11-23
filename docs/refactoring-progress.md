@@ -316,18 +316,25 @@
 - ✅ `[b6f46a8]` refactor: markdown viewer - complete rebuild with minimal implementation
 - ✅ `[71b70bf]` docs: update refactoring progress - markdown viewer rebuild session notes
 - ✅ `[6428c2f]` refactor: simplify task-list checkbox styling with minimal CSS
+- ✅ `[1553311]` fix: refine task-list CSS to preserve normal bullets
 
 **추가 작업 - Task List 스타일링 연구 및 적용** ✅
-- **문제**: 체크박스 앞 bullet point 중복, 비정상적 들여쓰기
+- **문제 1**: 체크박스 앞 bullet point 중복, 비정상적 들여쓰기
+- **문제 2**: 일반 bullet과 checkbox 혼합 시 bullet 사라짐
 - **조사**:
   - `@tailwindcss/typography` 소스 코드 분석
+  - `remark-gfm` HTML 출력 구조 확인
   - task-list-item 기본 스타일 **없음** 확인
   - Best practice 조사 (2025년 기준)
 - **해결**:
-  - 최소한의 CSS만 추가 (3개 selector, 5개 property)
-  - `.task-list-item`: list-style, padding 제거
-  - `.task-list-item::before`: pseudo-element 제거
-  - `input[type="checkbox"]`: margin 정규화
+  - CSS selector 정밀화: `ul.contains-task-list` → `li.task-list-item`
+  - 체크박스만 타겟팅하여 일반 bullet 보존
+  - 최소한의 CSS (3개 selector, 5개 property)
+
+**최종 결과**:
+- ✅ 체크박스: bullet 없이 좌측 정렬
+- ✅ 일반 bullet: 정상 표시 및 들여쓰기
+- ✅ 혼합 리스트: 모두 올바르게 렌더링
 
 **다음 작업**:
 - Phase 2 Frontend 컴포넌트 추출 계속
