@@ -312,6 +312,9 @@
 - 📦 깔끔한 최소 구현으로 재구성
 - 🎯 필요한 것만 남김 (KISS 원칙)
 
+**Commit**:
+- ✅ `[b6f46a8]` refactor: markdown viewer - complete rebuild with minimal implementation
+
 **다음 작업**:
 - Phase 2 Frontend 컴포넌트 추출 계속
 
