@@ -125,17 +125,23 @@ const config: Config = {
           css: {
             maxWidth: 'none',
             color: 'inherit',
-            // Task list checkbox (remark-gfm)
-            '.task-list-item': {
-              listStyle: 'none',
-              paddingLeft: '0',
+            // Task list checkbox (remark-gfm) - only target task-list-item
+            'li.task-list-item': {
+              listStyle: 'none !important',
+              paddingLeft: '0 !important',
+              marginLeft: '0 !important',
             },
-            '.task-list-item::before': {
-              content: 'none',
+            'li.task-list-item::before': {
+              content: 'none !important',
+              display: 'none !important',
             },
-            'input[type="checkbox"]': {
+            'li.task-list-item::marker': {
+              content: 'none !important',
+            },
+            'li.task-list-item input[type="checkbox"]': {
               marginTop: '0',
               marginBottom: '0',
+              marginRight: '0.5rem',
             },
           },
         },
