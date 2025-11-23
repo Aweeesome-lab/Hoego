@@ -1,5 +1,10 @@
 /**
- * Markdown Viewer - 최소한의 설정으로 마크다운 렌더링
+ * Markdown Viewer Component
+ *
+ * Minimal markdown renderer with:
+ * - GitHub Flavored Markdown support (tables, task lists, strikethrough)
+ * - Dark mode support
+ * - Tailwind typography styling
  */
 
 'use client';
@@ -13,13 +18,6 @@ export interface MarkdownViewerProps {
   isDarkMode?: boolean;
 }
 
-/**
- * 마크다운 뷰어 컴포넌트
- *
- * - @tailwindcss/typography prose 클래스 사용
- * - remark-gfm으로 GitHub Flavored Markdown 지원
- * - 커스텀 컴포넌트 없이 기본 렌더링
- */
 export function MarkdownViewer({
   content,
   className = '',
@@ -33,7 +31,9 @@ export function MarkdownViewer({
         ${className}
       `}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }

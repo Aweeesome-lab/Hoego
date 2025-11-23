@@ -287,6 +287,36 @@
 
 ## 📅 세션 노트
 
+### 2025-11-23 - 마크다운 컴포넌트 전면 리팩토링 ✅
+- ✅ **마크다운 컴포넌트 근본적 정리**
+  - 기존 `components/markdown/` 전체 삭제 (types 포함)
+  - 불필요한 타입 정의 파일 제거 (108줄 → 0줄)
+  - 최소 구현으로 재작성 (37줄 MarkdownViewer + 2줄 index)
+- ✅ **Task list 렌더링 문제 해결**
+  - 체크박스 앞 bullet point 중복 표시 문제 수정
+  - Tailwind typography 설정에 task list CSS 추가
+  - `ul.contains-task-list`, `li.task-list-item` 스타일 정의
+- ✅ **빌드 검증 완료**
+  - Frontend 빌드 성공 ✅
+  - 마크다운 모듈 정상 번들링 (157.82 kB)
+  - Import 경로 확인 완료 (수정 불필요)
+
+**정리 내용**:
+- **Before**: MarkdownViewer.tsx (40줄) + types/markdown.ts (108줄) + types/index.ts (10줄) = 158줄
+- **After**: MarkdownViewer.tsx (37줄) + index.ts (2줄) = 39줄
+- **감소**: 119줄 (75% 축소)
+
+**성과**:
+- 🧹 불필요한 레거시 코드 완전 제거
+- ✅ 체크박스 렌더링 문제 해결
+- 📦 깔끔한 최소 구현으로 재구성
+- 🎯 필요한 것만 남김 (KISS 원칙)
+
+**다음 작업**:
+- Phase 2 Frontend 컴포넌트 추출 계속
+
+---
+
 ### 2025-11-21 PM Session 3 - 3단계 워크플로우 기반 재구성 ✅
 - ✅ **3단계 워크플로우 기반 재구성**
   - **STAGE 1 - Dump**: 일지 작성/읽기 (dump.rs)
