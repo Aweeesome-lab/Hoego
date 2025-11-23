@@ -125,28 +125,17 @@ const config: Config = {
           css: {
             maxWidth: 'none',
             color: 'inherit',
-            // Task list styling - remove bullet points from checkboxes
-            'ul.contains-task-list': {
+            // Task list checkbox (remark-gfm)
+            '.task-list-item': {
               listStyle: 'none',
               paddingLeft: '0',
             },
-            'ul.contains-task-list > li': {
-              listStyle: 'none',
-              paddingLeft: '0',
-            },
-            'ul.contains-task-list > li::before': {
-              content: 'none',
-            },
-            'li.task-list-item': {
-              listStyle: 'none',
-              paddingLeft: '0',
-            },
-            'li.task-list-item::before': {
+            '.task-list-item::before': {
               content: 'none',
             },
             'input[type="checkbox"]': {
-              marginRight: '0.5rem',
-              cursor: 'pointer',
+              marginTop: '0',
+              marginBottom: '0',
             },
           },
         },
