@@ -312,8 +312,22 @@
 - 📦 깔끔한 최소 구현으로 재구성
 - 🎯 필요한 것만 남김 (KISS 원칙)
 
-**Commit**:
+**Commits**:
 - ✅ `[b6f46a8]` refactor: markdown viewer - complete rebuild with minimal implementation
+- ✅ `[71b70bf]` docs: update refactoring progress - markdown viewer rebuild session notes
+- ✅ `[6428c2f]` refactor: simplify task-list checkbox styling with minimal CSS
+
+**추가 작업 - Task List 스타일링 연구 및 적용** ✅
+- **문제**: 체크박스 앞 bullet point 중복, 비정상적 들여쓰기
+- **조사**:
+  - `@tailwindcss/typography` 소스 코드 분석
+  - task-list-item 기본 스타일 **없음** 확인
+  - Best practice 조사 (2025년 기준)
+- **해결**:
+  - 최소한의 CSS만 추가 (3개 selector, 5개 property)
+  - `.task-list-item`: list-style, padding 제거
+  - `.task-list-item::before`: pseudo-element 제거
+  - `input[type="checkbox"]`: margin 정규화
 
 **다음 작업**:
 - Phase 2 Frontend 컴포넌트 추출 계속
