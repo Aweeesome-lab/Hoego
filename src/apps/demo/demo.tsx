@@ -178,7 +178,8 @@ function DemoApp() {
         {/* 푸터 */}
         <footer className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 text-center text-sm text-slate-500">
           <p>
-            Tech Stack: react-showdown + PrismJS + Tailwind Typography
+            Tech Stack: react-markdown + remark-gfm + PrismJS + Tailwind
+            Typography
           </p>
         </footer>
       </div>

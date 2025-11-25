@@ -178,7 +178,7 @@ export function OnboardingModal({
       lastCombo = { modifiers: mods, key };
     };
 
-    const handleKeyUp = async (e: KeyboardEvent) => {
+    const handleKeyUp = (e: KeyboardEvent) => {
       e.preventDefault();
       const modKeys = ['Control', 'Meta', 'Alt', 'Shift'];
       if (!modKeys.includes(e.key)) return;
@@ -186,18 +186,20 @@ export function OnboardingModal({
       if (lastCombo && lastCombo.key) {
         const sc = [...lastCombo.modifiers, lastCombo.key].join('+');
         cleanup();
-        try {
-          await invoke('update_quick_note_shortcut', { shortcut: sc });
-          setShortcut(sc);
-          setShortcutSaved(true);
-        } catch (err) {
-          console.error('Shortcut save failed:', err);
-        }
+        void (async () => {
+          try {
+            await invoke('update_quick_note_shortcut', { shortcut: sc });
+            setShortcut(sc);
+            setShortcutSaved(true);
+          } catch (err) {
+            console.error('Shortcut save failed:', err);
+          }
+        })();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', (e) => void handleKeyUp(e));
+    document.addEventListener('keyup', handleKeyUp);
     timeoutId = setTimeout(cleanup, 10000);
   };
 

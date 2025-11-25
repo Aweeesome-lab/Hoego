@@ -2,10 +2,7 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: ['class'],
-  content: [
-    'index.html',
-    'src/**/*.{ts,tsx,html}',
-  ],
+  content: ['index.html', 'src/**/*.{ts,tsx,html}'],
   theme: {
     extend: {
       fontFamily: {
@@ -36,23 +33,39 @@ const config: Config = {
       },
       fontSize: {
         // Display
-        'display-lg': ['3rem', { lineHeight: '3.5rem', fontWeight: '700', letterSpacing: '-0.02em' }],
-        'display': ['2.25rem', { lineHeight: '2.75rem', fontWeight: '700', letterSpacing: '-0.02em' }],
-
+        'display-lg': [
+          '3rem',
+          { lineHeight: '3.5rem', fontWeight: '700', letterSpacing: '-0.02em' },
+        ],
+        display: [
+          '2.25rem',
+          {
+            lineHeight: '2.75rem',
+            fontWeight: '700',
+            letterSpacing: '-0.02em',
+          },
+        ],
         // Headings
-        'h1': ['2rem', { lineHeight: '2.5rem', fontWeight: '600', letterSpacing: '-0.01em' }],
-        'h2': ['1.5rem', { lineHeight: '2rem', fontWeight: '600', letterSpacing: '-0.01em' }],
-        'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
-        'h4': ['1.125rem', { lineHeight: '1.5rem', fontWeight: '600' }],
-
+        h1: [
+          '2rem',
+          { lineHeight: '2.5rem', fontWeight: '600', letterSpacing: '-0.01em' },
+        ],
+        h2: [
+          '1.5rem',
+          { lineHeight: '2rem', fontWeight: '600', letterSpacing: '-0.01em' },
+        ],
+        h3: ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+        h4: ['1.125rem', { lineHeight: '1.5rem', fontWeight: '600' }],
         // Body
         'body-lg': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '400' }],
-        'body': ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }],
+        body: ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }],
         'body-sm': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '400' }],
-
         // Caption
-        'caption': ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],
-        'caption-sm': ['0.6875rem', { lineHeight: '0.875rem', fontWeight: '400' }],
+        caption: ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],
+        'caption-sm': [
+          '0.6875rem',
+          { lineHeight: '0.875rem', fontWeight: '400' },
+        ],
       },
       colors: {
         matcha: {
@@ -71,86 +84,94 @@ const config: Config = {
         foreground: 'hsl(var(--foreground))',
         card: {
           DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+          foreground: 'hsl(var(--card-foreground))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+          foreground: 'hsl(var(--popover-foreground))',
         },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
+          foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))'
+        ring: 'hsl(var(--ring))',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' }
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' }
-        }
+          to: { height: '0' },
+        },
+        'checkbox-check': {
+          '0%': { transform: 'scale(0.5)', opacity: '0' },
+          '50%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'checkbox-check': 'checkbox-check 0.2s ease-out forwards',
       },
       typography: {
         DEFAULT: {
           css: {
             maxWidth: 'none',
             color: 'inherit',
-            // Task list checkbox (remark-gfm) - only target task-list-item
-            'li.task-list-item': {
-              listStyle: 'none !important',
-              paddingLeft: '0 !important',
-              marginLeft: '0 !important',
-            },
-            'li.task-list-item::before': {
-              content: 'none !important',
-              display: 'none !important',
-            },
-            'li.task-list-item::marker': {
-              content: 'none !important',
-            },
-            'li.task-list-item input[type="checkbox"]': {
-              marginTop: '0',
-              marginBottom: '0',
-              marginRight: '0.5rem',
-            },
+            // 인라인 코드 따옴표 제거
+            'code::before': { content: 'none' },
+            'code::after': { content: 'none' },
+          },
+        },
+        invert: {
+          css: {
+            '--tw-prose-body': 'hsl(var(--foreground))',
+            '--tw-prose-headings': 'hsl(var(--foreground))',
+            '--tw-prose-links': 'hsl(var(--primary))',
+            '--tw-prose-bold': 'hsl(var(--foreground))',
+            '--tw-prose-counters': 'hsl(var(--muted-foreground))',
+            '--tw-prose-bullets': 'hsl(var(--muted-foreground))',
+            '--tw-prose-hr': 'hsl(var(--border))',
+            '--tw-prose-quotes': 'hsl(var(--muted-foreground))',
+            '--tw-prose-quote-borders': 'hsl(var(--primary))',
+            '--tw-prose-captions': 'hsl(var(--muted-foreground))',
+            '--tw-prose-code': 'hsl(var(--foreground))',
+            '--tw-prose-pre-code': 'hsl(var(--foreground))',
+            '--tw-prose-pre-bg': '#1e1e1e',
+            '--tw-prose-th-borders': 'hsl(var(--border))',
+            '--tw-prose-td-borders': 'hsl(var(--border))',
           },
         },
       },
-    }
+    },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ]
+  plugins: [require('@tailwindcss/typography')],
 };
 
 export default config;

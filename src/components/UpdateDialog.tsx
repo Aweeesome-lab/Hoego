@@ -19,7 +19,9 @@ export function UpdateDialog() {
         </h3>
 
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          새 버전 <span className="font-mono font-bold">{updateInfo?.version}</span>이 있습니다.
+          새 버전{' '}
+          <span className="font-mono font-bold">{updateInfo?.version}</span>이
+          있습니다.
         </p>
 
         {updateInfo?.body && (
@@ -37,7 +39,7 @@ export function UpdateDialog() {
             나중에
           </button>
           <button
-            onClick={downloadAndInstall}
+            onClick={() => void downloadAndInstall()}
             disabled={downloading}
             className="px-4 py-2 text-sm bg-matcha text-white rounded hover:bg-matcha-dark disabled:opacity-50"
           >

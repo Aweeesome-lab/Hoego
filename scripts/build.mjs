@@ -28,7 +28,9 @@ function createSymlink({ binary, symlink }) {
   try {
     if (existsSync(symlink)) unlinkSync(symlink);
     symlinkSync(binary, symlink);
-  } catch (_) {}
+  } catch {
+    // Ignore symlink errors - not critical for build
+  }
 }
 
 function installApp() {

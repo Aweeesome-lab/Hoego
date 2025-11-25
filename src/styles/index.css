@@ -149,7 +149,9 @@
     background-color: transparent;
     cursor: pointer;
     flex-shrink: 0;
-    transition: border-color 0.15s, background-color 0.15s;
+    transition:
+      border-color 0.15s,
+      background-color 0.15s;
   }
 
   /* 호버 */

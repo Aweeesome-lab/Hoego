@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { checkUpdate, installUpdate } from '@tauri-apps/api/updater';
 import { relaunch } from '@tauri-apps/api/process';
+import { checkUpdate, installUpdate } from '@tauri-apps/api/updater';
+import { useState, useEffect, useCallback } from 'react';
 
 interface UpdateInfo {
   version: string;
@@ -77,10 +77,11 @@ export function useUpdater(): UseUpdaterReturn {
   // Check for updates on mount (after 3 second delay)
   useEffect(() => {
     const timer = setTimeout(() => {
-      checkForUpdate();
+      void checkForUpdate();
     }, 3000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
