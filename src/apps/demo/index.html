@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Viewer Demo - Hoego</title>
+    <style>
+      /* Prevent FOUC */
+      html { visibility: hidden; }
+      html.loaded { visibility: visible; }
+    </style>
+  </head>
+  <body>
+    <div id="demo-root"></div>
+    <script type="module" src="./demo.tsx"></script>
+    <script>document.documentElement.classList.add('loaded');</script>
+  </body>
+</html>
