@@ -99,6 +99,9 @@ export function useAiPipeline(targetDate?: string | null) {
    */
   const generateFeedback = useCallback(async () => {
     // Clear previous content and reset cancellation state
+    if (streamingCleanupRef.current) {
+      streamingCleanupRef.current();
+    }
     setStreamingAiText('');
     streamingBufferRef.current = '';
     isCancellingRef.current = false;

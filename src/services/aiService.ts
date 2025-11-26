@@ -209,8 +209,10 @@ export async function generateStructuredFeedback(
   }
 
   // Build user prompt with structured context (마스킹된 내용 사용)
-  let userPrompt = STRUCTURED_FEEDBACK_PROMPT;
-  userPrompt += `\n\n---\n\n## 분석 대상\n\n**오늘의 덤프:**\n${maskedDumpContent}`;
+  let userPrompt = STRUCTURED_FEEDBACK_PROMPT.replace(
+    '{content}',
+    maskedDumpContent
+  );
 
   // Add recent history with analysis instructions (마스킹된 히스토리 사용)
   if (maskedHistory && maskedHistory.length > 0) {
@@ -228,14 +230,7 @@ export async function generateStructuredFeedback(
     userPrompt += `\n**중요**: 위 데이터에서 **실제 발견한 구체적 패턴**만 언급하세요. 추측 금지.\n`;
   }
 
-  userPrompt += `\n\n---\n\n## 출력 요구사항\n\n`;
-  userPrompt += `반드시 5가지 섹션을 포함하세요:\n`;
-  userPrompt += `1. 📋 To-do (데이터 기반 즉시 실행 가능한 행동 2-3개)\n`;
-  userPrompt += `2. 💡 인사이트 (근본 원인 분석 2-3문장)\n`;
-  userPrompt += `3. 🔁 반복 패턴 (실제 데이터 비교, 없으면 생략)\n`;
-  userPrompt += `4. 🎯 개선 방향 (실질적이고 구체적인 중기 제안)\n`;
-  userPrompt += `5. 💬 제안 (인사이트 기반 넛지 1-2문장)\n\n`;
-  userPrompt += `**톤**: 전문적이지만 친근하게. 판단하지 않고 이해하는 태도.`;
+  // 톤앤매너 등은 System Prompt에서 처리하므로 여기서는 생략
 
   try {
     // Call AI API with stronger model for deeper analysis

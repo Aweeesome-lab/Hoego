@@ -58,41 +58,6 @@ export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
           : 'bg-slate-50/90 border-slate-200/50'
       )}
     >
-      <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-        {shortcuts.map((shortcut) => (
-          <div
-            key={shortcut.label}
-            className="flex items-center gap-1"
-            title={shortcut.title}
-          >
-            <span className={isDarkMode ? 'text-slate-300' : 'text-slate-500'}>
-              {shortcut.label}
-            </span>
-            <span
-              aria-hidden
-              className={cn(
-                'rounded border px-1 leading-none',
-                isDarkMode
-                  ? 'border-white/20 bg-white/5 text-slate-100'
-                  : 'border-slate-200 bg-white text-slate-600'
-              )}
-            >
-              ⌘
-            </span>
-            <span
-              className={cn(
-                'rounded border px-1 leading-none text-[10px]',
-                isDarkMode
-                  ? 'border-white/20 bg-white/5 text-slate-100'
-                  : 'border-slate-200 bg-white text-slate-600'
-              )}
-            >
-              {shortcut.key}
-            </span>
-          </div>
-        ))}
-      </div>
-
       <a
         href="https://www.threads.com/@nerd_makr"
         target="_blank"
