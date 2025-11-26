@@ -114,7 +114,7 @@
   .markdown-viewer li.task-list-item {
     list-style: none !important;
     display: flex !important;
-    align-items: baseline !important;
+    align-items: center !important;
     gap: 0.5em;
     /* 체크박스 아이템만 왼쪽으로 당기기 (bullet 공간 제거) */
     margin-left: -1.25em !important;
@@ -138,10 +138,8 @@
     margin: 0 !important;
     padding: 0 !important;
 
-    /* 정렬: baseline 맞춤 */
-    vertical-align: baseline !important;
+    /* 정렬: flex center로 정렬 */
     position: relative;
-    top: 0.1em;
 
     /* 스타일 */
     border: 2px solid hsl(var(--border));
