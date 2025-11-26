@@ -18,7 +18,7 @@
 'use client';
 
 import Prism from 'prismjs';
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -159,8 +159,11 @@ export function MarkdownViewer({
 
   const components = {
     // 체크박스 input을 커스텀 컴포넌트로 교체
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     input: (props: any) => {
       if (props.type === 'checkbox') {
+        // useContext를 조건문 밖에서 호출할 수 없으므로 별도 컴포넌트로 분리
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const { position } = React.useContext(ListItemContext);
         return (
           <TaskCheckbox

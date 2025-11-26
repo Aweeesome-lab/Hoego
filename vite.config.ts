@@ -21,7 +21,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          markdown: ['react-showdown', 'showdown', 'prismjs'],
+          markdown: ['react-markdown', 'remark-gfm', 'prismjs'],
         },
       },
     },

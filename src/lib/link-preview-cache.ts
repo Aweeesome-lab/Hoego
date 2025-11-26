@@ -195,7 +195,7 @@ function cleanupExpiredEntries(): void {
               keysToRemove.push(key);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Invalid JSON, remove it
           keysToRemove.push(key);
         }
@@ -217,7 +217,7 @@ function cleanupExpiredEntries(): void {
             const parsed: CachedLinkMetadata = JSON.parse(cached);
             remainingKeys.push({ key, timestamp: parsed.timestamp });
           }
-        } catch (error) {
+        } catch (_error) {
           // Ignore
         }
       }

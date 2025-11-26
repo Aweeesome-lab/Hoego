@@ -1,5 +1,6 @@
-import React from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
+import React from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface FooterProps {
@@ -116,7 +117,7 @@ export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
         )}
         aria-label="AI 설정"
         onMouseDown={handleMouseDown}
-        onClick={handleSettingsClick}
+        onClick={() => void handleSettingsClick()}
       >
         AI 설정
       </button>
