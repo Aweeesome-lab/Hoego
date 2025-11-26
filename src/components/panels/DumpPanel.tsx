@@ -52,9 +52,9 @@ export const DumpPanel = React.memo(function DumpPanel({
           setMarkdownContent(editingContent);
           setIsEditing(false);
 
-          if (import.meta.env.DEV) {
-            console.log('[DumpPanel] 편집 내용 저장 완료');
-          }
+          // Update markdown content on success
+          setMarkdownContent(editingContent);
+          setIsEditing(false);
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error('[DumpPanel] 편집 내용 저장 실패:', error);
@@ -107,9 +107,9 @@ export const DumpPanel = React.memo(function DumpPanel({
             setMarkdownContent(editingContent);
             setIsEditing(false);
 
-            if (import.meta.env.DEV) {
-              console.log('[DumpPanel] ESC로 편집 종료 및 저장 완료');
-            }
+            // Update markdown content on success
+            setMarkdownContent(editingContent);
+            setIsEditing(false);
           } catch (error) {
             if (import.meta.env.DEV) {
               console.error('[DumpPanel] ESC로 편집 종료 시 저장 실패:', error);
@@ -135,6 +135,34 @@ export const DumpPanel = React.memo(function DumpPanel({
     setMarkdownContent,
     setIsSaving,
   ]);
+
+  const handleContentChange = React.useCallback(
+    (newContent: string) => {
+      console.log('[DumpPanel] handleContentChange called', { newContentLength: newContent.length });
+      // Optimistic update: Update UI immediately for instant feedback
+      setMarkdownContent(newContent);
+
+      // Save in background
+      void (async () => {
+        try {
+          setIsSaving(true);
+          const { saveActiveDocument } = useDocumentStore.getState();
+          const saveResult = await saveActiveDocument(newContent);
+
+          if (!saveResult.success) {
+            throw new Error(saveResult.error || 'Save failed');
+          }
+        } catch (error) {
+          console.error('[DumpPanel] 체크박스 상태 저장 실패:', error);
+          toast.error('체크박스 상태 저장 실패');
+          // Note: Could implement rollback here if needed
+        } finally {
+          setIsSaving(false);
+        }
+      })();
+    },
+    [setIsSaving, setMarkdownContent]
+  );
 
   return (
     <section
@@ -208,6 +236,7 @@ export const DumpPanel = React.memo(function DumpPanel({
               content={dumpContent}
               isDarkMode={isDarkMode}
               className="px-10 py-6 pb-24"
+              onContentChange={handleContentChange}
             />
           </div>
         )}

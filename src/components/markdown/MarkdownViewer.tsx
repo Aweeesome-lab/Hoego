@@ -88,30 +88,16 @@ const PROSE_CLASSES = [
   'prose-hr:border-border',
 ].join(' ');
 
-/** 체크박스 토글을 위한 정규식 */
-const TASK_LIST_REGEX = /([-*+]\s+)\[([ xX])\]/g;
-
 // ============================================================================
-// Hooks
+// Contexts
 // ============================================================================
 
-/**
- * 체크박스 인덱스 카운터 훅
- * react-markdown의 컴포넌트 렌더링 시 체크박스 인덱스 추적
- */
-function useCheckboxIndexCounter() {
-  const indexRef = useRef(0);
+type Position = {
+  start: { line: number; column: number; offset: number };
+  end: { line: number; column: number; offset: number };
+};
 
-  const reset = useCallback(() => {
-    indexRef.current = 0;
-  }, []);
-
-  const getNextIndex = useCallback(() => {
-    return indexRef.current++;
-  }, []);
-
-  return { reset, getNextIndex };
-}
+const ListItemContext = React.createContext<{ position?: Position }>({});
 
 // ============================================================================
 // Component
@@ -124,12 +110,6 @@ export function MarkdownViewer({
   onContentChange,
 }: MarkdownViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { reset: resetCheckboxIndex, getNextIndex } = useCheckboxIndexCounter();
-
-  // 렌더링 전에 인덱스 리셋
-  useEffect(() => {
-    resetCheckboxIndex();
-  }, [content, resetCheckboxIndex]);
 
   // 렌더링 후 코드 하이라이팅
   useEffect(() => {
@@ -138,118 +118,118 @@ export function MarkdownViewer({
 
   // 체크박스 토글 핸들러
   const handleCheckboxChange = useCallback(
-    (checkboxIndex: number, newChecked: boolean) => {
-      if (!onContentChange) return;
+    (checked: boolean, position?: Position) => {
+      if (!onContentChange || !position) return;
 
       // 스크롤 위치 저장
       const scrollContainer = containerRef.current?.closest('.overflow-y-auto');
       const scrollTop = scrollContainer?.scrollTop ?? 0;
 
-      // 마크다운에서 해당 인덱스의 체크박스 토글
-      let currentIndex = 0;
-      const newContent = content.replace(
-        TASK_LIST_REGEX,
-        (match, prefix: string, _state: string) => {
-          if (currentIndex === checkboxIndex) {
-            currentIndex++;
-            const newState = newChecked ? 'x' : ' ';
-            return `${prefix}[${newState}]`;
-          }
-          currentIndex++;
-          return match;
+      // position.start.offset points to the start of the list item (e.g., "- [ ] ...")
+      // We need to find the checkbox bracket within this list item.
+      const startIndex = position.start.offset;
+      const searchContent = content.slice(startIndex);
+
+      // Find the first occurrence of [ ] or [x] or [X]
+      const match = searchContent.match(/\[([ xX])\]/);
+
+      if (match && match.index !== undefined) {
+        const absoluteIndex = startIndex + match.index;
+        const newState = checked ? 'x' : ' ';
+
+        const newContent = `${content.slice(
+          0,
+          absoluteIndex
+        )}[${newState}]${content.slice(absoluteIndex + 3)}`;
+
+        if (newContent !== content) {
+          onContentChange(newContent);
         }
-      );
-
-      if (newContent !== content) {
-        onContentChange(newContent);
-
-        // 스크롤 위치 복원
-        requestAnimationFrame(() => {
-          if (scrollContainer) {
-            scrollContainer.scrollTop = scrollTop;
-          }
-        });
       }
+
+      // 스크롤 위치 복원
+      requestAnimationFrame(() => {
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollTop;
+        }
+      });
     },
     [content, onContentChange]
   );
 
-  // react-markdown 컴포넌트 오버라이드
-  const components = useMemo(() => {
-    // 렌더링 시작 시 인덱스 리셋
-    resetCheckboxIndex();
-
-    return {
-      // 체크박스 input을 커스텀 컴포넌트로 교체
-      input: (props: React.InputHTMLAttributes<HTMLInputElement>) => {
-        if (props.type === 'checkbox') {
-          const index = getNextIndex();
-          return (
-            <TaskCheckbox
-              checked={props.checked}
-              index={index}
-              disabled={!onContentChange}
-              onChange={handleCheckboxChange}
-            />
-          );
-        }
-        return <input {...props} />;
-      },
-      // task-list-item li 스타일링
-      li: ({
-        className: liClassName,
-        children,
-        ...props
-      }: React.LiHTMLAttributes<HTMLLIElement> & { className?: string }) => {
-        // task-list-item 클래스가 있으면 특별 스타일 적용
-        const isTaskItem = liClassName?.includes('task-list-item');
-
+  const components = {
+    // 체크박스 input을 커스텀 컴포넌트로 교체
+    input: (props: any) => {
+      if (props.type === 'checkbox') {
+        const { position } = React.useContext(ListItemContext);
         return (
-          <li
-            className={cn(
-              liClassName,
-              isTaskItem && [
-                '!list-none',
-                '!pl-0',
-                '!ml-0',
-                'flex items-start gap-2',
-              ]
-            )}
-            {...props}
-          >
-            {children}
-          </li>
+          <TaskCheckbox
+            checked={props.checked}
+            disabled={!onContentChange}
+            onChange={(checked) => handleCheckboxChange(checked, position)}
+          />
         );
-      },
-      // 코드 블록에 언어 클래스 추가
-      code: ({
-        className: codeClassName,
-        children,
-        ...props
-      }: React.HTMLAttributes<HTMLElement> & { className?: string }) => {
-        // inline code vs code block 구분
-        const match = /language-(\w+)/.exec(codeClassName || '');
-        const isInline = !match;
+      }
+      return <input {...props} />;
+    },
+    // task-list-item li 스타일링
+    li: ({ className: liClassName, children, ...props }: any) => {
+      // task-list-item 클래스가 있으면 특별 스타일 적용
+      const isTaskItem = liClassName?.includes('task-list-item');
+      const position = props.node?.position;
 
-        if (isInline) {
-          return (
-            <code className={codeClassName} {...props}>
-              {children}
-            </code>
-          );
-        }
+      const liElement = (
+        <li
+          className={cn(
+            liClassName,
+            isTaskItem && [
+              '!list-none',
+              '!pl-0',
+              '!ml-0',
+              'flex items-start gap-2',
+            ]
+          )}
+          {...props}
+        >
+          {children}
+        </li>
+      );
 
+      if (isTaskItem) {
         return (
-          <code
-            className={cn(codeClassName, `language-${match[1]}`)}
-            {...props}
-          >
+          <ListItemContext.Provider value={{ position }}>
+            {liElement}
+          </ListItemContext.Provider>
+        );
+      }
+
+      return liElement;
+    },
+    // 코드 블록에 언어 클래스 추가
+    code: ({
+      className: codeClassName,
+      children,
+      ...props
+    }: React.HTMLAttributes<HTMLElement> & { className?: string }) => {
+      // inline code vs code block 구분
+      const match = /language-(\w+)/.exec(codeClassName || '');
+      const isInline = !match;
+
+      if (isInline) {
+        return (
+          <code className={codeClassName} {...props}>
             {children}
           </code>
         );
-      },
-    };
-  }, [resetCheckboxIndex, getNextIndex, onContentChange, handleCheckboxChange]);
+      }
+
+      return (
+        <code className={cn(codeClassName, `language-${match[1]}`)} {...props}>
+          {children}
+        </code>
+      );
+    },
+  };
 
   return (
     <div

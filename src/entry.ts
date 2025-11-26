@@ -1,7 +1,7 @@
 // Entry selector for multi-window app using a single HTML.
 // Decides which bundle to load based on URL hash.
 
-type WindowMode = 'main' | 'history' | 'settings';
+type WindowMode = 'main' | 'history' | 'settings' | 'demo';
 
 const getWindowMode = (): WindowMode => {
   try {
@@ -10,6 +10,7 @@ const getWindowMode = (): WindowMode => {
 
     if (hash === '#history') return 'history';
     if (hash === '#settings') return 'settings';
+    if (hash === '#demo') return 'demo';
 
     return 'main';
   } catch {
@@ -40,6 +41,17 @@ async function bootstrap() {
         document.body.appendChild(root);
       }
       await import('./apps/settings/settings');
+      break;
+    }
+
+    case 'demo': {
+      // Create React root for demo window
+      if (!document.getElementById('demo-root')) {
+        const root = document.createElement('div');
+        root.id = 'demo-root';
+        document.body.appendChild(root);
+      }
+      await import('./apps/demo/demo');
       break;
     }
 

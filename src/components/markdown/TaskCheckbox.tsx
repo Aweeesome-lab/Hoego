@@ -1,15 +1,3 @@
-/**
- * TaskCheckbox Component
- *
- * 마크다운 태스크 리스트용 커스텀 체크박스 컴포넌트
- * react-markdown의 컴포넌트 교체 방식으로 사용
- *
- * Features:
- * - 애니메이션 효과 (체크마크 draw, 배경색 transition)
- * - Lucide 아이콘 사용
- * - 접근성 지원 (keyboard navigation, aria labels)
- */
-
 'use client';
 
 import { Check } from 'lucide-react';
@@ -29,7 +17,7 @@ export interface TaskCheckboxProps {
   /** 읽기 전용 모드 */
   disabled?: boolean;
   /** 체크 상태 변경 콜백 */
-  onChange?: (index: number, checked: boolean) => void;
+  onChange?: (checked: boolean, index?: number) => void;
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -40,7 +28,7 @@ export interface TaskCheckboxProps {
 
 export function TaskCheckbox({
   checked = false,
-  index = 0,
+  index,
   disabled = false,
   onChange,
   className,
@@ -50,14 +38,14 @@ export function TaskCheckbox({
     e.stopPropagation();
 
     if (disabled || !onChange) return;
-    onChange(index, !checked);
+    onChange(!checked, index);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       if (disabled || !onChange) return;
-      onChange(index, !checked);
+      onChange(!checked, index);
     }
   };
 

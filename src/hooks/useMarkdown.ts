@@ -1,7 +1,11 @@
+/**
+ * useMarkdown Hook
+ *
+ * 마크다운 콘텐츠 로드, 저장, 동기화를 관리하는 훅
+ */
+
 import { useState, useRef, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
-
-import type { Point, Position } from 'unist';
 
 import { getTodayMarkdown } from '@/lib/tauri';
 import { useAppStore } from '@/store';
@@ -44,9 +48,8 @@ export function useMarkdown() {
         const rawLine = lines[i];
         if (!rawLine) continue;
         const trimmedLine = rawLine.trim();
-        if (!trimmedLine) {
-          continue;
-        }
+        if (!trimmedLine) continue;
+
         const bulletMatch = trimmedLine.match(/\((\d{2}):(\d{2}):\d{2}\)\s*$/);
         if (trimmedLine.startsWith('- ') && bulletMatch) {
           latestMinute = `${bulletMatch[1]}:${bulletMatch[2]}`;
@@ -66,187 +69,14 @@ export function useMarkdown() {
         }
       }, 100);
     } catch (error) {
-      if (import.meta.env.DEV)
+      if (import.meta.env.DEV) {
         console.error('[hoego] 마크다운 로드 실패', error);
+      }
       toast.error(
-        `마크다운 로드 실패: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        `마크다운 로드 실패: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }, [setMarkdownContent]);
-
-  const getOffsetFromPoint = useCallback(
-    (point?: Point | null) => {
-      if (
-        !point ||
-        typeof point.line !== 'number' ||
-        typeof point.column !== 'number'
-      ) {
-        return null;
-      }
-
-      const lines = markdownContent.split('\n');
-      const lineIndex = Math.max(point.line - 1, 0);
-
-      let offset = 0;
-      for (let i = 0; i < lineIndex && i < lines.length; i += 1) {
-        offset += (lines[i]?.length ?? 0) + 1;
-      }
-
-      const columnIndex = Math.max(point.column - 1, 0);
-      if (lineIndex < lines.length) {
-        const currentLine = lines[lineIndex] ?? '';
-        offset += Math.min(columnIndex, currentLine.length);
-      } else {
-        offset += columnIndex;
-      }
-
-      return offset;
-    },
-    [markdownContent]
-  );
-
-  const resolveOffsets = useCallback(
-    (position?: Position | null) => {
-      if (!position) {
-        return null;
-      }
-
-      const startOffset =
-        typeof position.start?.offset === 'number'
-          ? position.start.offset
-          : getOffsetFromPoint(position.start);
-      const endOffset =
-        typeof position.end?.offset === 'number'
-          ? position.end.offset
-          : getOffsetFromPoint(position.end);
-
-      if (
-        typeof startOffset !== 'number' ||
-        typeof endOffset !== 'number' ||
-        startOffset >= endOffset
-      ) {
-        return null;
-      }
-
-      return { startOffset, endOffset };
-    },
-    [getOffsetFromPoint]
-  );
-
-  const handleTaskCheckboxToggle = useCallback(
-    async (listItem: { position?: Position | null }, nextChecked: boolean) => {
-      if (import.meta.env.DEV) {
-        console.log('[hoego] handleTaskCheckboxToggle called', {
-          listItem,
-          nextChecked,
-          isSaving,
-        });
-      }
-
-      if (isSaving) {
-        if (import.meta.env.DEV) {
-          console.warn('[hoego] 저장 중이므로 체크박스 토글 무시');
-        }
-        return;
-      }
-
-      const offsets = resolveOffsets(listItem?.position ?? null);
-      if (!offsets) {
-        if (import.meta.env.DEV) {
-          console.warn('[hoego] 체크박스 위치를 찾을 수 없습니다', {
-            position: listItem?.position,
-            markdownContentLength: markdownContent.length,
-          });
-        }
-        toast.error('체크박스 위치를 찾을 수 없습니다');
-        return;
-      }
-
-      const previousContent = markdownContent;
-      const { startOffset, endOffset } = offsets;
-      const slice = previousContent.slice(startOffset, endOffset);
-
-      // Improved regex to match all checkbox formats: [ ], [x], [X]
-      const checkboxRegex = /\[(\s|x|X)\]/;
-      const match = slice.match(checkboxRegex);
-
-      if (!match) {
-        if (import.meta.env.DEV) {
-          console.warn('[hoego] 체크박스 마크다운을 찾을 수 없습니다:', slice);
-        }
-        return;
-      }
-
-      // Replace with the appropriate checkbox state
-      const updatedSlice = slice.replace(
-        checkboxRegex,
-        nextChecked ? '[x]' : '[ ]'
-      );
-
-      if (slice === updatedSlice) {
-        return;
-      }
-
-      const nextContent =
-        previousContent.slice(0, startOffset) +
-        updatedSlice +
-        previousContent.slice(endOffset);
-
-      if (nextContent === previousContent) {
-        return;
-      }
-
-      // Optimistic update: Update UI immediately
-      setMarkdownContent(nextContent);
-
-      // Also update documentStore content for consistency
-      const documentStore = useDocumentStore.getState();
-      if (documentStore.activeDocument) {
-        documentStore.updateContent(nextContent);
-      }
-
-      try {
-        setIsSaving(true);
-        // Save to the correct file using documentStore
-        const saveResult = await documentStore.saveActiveDocument(nextContent);
-
-        if (!saveResult.success) {
-          throw new Error(saveResult.error || 'Save failed');
-        }
-
-        lastSavedRef.current = nextContent;
-
-        if (import.meta.env.DEV) {
-          console.log('[hoego] 체크박스 상태 저장 완료');
-        }
-      } catch (error) {
-        // Revert on error
-        setMarkdownContent(previousContent);
-
-        // Revert documentStore as well
-        if (documentStore.activeDocument) {
-          documentStore.updateContent(previousContent);
-        }
-
-        lastSavedRef.current = previousContent;
-
-        if (import.meta.env.DEV) {
-          console.error('[hoego] 체크박스 상태 저장 실패:', error);
-        }
-
-        toast.error(
-          `체크박스 업데이트 실패: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [isSaving, markdownContent, resolveOffsets, setMarkdownContent, setIsSaving]
-  );
 
   // 수동 동기화 핸들러
   const handleManualSync = useCallback(async () => {
@@ -274,7 +104,7 @@ export function useMarkdown() {
       clearTimeout(debounceIdRef.current);
     }
 
-    // Set new timeout for auto-save
+    // Set new timeout for auto-save (2초 디바운스)
     debounceIdRef.current = window.setTimeout(() => {
       void (async () => {
         try {
@@ -298,15 +128,13 @@ export function useMarkdown() {
             console.error('[hoego] 자동 저장 실패:', error);
           }
           toast.error(
-            `자동 저장 실패: ${
-              error instanceof Error ? error.message : String(error)
-            }`
+            `자동 저장 실패: ${error instanceof Error ? error.message : String(error)}`
           );
         } finally {
           setIsSaving(false);
         }
       })();
-    }, 2000); // 2초 디바운스
+    }, 2000);
 
     return () => {
       if (debounceIdRef.current) {
@@ -344,7 +172,6 @@ export function useMarkdown() {
     isSyncing,
     lastSavedRef,
     loadMarkdown,
-    handleTaskCheckboxToggle,
     handleManualSync,
   };
 }

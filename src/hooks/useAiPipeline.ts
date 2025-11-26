@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 
+import { getSelectedModelOption } from '@/lib/model-selection';
 import {
   cancelAiFeedbackStream,
   generateAiFeedbackStream,
   listAiSummaries,
 } from '@/lib/tauri';
-import { getSelectedModelOption } from '@/lib/model-selection';
 import { useAppStore } from '@/store';
 
 const DEFAULT_AI_SUMMARY_LIMIT = 10;
@@ -247,7 +247,9 @@ export function useAiPipeline(targetDate?: string | null) {
     // 모델 선택 여부 체크
     const selectedModel = await getSelectedModelOption();
     if (!selectedModel || !selectedModel.isAvailable) {
-      toast.error('선택된 AI 모델이 없습니다. 설정에서 모델을 다운로드해주세요.');
+      toast.error(
+        '선택된 AI 모델이 없습니다. 설정에서 모델을 다운로드해주세요.'
+      );
       return;
     }
 
