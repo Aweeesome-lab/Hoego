@@ -183,14 +183,9 @@ pub async fn generate_ai_feedback_stream(
         eprintln!("[PII Masking] Failed to emit masking stats: {}", e);
     }
 
-    // 프롬프트 구성 (모델 타입에 따라 선택)
-    let prompt = if use_cloud_llm {
-        eprintln!("[Prompt Selection] Using cloud prompt (deep cognitive analysis)");
-        llm::prompts::PromptTemplate::for_business_journal_coach(&masked_content)
-    } else {
-        eprintln!("[Prompt Selection] Using local prompt (simplified 3-section)");
-        llm::prompts::PromptTemplate::for_local_model(&masked_content)
-    };
+    // 프롬프트 구성 (v7.0 통합 프롬프트 - 로컬/클라우드 동일)
+    eprintln!("[Prompt Selection] Using unified research-based prompt (v7.0)");
+    let prompt = llm::prompts::PromptTemplate::for_unified_feedback(&masked_content);
     let chat_messages = prompt.to_chat_format();
 
     // 모델별 처리 및 결과 반환
