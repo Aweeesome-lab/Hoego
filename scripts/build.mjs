@@ -45,7 +45,7 @@ function installApp() {
     }
     execSync(`cp -R "${appPath}" "${destPath}"`, { stdio: 'pipe' });
     console.log('✓ Installed to /Applications');
-  } catch (_) {
+  } catch (error) {
     console.log('⚠ Install failed (permission?)');
   }
 }
@@ -68,7 +68,7 @@ function convertDmg() {
     });
     unlinkSync(rwPath);
     return finalPath;
-  } catch (_) {
+  } catch (error) {
     return null;
   }
 }
@@ -79,12 +79,15 @@ console.log('\n🔨 Building Hoego...\n');
 BINARIES.forEach(createSymlink);
 
 try {
-  execSync('tauri build 2>&1 | grep -v -E "(^\\s*Warn|bundle_dmg\\.sh|^\\s*Error failed to bundle)"', {
-    stdio: 'inherit',
-    cwd: rootDir,
-    shell: true,
-  });
-} catch (_) {
+  execSync(
+    'tauri build 2>&1 | grep -v -E "(^\\s*Warn|bundle_dmg\\.sh|^\\s*Error failed to bundle)"',
+    {
+      stdio: 'inherit',
+      cwd: rootDir,
+      shell: true,
+    }
+  );
+} catch (error) {
   // DMG bundling may fail, but we handle it
 }
 
