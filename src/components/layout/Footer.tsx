@@ -8,34 +8,6 @@ interface FooterProps {
 }
 
 export const Footer = React.memo(function Footer({ isDarkMode }: FooterProps) {
-  const shortcuts = [
-    {
-      label: '오버레이',
-      key: 'O',
-      title: '오버레이 열기/닫기',
-    },
-    {
-      label: '편집',
-      key: 'E',
-      title: '편집 모드 토글',
-    },
-    {
-      label: 'AI 패널',
-      key: 'A',
-      title: 'AI 패널 토글',
-    },
-    {
-      label: '회고',
-      key: 'R',
-      title: '회고 패널 토글',
-    },
-    {
-      label: '히스토리',
-      key: 'H',
-      title: '히스토리 보기',
-    },
-  ] as const;
-
   const handleSettingsClick = React.useCallback(async () => {
     try {
       await invoke('open_llm_settings');
