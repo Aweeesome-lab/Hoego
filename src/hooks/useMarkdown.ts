@@ -121,7 +121,7 @@ export function useMarkdown() {
           lastSavedRef.current = editingContent;
 
           if (import.meta.env.DEV) {
-            console.log('[hoego] 자동 저장 완료');
+            // console.log('[hoego] 자동 저장 완료');
           }
         } catch (error) {
           if (import.meta.env.DEV) {

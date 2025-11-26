@@ -144,7 +144,6 @@ function DemoApp() {
   // 체크박스 토글 핸들러
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    console.log('[Demo] Content updated - checkbox toggled');
   };
 
   return (

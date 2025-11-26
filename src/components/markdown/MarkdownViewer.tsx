@@ -176,6 +176,7 @@ export function MarkdownViewer({
       return <input {...props} />;
     },
     // task-list-item li 스타일링
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     li: ({ className: liClassName, children, ...props }: any) => {
       // task-list-item 클래스가 있으면 특별 스타일 적용
       const isTaskItem = liClassName?.includes('task-list-item');

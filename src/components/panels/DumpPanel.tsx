@@ -138,9 +138,6 @@ export const DumpPanel = React.memo(function DumpPanel({
 
   const handleContentChange = React.useCallback(
     (newContent: string) => {
-      console.log('[DumpPanel] handleContentChange called', {
-        newContentLength: newContent.length,
-      });
       // Optimistic update: Update UI immediately for instant feedback
       setMarkdownContent(newContent);
 

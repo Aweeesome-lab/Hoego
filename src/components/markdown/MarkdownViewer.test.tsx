@@ -21,7 +21,9 @@ describe('MarkdownViewer - task checkboxes', () => {
 
     const checkboxes = await screen.findAllByRole('checkbox');
     expect(checkboxes[0]).toBeDefined();
-    await user.click(checkboxes[0]!);
+    if (checkboxes[0]) {
+      await user.click(checkboxes[0]);
+    }
 
     expect(onContentChange).toHaveBeenCalledWith(
       ['- [x] 첫 번째 작업', '- [x] 두 번째 작업'].join('\n')
@@ -81,7 +83,9 @@ describe('MarkdownViewer - task checkboxes', () => {
 
     // 레벨 3 (인덱스 2) 클릭
     expect(checkboxes[2]).toBeDefined();
-    await user.click(checkboxes[2]!);
+    if (checkboxes[2]) {
+      await user.click(checkboxes[2]);
+    }
 
     expect(onContentChange).toHaveBeenCalledWith(
       [
