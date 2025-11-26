@@ -158,7 +158,7 @@ impl LlamaCppEngine {
 
         #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
         {
-            let embedded_binary = include_bytes!("../../binaries/placeholder");
+            let embedded_binary = include_bytes!("../../../binaries/placeholder");
             std::fs::write(target_path, embedded_binary)?;
 
             #[cfg(unix)]
