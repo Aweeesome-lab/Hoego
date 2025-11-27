@@ -16,7 +16,7 @@ interface UseAppShortcutsProps {
   appendTimestampToLine: (line: string) => string;
   saveTodayMarkdown: (content: string) => Promise<void>;
   lastSavedRef: React.MutableRefObject<string>;
-  loadMarkdown: () => Promise<void>;
+  loadMarkdown: (scrollToBottom?: boolean) => Promise<void>;
   setIsSaving: (isSaving: boolean) => void;
   markdownContent: string;
 }

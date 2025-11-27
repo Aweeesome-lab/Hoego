@@ -7,7 +7,7 @@ import { CloudLLMClient } from '@/lib/cloud-llm';
 import { onHistoryUpdated, saveMiniModePosition } from '@/lib/tauri';
 
 interface UseAppEffectsProps {
-  loadMarkdown: () => Promise<void>;
+  loadMarkdown: (scrollToBottom?: boolean) => Promise<void>;
   loadAiSummaries: () => Promise<void>;
   loadHistoryFiles: () => Promise<void>;
   currentHistoryDate: string | null;
@@ -93,7 +93,8 @@ export function useAppEffects({
       // 히스토리 모드가 아닐 때만 오늘 dump 로드
       // 히스토리 모드에서는 이미 해당 날짜의 콘텐츠가 로드되어 있음
       if (!currentHistoryDateRef.current) {
-        void loadMarkdownRef.current();
+        // 외부 업데이트 시에는 스크롤을 맨 아래로 내리지 않음
+        void loadMarkdownRef.current(false);
       }
       void loadAiSummariesRef.current();
     }).then((unsub) => {

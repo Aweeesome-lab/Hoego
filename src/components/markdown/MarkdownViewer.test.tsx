@@ -96,4 +96,19 @@ describe('MarkdownViewer - task checkboxes', () => {
       ].join('\n')
     );
   });
+
+  it('중첩된 리스트가 있는 경우 올바른 레이아웃 클래스를 적용한다', () => {
+    const content = ['- [ ] 상위 항목', '  - [ ] 하위 항목'].join('\n');
+
+    render(<MarkdownViewer content={content} />);
+
+    // 상위 항목 li 찾기
+    const listItems = screen.getAllByRole('listitem');
+    // 첫 번째 li가 상위 항목 (순서상 먼저 렌더링됨)
+    const parentItem = listItems[0];
+
+    expect(parentItem).toHaveClass('flex-wrap');
+    expect(parentItem).toHaveClass('[&>ul]:w-full');
+    expect(parentItem).toHaveClass('[&>ul]:ml-6');
+  });
 });

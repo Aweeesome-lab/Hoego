@@ -32,51 +32,58 @@ export function useMarkdown() {
   const debounceIdRef = useRef<number | null>(null);
 
   // 마크다운 로드 함수
-  const loadMarkdown = useCallback(async () => {
-    try {
-      const data = await getTodayMarkdown();
-      setMarkdownContent(data.content);
-      lastSavedRef.current = data.content;
+  const loadMarkdown = useCallback(
+    async (scrollToBottom = true) => {
+      try {
+        const data = await getTodayMarkdown();
+        setMarkdownContent(data.content);
+        lastSavedRef.current = data.content;
 
-      // Initialize documentStore with today's document
-      await useDocumentStore.getState().loadToday();
+        // Initialize documentStore with today's document
+        await useDocumentStore.getState().loadToday();
 
-      // 마지막 시간 추출
-      const lines = data.content.split('\n');
-      let latestMinute = '';
-      for (let i = lines.length - 1; i >= 0; i--) {
-        const rawLine = lines[i];
-        if (!rawLine) continue;
-        const trimmedLine = rawLine.trim();
-        if (!trimmedLine) continue;
+        // 마지막 시간 추출
+        const lines = data.content.split('\n');
+        let latestMinute = '';
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const rawLine = lines[i];
+          if (!rawLine) continue;
+          const trimmedLine = rawLine.trim();
+          if (!trimmedLine) continue;
 
-        const bulletMatch = trimmedLine.match(/\((\d{2}):(\d{2}):\d{2}\)\s*$/);
-        if (trimmedLine.startsWith('- ') && bulletMatch) {
-          latestMinute = `${bulletMatch[1]}:${bulletMatch[2]}`;
-          break;
+          const bulletMatch = trimmedLine.match(
+            /\((\d{2}):(\d{2}):\d{2}\)\s*$/
+          );
+          if (trimmedLine.startsWith('- ') && bulletMatch) {
+            latestMinute = `${bulletMatch[1]}:${bulletMatch[2]}`;
+            break;
+          }
+          if (trimmedLine.startsWith('## ')) {
+            latestMinute = trimmedLine.replace('## ', '').trim();
+            break;
+          }
         }
-        if (trimmedLine.startsWith('## ')) {
-          latestMinute = trimmedLine.replace('## ', '').trim();
-          break;
+        setLastMinute(latestMinute);
+
+        // 스크롤을 맨 아래로
+        if (scrollToBottom) {
+          setTimeout(() => {
+            if (markdownRef.current) {
+              markdownRef.current.scrollTop = markdownRef.current.scrollHeight;
+            }
+          }, 100);
         }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[hoego] 마크다운 로드 실패', error);
+        }
+        toast.error(
+          `마크다운 로드 실패: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
-      setLastMinute(latestMinute);
-
-      // 스크롤을 맨 아래로
-      setTimeout(() => {
-        if (markdownRef.current) {
-          markdownRef.current.scrollTop = markdownRef.current.scrollHeight;
-        }
-      }, 100);
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[hoego] 마크다운 로드 실패', error);
-      }
-      toast.error(
-        `마크다운 로드 실패: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }, [setMarkdownContent]);
+    },
+    [setMarkdownContent]
+  );
 
   // 수동 동기화 핸들러
   const handleManualSync = useCallback(async () => {

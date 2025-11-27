@@ -19,7 +19,7 @@ interface UseAppHandlersOptions {
   lastMinute: string;
   setLastMinute: (value: string) => void;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
-  loadMarkdown: () => Promise<void>;
+  loadMarkdown: (scrollToBottom?: boolean) => Promise<void>;
   isSyncing: boolean;
   setIsSyncing: (value: boolean) => void;
   currentHistoryDate: string | null;

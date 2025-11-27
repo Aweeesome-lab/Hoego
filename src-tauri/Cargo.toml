@@ -1,9 +1,10 @@
 [package]
 name = "hoego"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "AI-powered journaling and retrospective app with Dump-Feedback-Retrospect workflow"
 authors = ["Tony"]
+default-run = "hoego"
 
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
@@ -59,6 +60,6 @@ required-features = ["llm-smoke"]
 name = "hoego"
 path = "src/main.rs"
 
-[[bin]]
-name = "hoego-cli"
-path = "src/bin/hoego_cli.rs"
+# [[bin]]
+# name = "hoego-cli"
+# path = "src/bin/hoego_cli.rs"

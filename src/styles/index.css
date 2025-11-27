@@ -116,9 +116,20 @@
     display: flex !important;
     align-items: center !important;
     gap: 0.5em;
-    /* 체크박스 아이템만 왼쪽으로 당기기 (bullet 공간 제거) */
-    margin-left: -1.25em !important;
     padding-left: 0 !important;
+  }
+
+  /* 최상위 레벨의 task-list-item만 왼쪽으로 당기기 (bullet 공간 제거) */
+  .markdown-viewer > ul > li.task-list-item,
+  .markdown-viewer > ol > li.task-list-item {
+    margin-left: -1.25em !important;
+  }
+
+  /* 중첩된 리스트는 들여쓰기 유지 */
+  .markdown-viewer li.task-list-item ul,
+  .markdown-viewer li.task-list-item ol {
+    margin-left: 0.25rem !important;
+    margin-top: 0 !important;
   }
 
   /* 체크박스 */

@@ -18,7 +18,7 @@
 'use client';
 
 import Prism from 'prismjs';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -103,17 +103,38 @@ const ListItemContext = React.createContext<{ position?: Position }>({});
 // Component
 // ============================================================================
 
-export function MarkdownViewer({
+export const MarkdownViewer = React.memo(function MarkdownViewer({
   content,
   className,
   isDarkMode = false,
   onContentChange,
 }: MarkdownViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRestorationRef = useRef<number | null>(null);
 
-  // 렌더링 후 코드 하이라이팅
-  useEffect(() => {
+  // 렌더링 후 코드 하이라이팅 및 스크롤 복원
+  // useLayoutEffect를 사용하여 페인트 전에 처리 (깜빡임 방지 및 스크롤 위치 보정)
+  React.useLayoutEffect(() => {
+    console.log(
+      '[MarkdownViewer] useLayoutEffect - scrollRestorationRef:',
+      scrollRestorationRef.current
+    );
+
+    // 1. 코드 하이라이팅 적용 (DOM 변경 발생 가능)
     Prism.highlightAll();
+
+    // 2. 스크롤 위치 복원
+    if (scrollRestorationRef.current !== null) {
+      const scrollContainer = containerRef.current?.closest('.overflow-y-auto');
+      if (scrollContainer) {
+        console.log(
+          '[MarkdownViewer] Restoring scroll to:',
+          scrollRestorationRef.current
+        );
+        scrollContainer.scrollTop = scrollRestorationRef.current;
+      }
+      scrollRestorationRef.current = null;
+    }
   }, [content]);
 
   // 체크박스 토글 핸들러
@@ -123,7 +144,13 @@ export function MarkdownViewer({
 
       // 스크롤 위치 저장
       const scrollContainer = containerRef.current?.closest('.overflow-y-auto');
-      const scrollTop = scrollContainer?.scrollTop ?? 0;
+      if (scrollContainer) {
+        scrollRestorationRef.current = scrollContainer.scrollTop;
+        console.log(
+          '[MarkdownViewer] Checkbox toggled, saved scroll position:',
+          scrollRestorationRef.current
+        );
+      }
 
       // position.start.offset points to the start of the list item (e.g., "- [ ] ...")
       // We need to find the checkbox bracket within this list item.
@@ -146,13 +173,6 @@ export function MarkdownViewer({
           onContentChange(newContent);
         }
       }
-
-      // 스크롤 위치 복원
-      requestAnimationFrame(() => {
-        if (scrollContainer) {
-          scrollContainer.scrollTop = scrollTop;
-        }
-      });
     },
     [content, onContentChange]
   );
@@ -190,7 +210,10 @@ export function MarkdownViewer({
               '!list-none',
               '!pl-0',
               '!ml-0',
-              'flex items-start gap-2',
+              'flex flex-wrap items-start gap-2',
+              // 중첩 리스트 스타일링
+              '[&>ul]:w-full [&>ul]:ml-8 [&>ul]:mt-2',
+              '[&>ol]:w-full [&>ol]:ml-8 [&>ol]:mt-2',
             ]
           )}
           {...props}
@@ -252,4 +275,4 @@ export function MarkdownViewer({
       </Markdown>
     </div>
   );
-}
+});
