@@ -1,6 +1,6 @@
 [package]
 name = "hoego"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "AI-powered journaling and retrospective app with Dump-Feedback-Retrospect workflow"
 authors = ["Tony"]
